@@ -473,3 +473,6 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 
 /* ----- Meal estimate ----- */
 .est-status { margin: 6px 0 0; }
+
+/* ----- "New version" bar ----- */
+.update-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); font-weight: 700; }

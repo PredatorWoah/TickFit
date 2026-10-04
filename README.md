@@ -161,6 +161,10 @@ To run it on your computer: `python3 -m http.server 8000`, then open http://loca
 
 All paths in the app are relative, so it works under any `/REPO-NAME/` address.
 
+## Updates (why a deploy shows up straight away)
+
+GitHub Pages lets browsers keep each file for 10 minutes, so a plain refresh could show the old app (or a mix of old and new files) for a while after a deploy. To avoid that, the deploy workflow runs `node scripts/stamp.mjs`, which adds the commit ID to every file URL in the `_site` copy (`app.js?v=abc1234`). Your source files are never changed. The service worker also asks the server before reusing a file, an installed app that is resumed (not reloaded) gets a "TickFit has a new version, Reload" bar, and **More > App version > Update TickFit now** forces the newest files without touching your data.
+
 ## Tests
 
 ```

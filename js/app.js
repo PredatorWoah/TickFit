@@ -19,6 +19,7 @@ import { renderBuild } from './build.js';
 import { applyTheme } from './theme.js';
 import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
+import { showUpdateBanner } from './update.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -133,10 +134,21 @@ function showBackupNudge() {
   );
 }
 
-/** Offline support. The service worker caches the app after the first visit. */
+/** Offline support. The service worker caches the app after the first visit and keeps it up to date. */
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
-  const register = () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Service worker failed:', e));
+  // When a newer version takes over from one that was already running, offer a reload (never reloads on its own).
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => hadController && showUpdateBanner());
+
+  const register = () =>
+    navigator.serviceWorker
+      .register('sw.js', { updateViaCache: 'none' }) // always check the server for a new sw.js
+      .then((reg) => {
+        // An installed app is often just resumed, not reloaded, so also look for updates when it comes back.
+        document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && reg.update().catch(() => {}));
+      })
+      .catch((e) => console.warn('Service worker failed:', e));
   // By the time we get here the page may already be loaded, so don't wait for an event that has passed.
   if (document.readyState === 'complete') register();
   else window.addEventListener('load', register);
