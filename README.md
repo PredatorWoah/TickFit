@@ -25,6 +25,7 @@
 - **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
 - **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
 - **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
+- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, your heaviest lift per exercise (with new bests), and daily averages for calories, protein and water. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
 - **Keeps your data safe:** asks the browser to protect your data, reminds you to back up, and makes moving to a new phone easy (see below).

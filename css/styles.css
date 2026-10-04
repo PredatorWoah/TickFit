@@ -411,3 +411,31 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ----- Weekly / monthly summary (Progress) ----- */
+.sum { margin-top: 16px; }
+.sum-hero { text-align: center; padding: 6px 0 2px; }
+.sum-hero-num { font-size: 56px; font-weight: 900; letter-spacing: -0.04em; line-height: 1.05; color: var(--accent); font-variant-numeric: tabular-nums; }
+.sum-hero-label { color: var(--muted); font-size: 14px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.sum-bars { display: flex; align-items: flex-end; gap: 6px; height: 84px; margin: 16px 0 4px; }
+.sum-bars.month { gap: 2px; }
+.sum-bar-col { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.sum-bar { width: 100%; border-radius: 6px; background: var(--surface-2); }
+.sum-bar.on { background: var(--accent); }
+.sum-bar-days { display: flex; gap: 6px; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.sum-bar-days span { flex: 1; text-align: center; }
+.sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.sum-tile { background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px; }
+.sum-num { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.sum-num small, .lift-now small { font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.sum-label { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sum-sub { font-size: 16px; margin: 20px 0 6px; display: flex; gap: 8px; align-items: center; }
+.sum-empty { margin: 12px 0; }
+.delta { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
+.delta.up { background: var(--accent); color: var(--accent-ink); }
+.delta.down { color: var(--danger); }
+.lift-list { list-style: none; margin: 0; padding: 0; }
+.lift { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.lift:first-child { border-top: 0; }
+.lift-name { font-weight: 700; overflow-wrap: anywhere; }
+.lift-now { font-weight: 800; font-variant-numeric: tabular-nums; }
