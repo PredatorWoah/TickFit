@@ -41,6 +41,14 @@ A PDF or text file you pick is read by code running on your device (using a bund
 
 If you use the copy hosted on GitHub Pages, GitHub serves the files and, like any web host, can see standard request logs (IP address, time) when you open the page. That is about downloading the app, not about your data. After the first load the app works offline, so you can also use it with no connection at all.
 
+## One thing to know about GitHub Pages
+
+Browsers keep site data per *origin*, which is the host name, not the folder. On GitHub Pages every project site of one account lives at the same host (`USERNAME.github.io`), so **any other web page you publish under that same account can read TickFit's data in the same browser**. This is how browsers work for every site, not something TickFit can change from the inside. If you publish other pages on the same account that you don't fully trust, give TickFit its own custom domain, or host it under its own GitHub account or organisation. It never affects *other people*: their browsers are completely separate from yours.
+
+## How we check the "nothing leaves your device" promise
+
+`node tests/privacy.mjs` runs on every change. It fails if the code starts using anything that could send data away (uploads, web sockets, beacons, cookies, cross-tab messaging, embedded frames), if `fetch` appears anywhere unexpected, if the code names a website that isn't on a short allow list, or if the Content Security Policy is loosened. You can read the allow list at the top of that file.
+
 ## Deleting your data
 
 - One plan: **Plans > Delete**.
