@@ -331,3 +331,20 @@ body.has-rest #app { padding-top: calc(96px + env(safe-area-inset-top)); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ---------- phase 6: your data ---------- */
+.kv { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.kv:first-of-type { border-top: 0; }
+.kv-label { color: var(--muted); }
+.kv-value { font-weight: 650; text-align: right; }
+.good-text { color: var(--accent); }
+.warn-text { color: var(--warn); }
+.fold { margin-top: 10px; border-top: 1px solid var(--line); }
+.fold summary { min-height: 52px; display: flex; align-items: center; cursor: pointer; font-weight: 650; }
+.nudge { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; padding: 14px 16px; border-radius: var(--radius); background: color-mix(in srgb, var(--warn) 14%, var(--surface)); border: 1px solid var(--warn); }
+.nudge p { margin: 0; font-size: 15px; }
+.nudge-actions { display: flex; gap: 8px; }
+.nudge-actions .btn { flex: 1; min-height: 48px; }
+
+.set-head.timed, .set-row.timed { grid-template-columns: 34px 1fr 56px; }
+.set-timed { font-size: 20px; font-weight: 700; text-align: center; min-height: 56px; display: grid; place-items: center; background: var(--surface-2); border-radius: 14px; }

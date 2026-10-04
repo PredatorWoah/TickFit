@@ -3,7 +3,7 @@
 
 import { h, clear } from './dom.js';
 import { icon } from './icons.js';
-import { load, getState, getActivePlan, isPersistent } from './store.js';
+import { load, getState, getActivePlan, isPersistent, protectStorage, snoozeBackupNudge } from './store.js';
 import { todayStr } from './dates.js';
 import { renderToday } from './today.js';
 import { renderPlans, renderNewPlan, renderImport, addSamplePlan } from './plans.js';
@@ -11,6 +11,9 @@ import { renderProgress } from './progress.js';
 import { renderEditor } from './editor.js';
 import { renderMore } from './more.js';
 import { applyTheme } from './theme.js';
+import { nudgeDue, loggedDayCount, snoozeDate } from './safety.js';
+import { canShareFiles, saveBackupFile, shareBackupFile } from './backup.js';
+import { toast } from './dom.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -72,11 +75,57 @@ function draw() {
     const target = getState().plans.find((p) => p.id === view.planId);
     if (target) renderEditor(root, target, { close: () => show('plans') });
     else return show('plans');
-  } else renderToday(root, plan, view.date, gotoDate);
+  } else {
+    renderToday(root, plan, view.date, gotoDate);
+    showBackupNudge();
+  }
 
   if (!isPersistent()) {
     root.prepend(h('p', { class: 'msg warn' }, 'Your browser is blocking storage, so progress will be lost when you close this tab.'));
   }
+}
+
+/** A gentle, dismissible reminder to back up, shown on Today only when there is real progress to lose. */
+function showBackupNudge() {
+  const { progress, settings } = getState();
+  const today = todayStr();
+  if (!nudgeDue({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup, snoozeUntil: settings.backupSnoozeUntil }, today)) return;
+
+  const doBackup = async () => {
+    try {
+      if (canShareFiles()) {
+        if (!(await shareBackupFile())) return; // they closed the share sheet
+      } else saveBackupFile();
+      toast('Backup done. Nice.');
+      draw();
+    } catch {
+      toast('Could not make the backup. Try More, then Save backup file.');
+    }
+  };
+  root.prepend(
+    h(
+      'div',
+      { class: 'nudge', role: 'region', 'aria-label': 'Backup reminder' },
+      h('p', {}, settings.lastBackup ? 'It has been a while since your last backup. Your progress only lives on this phone.' : 'You have not backed up yet. Your progress only lives on this phone, so a backup file keeps it safe if you lose it or switch phones.'),
+      h(
+        'div',
+        { class: 'nudge-actions' },
+        h('button', { class: 'btn primary', type: 'button', onclick: doBackup }, 'Back up now'),
+        h(
+          'button',
+          {
+            class: 'btn',
+            type: 'button',
+            onclick: () => {
+              snoozeBackupNudge(snoozeDate(today));
+              draw();
+            },
+          },
+          'Remind me later'
+        )
+      )
+    )
+  );
 }
 
 /** Offline support. The service worker caches the app after the first visit. */
@@ -91,6 +140,7 @@ function registerServiceWorker() {
 async function start() {
   load();
   applyTheme(getState().settings.theme);
+  protectStorage().then(() => view.screen === 'more' && draw()); // ask the browser to keep our data; shown on the More screen
   // First open: add the built in sample plan so the app is useful straight away.
   if (!getActivePlan()) await addSamplePlan();
   view.screen = getActivePlan() ? 'today' : 'plans';

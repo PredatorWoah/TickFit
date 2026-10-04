@@ -10,7 +10,7 @@ import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, getRecord, updateRecord } from './store.js';
-import { mealTotals, WATER_STEP_ML, dayStats, pctFor, exerciseProgress, plannedSets, lastPerformance, formatSets } from './stats.js';
+import { mealTotals, WATER_STEP_ML, dayStats, pctFor, exerciseProgress, plannedSets, lastPerformance, formatSets, repsTarget } from './stats.js';
 import { rowsFor, saveRows, toggleExercise } from './logging.js';
 import { todayStr, addDays, fromStr } from './dates.js';
 import { dayIndexFor, dayFor, jumpDelta } from './schedule.js';
@@ -235,6 +235,8 @@ export function renderToday(root, plan, date, goto) {
     let rows = rowsFor(rec(), w, last);
     const save = () => change((r) => saveRows(r, w, rows));
     const restSecs = parseRestSeconds(w.rest);
+    // Timed work like "30 min" or "45 sec" has no weight or reps to log, so it only gets a tick.
+    const timed = !!w.reps && repsTarget(w.reps) === null;
 
     openSheet({
       title: w.exercise,
@@ -263,7 +265,7 @@ export function renderToday(root, plan, date, goto) {
 
         function draw() {
           clear(list);
-          list.append(h('div', { class: 'set-head' }, h('span', {}, 'Set'), h('span', {}, 'Kg'), h('span', {}, 'Reps'), h('span', {}, '')));
+          list.append(h('div', { class: 'set-head' + (timed ? ' timed' : '') }, h('span', {}, 'Set'), timed ? h('span', {}, 'Target') : [h('span', {}, 'Kg'), h('span', {}, 'Reps')], h('span', {}, '')));
           rows.forEach((s, i) => {
             const chk = h(
               'button',
@@ -286,10 +288,11 @@ export function renderToday(root, plan, date, goto) {
             list.append(
               h(
                 'div',
-                { class: 'set-row' + (s.done ? ' done' : '') },
+                { class: 'set-row' + (s.done ? ' done' : '') + (timed ? ' timed' : '') },
                 h('span', { class: 'set-n' }, String(i + 1)),
-                numInput(s.w, 'kg', `Set ${i + 1} weight in kilograms`, (v) => ((s.w = v), save())),
-                numInput(s.r, 'reps', `Set ${i + 1} reps`, (v) => ((s.r = v), save())),
+                timed
+                  ? h('span', { class: 'set-timed' }, w.reps)
+                  : [numInput(s.w, 'kg', `Set ${i + 1} weight in kilograms`, (v) => ((s.w = v), save())), numInput(s.r, 'reps', `Set ${i + 1} reps`, (v) => ((s.r = v), save()))],
                 chk
               )
             );

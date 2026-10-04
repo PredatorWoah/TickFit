@@ -177,3 +177,47 @@ export function importBackup(obj, validatePlan) {
   save();
   return { ok: true, plans: plans.length };
 }
+
+// ----- keeping data safe -----
+
+let persistedResult = null; // true / false once we know, null if the browser can't say
+
+/**
+ * Ask the browser to treat our data as important so it isn't cleared when the phone is low on
+ * space. Browsers may say no (Chrome decides by how much you use the site, Safari mostly by
+ * whether it's installed to the Home Screen). Never throws.
+ */
+export async function protectStorage() {
+  try {
+    if (navigator.storage && navigator.storage.persisted) {
+      persistedResult = await navigator.storage.persisted();
+      if (!persistedResult && navigator.storage.persist) persistedResult = await navigator.storage.persist();
+    }
+  } catch {
+    persistedResult = null;
+  }
+  return persistedResult;
+}
+
+export const isStoragePersisted = () => persistedResult;
+
+/** Roughly how much space our data takes, in KB. */
+export function dataSizeKb() {
+  try {
+    return Math.max(1, Math.round(((localStorage.getItem(KEY) || '').length * 2) / 1024));
+  } catch {
+    return 0;
+  }
+}
+
+/** Remember that a backup was just made (a date, so we can say "12 days ago"). */
+export function markBackedUp() {
+  state.settings.lastBackup = todayStr();
+  state.settings.backupSnoozeUntil = null;
+  save();
+}
+
+export function snoozeBackupNudge(untilDate) {
+  state.settings.backupSnoozeUntil = untilDate;
+  save();
+}
