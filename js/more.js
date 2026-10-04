@@ -10,6 +10,7 @@ import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from
 import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
+import { runningVersion, forceUpdate } from './update.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -99,6 +100,9 @@ export function renderMore(root, actions) {
     )
   );
 
+  // ----- app version (the deploy stamp on the running code) -----
+  const versionRow = h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'Running version'), h('span', { class: 'kv-value' }, runningVersion()));
+
   // ----- Gemini (optional) -----
   const cfg = getGeminiConfig();
   const keyInput = h('input', { class: 'text-input', type: 'password', autocomplete: 'off', spellcheck: false, placeholder: cfg.key ? 'Key saved (hidden)' : 'Paste your Gemini API key', 'aria-label': 'Gemini API key' });
@@ -142,6 +146,14 @@ export function renderMore(root, actions) {
         h('input', { type: 'checkbox', checked: settings.sound !== false, onchange: (e) => setSetting('sound', e.target.checked) }),
         'Beep and vibrate when rest ends'
       )
+    ),
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'App version'),
+      h('p', { class: 'hint' }, 'TickFit updates itself when you are online. If a new feature does not show up after reloading, tap this. It reloads the newest files. Your plans and progress are not touched.'),
+      versionRow,
+      h('button', { class: 'btn wide', type: 'button', onclick: () => forceUpdate() }, 'Update TickFit now')
     ),
     h(
       'section',

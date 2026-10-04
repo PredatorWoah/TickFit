@@ -4,12 +4,14 @@
 //   1. On install it downloads every file in APP_FILES into a cache.
 //   2. For each request it asks the network first (so a new version shows up right away
 //      when you are online) and falls back to the cache when the network is down or slow.
+//      It asks with cache: 'no-cache' because GitHub Pages tells browsers to keep files for 10 minutes,
+//      and without this a "fresh" request could quietly be answered from the browser's own HTTP cache.
 //
 // MAINTAINERS: when you ADD a file to the app, add it to APP_FILES below, and bump
 // CACHE_VERSION when you want everyone's cache rebuilt. (vendor/pdfjs is deliberately NOT listed: it is
 // big, so it is cached the first time someone uploads a PDF instead.) `node tests/check-sw.mjs` checks the list.
 
-const CACHE_VERSION = 'tickfit-v9';
+const CACHE_VERSION = 'tickfit-v10';
 const NETWORK_TIMEOUT_MS = 3000;
 
 const APP_FILES = [
@@ -53,6 +55,7 @@ const APP_FILES = [
   'js/theme.js',
   'js/theme-boot.js',
   'js/timer.js',
+  'js/update.js',
   'js/workout.js',
   'data/sample-plan.json',
   'icons/icon.svg',
@@ -63,7 +66,11 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_VERSION).then((cache) => cache.addAll(APP_FILES)).then(() => self.skipWaiting()));
+  event.waitUntil(caches
+      .open(CACHE_VERSION)
+      // cache: 'reload' skips the browser's HTTP cache so we never store a stale copy of a file
+      .then((cache) => Promise.all(APP_FILES.map((f) => cache.add(new Request(f, { cache: 'reload' })))))
+      .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -88,7 +95,7 @@ self.addEventListener('fetch', (event) => {
 async function networkFirst(req) {
   const cache = await caches.open(CACHE_VERSION);
   try {
-    const fresh = await withTimeout(fetch(req), NETWORK_TIMEOUT_MS);
+    const fresh = await withTimeout(fetch(req, { cache: 'no-cache' }), NETWORK_TIMEOUT_MS); // no-cache = ask the server if it changed (a cheap 304 when it did not)
     if (fresh.ok) cache.put(req, fresh.clone());
     return fresh;
   } catch {

@@ -108,7 +108,7 @@ export function renderHome(root, plan, date, goto, actions) {
     const eaten = day.meals.filter((m) => rec.ticks[m.id]).length;
     const t = mealTotals(day, rec);
     const next = day.meals.find((m) => !rec.ticks[m.id]);
-    const kcalLine = t.calories !== null ? `${(t.caloriesEaten ?? 0).toLocaleString()} / ${t.calories.toLocaleString()} kcal` : `${eaten} of ${day.meals.length} meals`;
+    const kcalLine = t.calories !== null ? `${(t.caloriesEaten ?? 0).toLocaleString()} / ${t.estimated ? '~' : ''}${t.calories.toLocaleString()} kcal` : `${eaten} of ${day.meals.length} meals`;
     const fill = h('div', { class: 'bar-fill' });
     fill.style.width = (t.calories ? Math.min(100, ((t.caloriesEaten ?? 0) / t.calories) * 100) : (eaten / day.meals.length) * 100) + '%';
     mealCard.append(
