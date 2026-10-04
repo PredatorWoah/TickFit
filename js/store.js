@@ -18,7 +18,7 @@ let state = defaults();
 let storageWorks = true;
 
 function defaults() {
-  return { version: 1, activePlanId: null, plans: [], progress: {}, settings: { theme: 'dark', lang: 'en' } };
+  return { version: 1, activePlanId: null, plans: [], progress: {}, settings: { theme: 'dark', autoRest: true } };
 }
 
 /** Read everything from localStorage. Never throws; falls back to an empty state. */
@@ -98,15 +98,16 @@ export function setStartDate(id, startDate) {
 
 /** Read a day's record. Returns an empty (unsaved) record if there is none. */
 export function getRecord(planId, date) {
-  return (state.progress[planId] && state.progress[planId][date]) || { ticks: {}, weights: {}, waterMl: 0, notes: '' };
+  return (state.progress[planId] && state.progress[planId][date]) || { ticks: {}, weights: {}, sets: {}, waterMl: 0, notes: '' };
 }
 
 /** Change a day's record: update(planId, date, (rec) => { rec.ticks.w1 = true; }) */
 export function updateRecord(planId, date, fn) {
   const plan = (state.progress[planId] ||= {});
-  const rec = (plan[date] ||= { ticks: {}, weights: {}, waterMl: 0, notes: '' });
+  const rec = (plan[date] ||= { ticks: {}, weights: {}, sets: {}, waterMl: 0, notes: '' });
   rec.ticks ||= {};
   rec.weights ||= {};
+  rec.sets ||= {};
   fn(rec);
   save();
   return rec;
@@ -175,4 +176,48 @@ export function importBackup(obj, validatePlan) {
   };
   save();
   return { ok: true, plans: plans.length };
+}
+
+// ----- keeping data safe -----
+
+let persistedResult = null; // true / false once we know, null if the browser can't say
+
+/**
+ * Ask the browser to treat our data as important so it isn't cleared when the phone is low on
+ * space. Browsers may say no (Chrome decides by how much you use the site, Safari mostly by
+ * whether it's installed to the Home Screen). Never throws.
+ */
+export async function protectStorage() {
+  try {
+    if (navigator.storage && navigator.storage.persisted) {
+      persistedResult = await navigator.storage.persisted();
+      if (!persistedResult && navigator.storage.persist) persistedResult = await navigator.storage.persist();
+    }
+  } catch {
+    persistedResult = null;
+  }
+  return persistedResult;
+}
+
+export const isStoragePersisted = () => persistedResult;
+
+/** Roughly how much space our data takes, in KB. */
+export function dataSizeKb() {
+  try {
+    return Math.max(1, Math.round(((localStorage.getItem(KEY) || '').length * 2) / 1024));
+  } catch {
+    return 0;
+  }
+}
+
+/** Remember that a backup was just made (a date, so we can say "12 days ago"). */
+export function markBackedUp() {
+  state.settings.lastBackup = todayStr();
+  state.settings.backupSnoozeUntil = null;
+  save();
+}
+
+export function snoozeBackupNudge(untilDate) {
+  state.settings.backupSnoozeUntil = untilDate;
+  save();
 }

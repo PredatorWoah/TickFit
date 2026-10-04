@@ -1,29 +1,27 @@
 // more.js
-// The More screen: backup and restore, and the privacy note.
-// Also: theme, rest timer sound, and the optional Gemini key.
+// The More screen: your data (backup, restore, storage protection), appearance, rest timer,
+// the optional Gemini key, and the privacy note.
 
 import { h, clear, toast } from './dom.js';
-import { getState, setSetting, exportBackup, importBackup, looksLikeBackup } from './store.js';
+import { icon } from './icons.js';
+import { getState, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb } from './store.js';
 import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
+import { canShareFiles, saveBackupFile, shareBackupFile } from './backup.js';
+import { describeBackupAge } from './safety.js';
 
-/** Download a JSON file. Works on phones too (Safari/Chrome offer to save or share it). */
-function downloadJson(obj, filename) {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = h('a', { href: url, download: filename });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
+const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isInstalled = () => navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
 /** @param actions { refresh() } redraw the app after a restore */
 export function renderMore(root, actions) {
   clear(root);
+  const settings = getState().settings;
+  const again = () => renderMore(root, actions);
 
+  // ----- your data -----
   const fileInput = h('input', {
     type: 'file',
     accept: 'application/json,.json',
@@ -47,17 +45,90 @@ export function renderMore(root, actions) {
     },
   });
 
+  const persisted = isStoragePersisted();
+  const installed = isInstalled();
+  const row = (label, value, tone) => h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, label), h('span', { class: 'kv-value' + (tone ? ' ' + tone : '') }, value));
+
+  const backupButtons = [];
+  if (canShareFiles()) {
+    backupButtons.push(
+      h(
+        'button',
+        {
+          class: 'btn primary wide',
+          type: 'button',
+          onclick: async () => {
+            try {
+              if (await shareBackupFile()) {
+                toast('Backup shared');
+                again();
+              }
+            } catch {
+              toast('Could not open the share sheet. Try "Save backup file".');
+            }
+          },
+        },
+        icon('upload', 20),
+        'Share backup'
+      )
+    );
+  }
+  backupButtons.push(
+    h(
+      'button',
+      {
+        class: 'btn wide' + (backupButtons.length ? '' : ' primary'),
+        type: 'button',
+        onclick: () => {
+          saveBackupFile();
+          toast('Backup saved');
+          again();
+        },
+      },
+      'Save backup file'
+    ),
+    h('button', { class: 'btn wide', type: 'button', onclick: () => fileInput.click() }, 'Restore from a backup file'),
+    fileInput
+  );
+
+  const dataCard = h(
+    'section',
+    { class: 'card' },
+    h('h2', {}, 'Your data'),
+    h('p', { class: 'hint' }, 'Everything lives on this phone only. Nothing is sent anywhere, which also means nobody else can recover it for you. A backup file is your safety net.'),
+    row('Last backup', describeBackupAge(settings.lastBackup, todayStr()), settings.lastBackup ? '' : 'warn-text'),
+    row('Saved on this phone', `${dataSizeKb()} KB`),
+    row('Protected from auto clean up', persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', persisted === true ? 'good-text' : ''),
+    row('Installed as an app', installed ? 'Yes' : 'No', installed ? 'good-text' : ''),
+    !installed && isIos() && h('div', { class: 'msg warn' }, h('b', {}, 'Install it on your iPhone. '), 'Safari can erase a website\'s data after about a week of not opening it. Tap Share, then "Add to Home Screen", and open TickFit from there. That removes the risk.'),
+    !installed && !isIos() && h('p', { class: 'hint' }, 'Tip: install TickFit from your browser menu ("Install app" or "Add to Home screen"). Installed apps are far less likely to have their data cleared.'),
+    ...backupButtons,
+    h(
+      'details',
+      { class: 'fold' },
+      h('summary', {}, 'Moving to a new phone'),
+      h(
+        'ol',
+        { class: 'steps' },
+        h('li', {}, 'On the OLD phone: tap "Share backup" (or "Save backup file") and send the file to yourself, for example through email, Drive or WhatsApp.'),
+        h('li', {}, 'On the NEW phone: open the same TickFit link and install it.'),
+        h('li', {}, 'Open this More screen, tap "Restore from a backup file" and pick the file.'),
+        h('li', {}, 'Check your plans and history, then you are done. Your Gemini key (if you set one) is never in the file, so add it again.')
+      )
+    )
+  );
+
   // ----- appearance -----
-  const settings = getState().settings;
   const themeButtons = ['dark', 'light', 'auto'].map((t) =>
     h(
       'button',
       {
+        type: 'button',
         'aria-pressed': String((settings.theme || 'dark') === t),
         onclick: () => {
           setSetting('theme', t);
           applyTheme(t);
-          renderMore(root, actions);
+          again();
         },
       },
       { dark: 'Dark', light: 'Light', auto: 'Match phone' }[t]
@@ -71,12 +142,8 @@ export function renderMore(root, actions) {
 
   root.append(
     h('h1', { class: 'page-title' }, 'More'),
-    h(
-      'section',
-      { class: 'card' },
-      h('h2', {}, 'Appearance'),
-      h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)
-    ),
+    dataCard,
+    h('section', { class: 'card' }, h('h2', {}, 'Appearance'), h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)),
     h(
       'section',
       { class: 'card' },
@@ -84,11 +151,13 @@ export function renderMore(root, actions) {
       h(
         'label',
         { class: 'check-line' },
-        h('input', {
-          type: 'checkbox',
-          checked: settings.sound !== false,
-          onchange: (e) => setSetting('sound', e.target.checked),
-        }),
+        h('input', { type: 'checkbox', checked: settings.autoRest !== false, onchange: (e) => setSetting('autoRest', e.target.checked) }),
+        'Start it automatically after each set'
+      ),
+      h(
+        'label',
+        { class: 'check-line' },
+        h('input', { type: 'checkbox', checked: settings.sound !== false, onchange: (e) => setSetting('sound', e.target.checked) }),
         'Beep and vibrate when rest ends'
       )
     ),
@@ -116,12 +185,13 @@ export function renderMore(root, actions) {
         'button',
         {
           class: 'btn primary wide',
+          type: 'button',
           onclick: () => {
             const key = keyInput.value.trim() || cfg.key;
             if (!key) return toast('Paste a key first');
             saveGeminiConfig({ key, model: modelInput.value });
             toast('Saved on this device');
-            renderMore(root, actions);
+            again();
           },
         },
         'Save'
@@ -131,33 +201,15 @@ export function renderMore(root, actions) {
           'button',
           {
             class: 'btn danger wide',
+            type: 'button',
             onclick: () => {
               clearGeminiKey();
               toast('Key removed');
-              renderMore(root, actions);
+              again();
             },
           },
           'Remove key from this device'
         )
-    ),
-    h(
-      'section',
-      { class: 'card' },
-      h('h2', {}, 'Backup'),
-      h('p', { class: 'hint' }, 'Your data lives only on this device. Save a backup file now and then, or to move to a new phone.'),
-      h(
-        'button',
-        {
-          class: 'btn primary wide',
-          onclick: () => {
-            downloadJson(exportBackup(), `tickfit-backup-${todayStr()}.json`);
-            toast('Backup saved');
-          },
-        },
-        'Export backup'
-      ),
-      h('button', { class: 'btn wide', onclick: () => fileInput.click() }, 'Import backup'),
-      fileInput
     ),
     h(
       'section',

@@ -10,7 +10,7 @@ const EXAMPLE = {
     {
       label: 'Day 1 Push',
       workout: [
-        { exercise: 'Bench Press', sets: 3, reps: '8 to 10', rest: '90s', notes: 'Control the lowering' },
+        { exercise: 'Bench Press', sets: 3, reps: '8 to 10', rest: '90s', weight: '20 kg', notes: 'Control the lowering' },
         { exercise: 'Plank', sets: 3, reps: '30 sec', rest: '45s', notes: '' },
       ],
       meals: [
@@ -33,10 +33,14 @@ const EXAMPLE = {
  * document under. With `docText` the document is already included (used for Gemini and for
  * "Copy prompt with my text").
  */
-export function buildPrompt(docText = '') {
-  return `You convert a workout and meal plan into JSON for a checklist app called TickFit.
-
-I will paste my plan document below this message. Read it and return the plan in EXACTLY this JSON format.
+export function buildPrompt(docText = '', { create = false } = {}) {
+  const intro = create
+    ? 'You design a workout and meal plan as JSON for a checklist app called TickFit.\n\nBelow are my details. Design a safe, realistic weekly plan for me and return it in EXACTLY this JSON format.'
+    : 'You convert a workout and meal plan into JSON for a checklist app called TickFit.\n\nI will paste my plan document below this message. Read it and return the plan in EXACTLY this JSON format.';
+  const rule4 = create
+    ? '4. Be realistic and safe. Give every meal calories and protein. Use common foods and standard exercise names. Do not give medical advice. If my details suggest a health risk, keep the plan conservative.'
+    : '4. Do not invent exercises, foods, calories, protein, weights or video links. If the document does not say, leave the field out.';
+  return `${intro}
 
 SCHEMA
 {
@@ -50,7 +54,9 @@ SCHEMA
           "sets": number,               // optional
           "reps": string,               // optional, e.g. "8 to 10" or "30 sec"
           "rest": string,               // optional, e.g. "90s"
-          "notes": string               // optional
+          "weight": string,             // optional target, e.g. "20 kg" or "bodyweight"
+          "notes": string,              // optional
+          "video": string               // optional link, ONLY if the document contains a real URL
         }
       ],
       "meals": [                        // required, can be []
@@ -78,7 +84,7 @@ RULES
 1. Return ONLY valid JSON. No explanation, no greeting, no markdown, no code fences.
 2. Use double quotes for all keys and strings. No trailing commas. No comments.
 3. Every day must have both "workout" and "meals". Use [] for a rest day workout.
-4. Do not invent exercises, foods, calories or protein. If the document does not say, leave the field out.
+${rule4}
 5. If the document describes one week that repeats and has no weekday names, return 7 days for that week. If it spans several weeks, return every day. (Weekday named plans: see rule 9.)
 6. Use numbers for sets, calories, protein and waterLiters. Use text for reps, rest and time.
 7. Keep my wording for exercise and food names.
@@ -86,7 +92,7 @@ RULES
 9. If the plan is a weekly schedule (Monday, Tuesday and so on), start every "label" with the weekday name, for example "Monday Chest + Triceps", and list each weekday once. Weekdays you leave out become rest days. Do not use weekday names in labels for plans that are not tied to real weekdays.
 10. Put the same long advice paragraph in only ONE place (the first day's "notes"), not repeated in every day.
 
-MY PLAN DOCUMENT:
+${create ? 'MY DETAILS' : 'MY PLAN DOCUMENT'}:
 ${docText ? docText.trim() : '(paste it here)'}
 `;
 }

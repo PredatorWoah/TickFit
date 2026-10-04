@@ -116,3 +116,67 @@ export function weekPercent(plan, records, today) {
   }
   return count ? Math.round(sum / count) : null;
 }
+
+// ----- exercises: targets, set progress, "last time" -----
+
+/** A number from a weight like "20 kg" or 20. "bodyweight" gives null. */
+export function weightNumber(v) {
+  if (typeof v === 'number' && isFinite(v)) return v;
+  const m = String(v ?? '').replace(',', '.').match(/\d+(\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+
+/**
+ * The rep number to pre-fill from a reps target: "12" -> 12, "8 to 10" -> 10 (the upper end).
+ * Timed holds like "30 sec" or "1 min" give null, because those are not rep counts.
+ */
+export function repsTarget(text) {
+  const t = String(text ?? '').toLowerCase();
+  if (!t || /\b(s|sec|secs|second|seconds|min|mins|minute|minutes)\b|\d\s*s\b/.test(t)) return null;
+  const nums = t.match(/\d+/g);
+  return nums ? Math.max(...nums.map(Number)) : null;
+}
+
+const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** How many sets this exercise has: what the plan says, at least 1. */
+export const plannedSets = (w) => Math.max(1, Math.round(w.sets || 1));
+
+/** { done, total } sets for one exercise on one day. Old records that only have a tick count as all done. */
+export function exerciseProgress(w, record) {
+  const sets = record && record.sets && record.sets[w.id];
+  if (sets && sets.length) return { done: sets.filter((s) => s.done).length, total: sets.length };
+  const total = plannedSets(w);
+  return { done: record && record.ticks && record.ticks[w.id] ? total : 0, total };
+}
+
+/**
+ * What you did the last time you did this exercise (matched by name, so it works across
+ * different days of the plan). Looks back up to `maxBack` days before `date`.
+ * Returns { date, sets: [{ w, r }] } or null.
+ */
+export function lastPerformance(plan, records, date, exerciseName, maxBack = 120) {
+  const key = norm(exerciseName);
+  for (let i = 1; i <= maxBack; i++) {
+    const d = addDays(date, -i);
+    if (d < plan.startDate) break;
+    const rec = records && records[d];
+    if (!rec) continue;
+    for (const ex of dayFor(plan, d).workout) {
+      if (norm(ex.exercise) !== key) continue;
+      const done = ((rec.sets && rec.sets[ex.id]) || []).filter((s) => s.done && (s.w != null || s.r != null));
+      if (done.length) return { date: d, sets: done.map((s) => ({ w: s.w ?? null, r: s.r ?? null })) };
+      // Older records stored one weight for the whole exercise.
+      if (rec.weights && rec.weights[ex.id] != null && rec.ticks && rec.ticks[ex.id]) return { date: d, sets: [{ w: rec.weights[ex.id], r: null }] };
+    }
+  }
+  return null;
+}
+
+/** "20 × 12, 20 × 12, 20 × 10" (kg is implied). Repeats are folded: "3 sets of 20 × 12". */
+export function formatSets(sets) {
+  const one = (s) => (s.w != null && s.r != null ? `${s.w} × ${s.r}` : s.w != null ? `${s.w} kg` : s.r != null ? `${s.r} reps` : '');
+  const parts = sets.map(one).filter(Boolean);
+  if (parts.length > 1 && parts.every((p) => p === parts[0])) return `${parts.length} sets of ${parts[0]}`;
+  return parts.join(', ');
+}

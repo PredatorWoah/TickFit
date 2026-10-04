@@ -1,61 +1,86 @@
 # TickFit
 
-**A free gym and meal checklist that lives on your phone.** Turn any workout and meal plan into a daily tap-to-tick list. No account, no backend, no tracking, no subscription. It works offline and installs like an app on iPhone and Android.
+**A free gym and meal tracker that lives on your phone.** Follow any workout and meal plan as a simple daily checklist, log your sets, and build a plan from your own details. No account, no backend, no tracking, no subscription. It works offline and installs like an app on iPhone and Android.
 
 > Built to share with friends so nobody has to pay for a fitness app.
 
 <p>
-  <img src="docs/screenshots/today.png" alt="Today screen with progress ring, workout and meals" width="240">
-  <img src="docs/screenshots/progress.png" alt="Progress screen with streak and calendar" width="240">
-  <img src="docs/screenshots/rest-timer.png" alt="Rest timer counting down between sets" width="240">
+  <img src="docs/screenshots/today.png" alt="Today screen with week strip, progress ring and workout tiles" width="240">
+  <img src="docs/screenshots/set-sheet.png" alt="Set by set logging sheet with a rest timer running" width="240">
+  <img src="docs/screenshots/builder-plan.png" alt="The plan builder showing daily targets and the week" width="240">
 </p>
 <p>
-  <img src="docs/screenshots/import.png" alt="Importing a plan, with friendly error messages" width="240">
+  <img src="docs/screenshots/progress.png" alt="Progress screen with streak and calendar" width="240">
+  <img src="docs/screenshots/more.png" alt="Your data screen with backup and storage status" width="240">
   <img src="docs/screenshots/today-light.png" alt="Light theme" width="240">
 </p>
 
 ## What it does
 
-- **Today screen:** your workout and meals as big tappable checklists, a progress ring, water tracker, supplements and notes. It picks today's day automatically from your start date, and you can jump to any day.
-- **Workouts:** exercise, sets, reps, rest and notes, plus an optional box to log the weight you used. A one tap rest timer with a beep.
-- **Meals:** time, name, foods, optional calories and protein, with daily totals.
-- **Progress:** streak, last 7 day completion, and a month calendar. Tap a day to open it.
-- **Bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot do the conversion (see below). Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
-- **Several plans** at once, with a switcher. **Edit** any plan after importing.
-- **Backup:** export and import all your data as one JSON file.
-- **Dark by default**, with light and match-my-phone themes.
-- **Works offline** after the first load.
-- A built in **4 week beginner plan with vegetarian Indian meals** (paneer, dal, curd, sprouts and so on) so it is useful on first open.
+- **Today:** your workout, meals, supplements and water as big tappable tiles, a progress ring, and a scrollable week strip with completion dots. Tap the day title to jump to any day of the plan.
+- **Log every set:** tap an exercise to open a sheet with one row per set. Enter weight and reps, tick each set, add or remove sets. Values are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10"), so progress is easy to see. The round tick on a tile still marks the whole exercise done in one tap.
+- **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration.
+- **Form videos:** each exercise can carry a video link. If it doesn't, the **Form video** button opens a YouTube search for that exercise.
+- **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
+- **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
+- **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
+- **Several plans** with a switcher, and an **editor** for every exercise, meal and extra.
+- **Keeps your data safe:** asks the browser to protect your data, reminds you to back up, and makes moving to a new phone easy (see below).
+- **Dark by default**, with light and match-my-phone themes. Works offline after the first load.
+- A built in **4 week beginner plan with vegetarian Indian meals**, so it is useful on first open.
 
 ## Privacy
 
-Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the one optional feature (Gemini) that does send text to Google if you choose to turn it on.
+Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the one optional feature (Gemini) that does send your document text to Google if you choose to turn it on.
 
 ## How to use it
 
-1. **Open the app.** On first open it loads the sample plan and you land on **Today**. Tap an item to tick it. Tap **⏱** next to an exercise to start its rest timer.
-2. **Add your own plan:** go to **Plans**, then follow the AI workflow below.
-3. **Check your progress** on the **Progress** tab, and make a **backup** under **More** now and then.
+1. **Open the app.** On first open it loads the sample plan and you land on **Today**. Tap the round tick to mark an exercise done, or tap the exercise to log each set.
+2. **Add your own plan:** go to **Plans, then New plan**, and pick **Build one for me**, **Paste or upload a plan**, or the sample.
+3. **Check your progress** on the **Progress** tab, and use **More** to see when you last backed up.
 
 ### Install it on your phone
 
 - **iPhone (Safari):** Share button, then **Add to Home Screen**.
 - **Android (Chrome):** menu, then **Install app** (or **Add to Home screen**).
 
-After that it opens full screen and works without internet.
+After that it opens full screen and works without internet. On an iPhone this also matters for your data: Safari can erase a website's data after about a week of not opening it, but an installed app is safe from that.
 
-## The AI prompt workflow
+## Your data: where it lives and how not to lose it
 
-You do not need to write JSON by hand. Any free chatbot can do it:
+TickFit stores everything in your browser on your phone. That is what makes it private, free and offline. It also means there is no account to recover from, so:
 
-1. In TickFit, open **Plans** and tap **Copy AI prompt**.
-2. Open any chatbot (ChatGPT, Gemini, Claude, Copilot, anything free). Paste the prompt, then paste your plan document under it. A PDF from your trainer or dietitian works: copy its text, or tap **Upload PDF or text** in TickFit to extract the text, then **Copy prompt with this text**.
+- **Install it** to your Home Screen (see above). Installed apps are far less likely to have their data cleared.
+- **Back up now and then.** TickFit shows a gentle reminder on Today once you have a few days logged and no recent backup. **More > Share backup** opens your phone's share sheet (save to Files or Drive, send it on WhatsApp or email). **Save backup file** downloads it instead.
+- **New phone?** Make a backup on the old phone, open the same link on the new one, then **More > Restore from a backup file**. Your Gemini key (if you set one) is never in the backup, on purpose.
+- **Two devices do not sync.** Without a server that isn't possible, so each device keeps its own history.
+
+## Build a plan from your details
+
+**Plans > New plan > Build one for me.** You answer about a dozen taps and numbers, see a preview (daily calories and protein, the week, a sample workout), and then create the plan.
+
+How it works, so you can judge it:
+
+- **Calories:** your resting energy from the Mifflin-St Jeor formula, multiplied for how active you are and how often you train, then adjusted for your goal (about 20% less to lose fat, a small surplus to build muscle). It never goes below 1,200 kcal (women) or 1,500 (men) for fat loss, and it holds calories at maintenance instead of cutting them if you are under 18 or your BMI is low.
+- **Protein:** about 1.4 to 2 g per kg depending on the goal, from a sensible reference weight.
+- **Workouts:** a split that fits your days (full body, upper/lower, push/pull/legs), exercises chosen for your equipment, with beginner-friendly picks first (leg press before barbell squats). Bad knees, lower back or shoulders remove the exercises that stress them.
+- **Meals:** Indian home cooking for vegetarian, eggetarian, non-veg or vegan eaters, with portions sized so each meal's calories and protein add up. The meals are real estimates of typical home portions, not lab values.
+- **It is a starting point.** You can edit every exercise and meal afterwards. This is general guidance, not medical advice: if you have a medical condition, are pregnant or are recovering from an injury, check with a doctor first.
+
+Prefer to let a chatbot design it? **Or copy a prompt for a chatbot** copies the same details as a ready prompt.
+
+## The AI prompt workflow (for your own documents)
+
+You do not need to write JSON by hand. Any free chatbot can convert a plan document for you:
+
+1. In TickFit, open **Plans > New plan > Paste or upload a plan** and tap **Copy AI prompt**.
+2. Open any chatbot (ChatGPT, Gemini, Claude, Copilot, anything free). Paste the prompt, then paste your plan document under it. For a PDF from your trainer or dietitian, tap **Upload PDF or text** in TickFit to extract its text on your phone, then **Copy prompt with this text**.
 3. The chatbot replies with JSON. Copy the whole reply.
 4. Paste it into TickFit's box and tap **Import plan**. Stray text and code fences around the JSON are handled for you.
 
 If something is wrong, TickFit lists every problem in plain language. Paste that back to the chatbot and ask it to fix it.
 
-**Optional one tap version:** if you have a free [Google Gemini API key](https://aistudio.google.com/), you can add it under **More > AI helper** and use **Convert with Gemini** instead of copy and paste. Read the warnings on that screen first: your document text is sent to Google, and the key is stored (unencrypted) in your browser.
+**Optional one tap version:** with a free [Google Gemini API key](https://aistudio.google.com/) in **More > AI helper**, **Convert with Gemini** replaces the copy and paste. Read the warnings on that screen first: your document text is sent to Google, and the key is stored (unencrypted) in your browser.
 
 ## Plan format
 
@@ -66,9 +91,9 @@ Plans are plain JSON. Rest days have an empty `workout` list.
   "name": "Beginner Muscle Plan",
   "days": [
     {
-      "label": "Day 1 Push",
+      "label": "Monday Push",
       "workout": [
-        { "exercise": "Bench Press", "sets": 3, "reps": "8 to 10", "rest": "90s", "notes": "" }
+        { "exercise": "Bench Press", "sets": 3, "reps": "8 to 10", "rest": "90s", "weight": "20 kg", "notes": "", "video": "https://youtu.be/example" }
       ],
       "meals": [
         { "time": "8:00 AM", "name": "Breakfast", "items": ["Paneer bhurji", "2 rotis"], "calories": 450, "protein": 25 }
@@ -76,7 +101,7 @@ Plans are plain JSON. Rest days have an empty `workout` list.
       "extras": { "waterLiters": 3, "supplements": ["Creatine 5g"], "notes": "" }
     },
     {
-      "label": "Day 2 Rest",
+      "label": "Tuesday Rest",
       "workout": [],
       "meals": [{ "name": "Breakfast", "items": ["Poha"] }]
     }
@@ -90,16 +115,18 @@ Plans are plain JSON. Rest days have an empty `workout` list.
 | `days[].label` | no | Defaults to "Day N" |
 | `days[].workout` | **yes** | `[]` for a rest day |
 | `days[].meals` | **yes** | Can be `[]` |
-| `workout[].exercise` | **yes** | `sets`, `reps`, `rest`, `notes` are optional |
+| `workout[].exercise` | **yes** | `sets`, `reps`, `rest`, `weight`, `notes`, `video` are optional |
+| `workout[].weight` | no | A target like `"20 kg"` or `"bodyweight"`. Pre-fills the weight in the set sheet |
+| `workout[].video` | no | A web link (`https://...`). Anything else is ignored with a warning |
 | `meals[].name`, `meals[].items` | **yes** | `time`, `calories`, `protein` are optional |
 | `extras` | no | `waterLiters`, `supplements` (list), `notes` |
 
 There are two kinds of plan:
 
 - **Cycle (default):** Day 1 is your start date, Day 2 the next day, and so on, repeating after the last day. The built in sample works like this.
-- **Weekly:** if **every** day label starts with a weekday (`"Monday Chest + Triceps"`, `"Tue: Back"`), the plan follows the real calendar instead. A Monday shows the Monday entry, and weekdays you don't list (say Sunday in a Monday to Saturday plan) are rest days. No start date is needed, and a 6 day plan no longer drifts.
+- **Weekly:** if **every** day label starts with a weekday (`"Monday Chest + Triceps"`, `"Tue: Back"`), the plan follows the real calendar instead. A Monday shows the Monday entry, and weekdays you don't list (say Sunday in a Monday to Saturday plan) are rest days. No start date is needed, and a 6 day plan no longer drifts. Plans built by the builder are weekly plans.
 
-Rest days with nothing to tick never break your streak. The `rest` text is read for the timer: `90s`, `2 min`, `1:30` and `60 to 90s` all work.
+Rest days with nothing to tick never break your streak. The `reps` text decides how an exercise is logged: a rep count like `8 to 10` gives weight and reps boxes, a timed one like `30 sec` or `30 min` gives a simple tick. The `rest` text feeds the timer: `90s`, `2 min`, `1:30` and `60 to 90s` all work.
 
 The importer is forgiving: it accepts code fences, chatty text around the JSON, trailing commas, curly or single quotes, unquoted keys, and numbers written as text.
 
@@ -133,7 +160,7 @@ All paths in the app are relative, so it works under any `/REPO-NAME/` address.
 node tests/all.mjs
 ```
 
-No installs needed. The parser is tested against valid, messy and broken inputs (`tests/cases.js`). See [CONTRIBUTING.md](CONTRIBUTING.md).
+No installs needed. It covers the plan importer (valid, messy and broken inputs), weekday scheduling, streaks, set logging, rest-time parsing, the backup reminder logic, the offline file list, and the plan builder: the builder test generates **2,700 plans across every combination of answers** and checks each one is valid, uses only the equipment you have, avoids exercises that stress your injuries, respects your diet, stays close to its calorie target and varies day to day. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 
