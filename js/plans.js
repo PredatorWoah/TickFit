@@ -73,6 +73,7 @@ export function renderPlans(root, actions) {
               },
               'Use this plan'
             ),
+          h('button', { class: 'btn', onclick: () => actions.show('edit', { planId: p.id }) }, 'Edit'),
           h(
             'button',
             {

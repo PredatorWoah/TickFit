@@ -111,3 +111,68 @@ export function updateRecord(planId, date, fn) {
   save();
   return rec;
 }
+
+// ----- editing plans -----
+
+/** Call after you change a plan object in place (the editor does this). */
+export function savePlans() {
+  save();
+}
+
+/** Short unique id for a new exercise or meal, like "w_k3f9". Unique within the given list. */
+export function newItemId(prefix, existing) {
+  const used = new Set(existing.map((x) => x.id));
+  let id;
+  do id = `${prefix}_${Math.random().toString(36).slice(2, 6)}`;
+  while (used.has(id));
+  return id;
+}
+
+// ----- settings -----
+
+export function setSetting(key, value) {
+  state.settings[key] = value;
+  save();
+}
+
+// ----- backup -----
+
+/** Everything the app knows, wrapped so we can recognise our own files later. */
+export function exportBackup() {
+  return { app: 'tickfit', backupVersion: 1, exportedAt: new Date().toISOString(), data: state };
+}
+
+/** Quick check that a parsed file is one of our backups (used before asking "replace everything?"). */
+export function looksLikeBackup(obj) {
+  return !!(obj && obj.app === 'tickfit' && obj.data && Array.isArray(obj.data.plans));
+}
+
+/**
+ * Replace ALL data with a backup file's contents. Plans are re-checked with the same
+ * validator as imports, so a hand edited or damaged file can't break the app.
+ * Returns { ok: true } or { ok: false, error }.
+ */
+export function importBackup(obj, validatePlan) {
+  if (!looksLikeBackup(obj)) {
+    return { ok: false, error: 'That does not look like a TickFit backup file.' };
+  }
+  const plans = [];
+  for (const p of obj.data.plans) {
+    const check = validatePlan(p);
+    if (!check.ok) return { ok: false, error: `The plan "${(p && p.name) || '?'}" in this backup is damaged: ${check.errors[0]}` };
+    plans.push({ ...check.plan, id: String(p.id || uid()), startDate: typeof p.startDate === 'string' ? p.startDate : todayStr() });
+  }
+  const ids = new Set(plans.map((p) => p.id));
+  const progress = {};
+  for (const [planId, days] of Object.entries(obj.data.progress || {})) if (ids.has(planId) && days && typeof days === 'object') progress[planId] = days;
+
+  state = {
+    ...defaults(),
+    plans,
+    progress,
+    activePlanId: ids.has(obj.data.activePlanId) ? obj.data.activePlanId : plans[0] ? plans[0].id : null,
+    settings: { ...defaults().settings, ...(obj.data.settings || {}) },
+  };
+  save();
+  return { ok: true, plans: plans.length };
+}
