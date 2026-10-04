@@ -10,6 +10,7 @@ import { renderPlans, renderNewPlan, renderImport, addSamplePlan } from './plans
 import { renderProgress } from './progress.js';
 import { renderEditor } from './editor.js';
 import { renderMore } from './more.js';
+import { renderBuild } from './build.js';
 import { applyTheme } from './theme.js';
 import { nudgeDue, loggedDayCount, snoozeDate } from './safety.js';
 import { canShareFiles, saveBackupFile, shareBackupFile } from './backup.js';
@@ -18,8 +19,8 @@ import { toast } from './dom.js';
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
 
-// screen: today | progress | plans | new | import | edit | more.
-// "new", "import" and "edit" belong to the Plans tab.
+// screen: today | progress | plans | new | import | build | edit | more.
+// "new", "import", "build" and "edit" belong to the Plans tab.
 const view = { screen: 'today', date: todayStr(), planId: null };
 
 const TABS = [
@@ -28,7 +29,7 @@ const TABS = [
   { id: 'plans', label: 'Plans', icon: 'plans' },
   { id: 'more', label: 'More', icon: 'more' },
 ];
-const PLANS_TAB_SCREENS = ['plans', 'new', 'import', 'edit'];
+const PLANS_TAB_SCREENS = ['plans', 'new', 'import', 'build', 'edit'];
 
 /** Switch screen. opts: { date } for Today, { planId } for the editor. */
 function show(screen, opts = {}) {
@@ -65,10 +66,11 @@ function draw() {
   // These screens need a plan. Without one, send people to Plans to add one.
   if (!plan && (view.screen === 'today' || view.screen === 'progress')) view.screen = 'plans';
 
-  const actions = { show, refresh: draw, hasBuilder: false };
+  const actions = { show, refresh: draw, hasBuilder: true };
   if (view.screen === 'plans') renderPlans(root, actions);
   else if (view.screen === 'new') renderNewPlan(root, actions);
   else if (view.screen === 'import') renderImport(root, actions);
+  else if (view.screen === 'build') renderBuild(root, actions);
   else if (view.screen === 'progress') renderProgress(root, plan, (date) => show('today', { date }));
   else if (view.screen === 'more') renderMore(root, actions);
   else if (view.screen === 'edit') {

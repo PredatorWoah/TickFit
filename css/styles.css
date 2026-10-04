@@ -348,3 +348,28 @@ body.has-rest #app { padding-top: calc(96px + env(safe-area-inset-top)); }
 
 .set-head.timed, .set-row.timed { grid-template-columns: 34px 1fr 56px; }
 .set-timed { font-size: 20px; font-weight: 700; text-align: center; min-height: 56px; display: grid; place-items: center; background: var(--surface-2); border-radius: 14px; }
+
+/* ---------- phase 7: plan builder ---------- */
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px 6px; margin: 0 0 12px; }
+.q h2 { margin-bottom: 4px; }
+.hint.tight { margin: 0 0 8px; }
+.seg.wrap { flex-wrap: wrap; }
+.seg.wrap button { flex: 1 1 45%; }
+.grid3.even { grid-template-columns: 1fr 1fr 1fr; }
+.options.tight { gap: 8px; margin-bottom: 8px; }
+.options.tight .option { min-height: 68px; padding: 10px 14px; }
+.option.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.option.sel .icon { color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chipbtn { min-height: 48px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 600; }
+.chipbtn[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.stats.four { grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+.stat-value.small { font-size: 20px; }
+.week-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.week-list li { display: flex; gap: 8px; align-items: baseline; font-size: 15px; }
+.week-list b { color: var(--accent); width: 32px; flex: none; }
+.week-list span { color: var(--muted); overflow-wrap: anywhere; }
+.mini-list { list-style: none; margin: 0 0 12px; padding: 0; }
+.mini-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.mini-list li:first-child { border-top: 0; }
+.mini-list span { color: var(--muted); flex: none; }
