@@ -9,7 +9,7 @@
 // CACHE_VERSION when you want everyone's cache rebuilt. (vendor/pdfjs is deliberately NOT listed: it is
 // big, so it is cached the first time someone uploads a PDF instead.) `node tests/check-sw.mjs` checks the list.
 
-const CACHE_VERSION = 'tickfit-v6';
+const CACHE_VERSION = 'tickfit-v8';
 const NETWORK_TIMEOUT_MS = 3000;
 
 const APP_FILES = [
@@ -23,14 +23,17 @@ const APP_FILES = [
   'js/builder.js',
   'js/ai.js',
   'js/dates.js',
+  'js/dayview.js',
   'js/dom.js',
   'js/exercises.js',
   'js/extract.js',
   'js/foods.js',
   'js/gemini.js',
+  'js/home.js',
   'js/icons.js',
   'js/editor.js',
   'js/logging.js',
+  'js/meals.js',
   'js/more.js',
   'js/parser.js',
   'js/plans.js',
@@ -39,11 +42,12 @@ const APP_FILES = [
   'js/schedule.js',
   'js/sheet.js',
   'js/stats.js',
+  'js/summary.js',
   'js/store.js',
   'js/theme.js',
   'js/theme-boot.js',
   'js/timer.js',
-  'js/today.js',
+  'js/workout.js',
   'data/sample-plan.json',
   'icons/icon.svg',
   'icons/icon-192.png',

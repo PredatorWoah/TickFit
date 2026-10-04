@@ -3,7 +3,7 @@
 
 import { h, clear, copyText, toast } from './dom.js';
 import { icon } from './icons.js';
-import { getState, addPlan, setActivePlan, removePlan, setStartDate } from './store.js';
+import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting } from './store.js';
 import { parsePlanText } from './parser.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
@@ -105,9 +105,37 @@ export function renderPlans(root, actions) {
   }
 
   root.append(
-    h('h1', { class: 'page-title' }, 'Plans'),
+    backBar('More', () => actions.show('more'), 'My plans'),
     list,
     h('button', { class: 'btn primary wide big', type: 'button', onclick: () => actions.show('new') }, icon('plus', 22), 'New plan')
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Welcome: the first thing a new person sees
+// ---------------------------------------------------------------------------
+
+export function renderWelcome(root, actions) {
+  clear(root);
+  const choose = (fn) => async () => {
+    setSetting('welcomed', true);
+    await fn();
+  };
+  const option = (iconName, title, text, onclick) =>
+    h('button', { class: 'option big', type: 'button', onclick: choose(onclick) }, h('span', { class: 'option-icon' }, icon(iconName, 28)), h('span', { class: 'option-text' }, h('b', {}, title), h('span', {}, text)), icon('chevron-right', 20));
+  root.append(
+    h('div', { class: 'welcome' }, h('img', { class: 'welcome-logo', src: 'icons/icon.svg', alt: '', width: 72, height: 72 }), h('h1', {}, 'Welcome to TickFit'), h('p', {}, 'Your gym and meal checklist. Free, private and it works offline. Everything stays on this phone.')),
+    h('h2', { class: 'welcome-q' }, 'How do you want to start?'),
+    h(
+      'div',
+      { class: 'options' },
+      option('sparkle', 'Build a plan for me', 'Answer a few questions and get a full workout and meal plan.', () => actions.show('build')),
+      option('paste', 'I already have a plan', 'Paste it, upload a PDF, or let a chatbot convert it.', () => actions.show('import')),
+      option('today', 'Just show me around', 'Start with a 4 week beginner plan and vegetarian Indian meals.', async () => {
+        if (await addSamplePlan()) actions.show('today');
+        else toast('Could not load the sample plan');
+      })
+    )
   );
 }
 

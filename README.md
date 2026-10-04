@@ -5,26 +5,29 @@
 > Built to share with friends so nobody has to pay for a fitness app.
 
 <p>
-  <img src="docs/screenshots/today.png" alt="Today screen with week strip, progress ring and workout tiles" width="240">
-  <img src="docs/screenshots/set-sheet.png" alt="Set by set logging sheet with a rest timer running" width="240">
-  <img src="docs/screenshots/builder-plan.png" alt="The plan builder showing daily targets and the week" width="240">
+  <img src="docs/screenshots/today.png" alt="Today: progress ring, streak, and cards to start your workout and open your meals" width="240">
+  <img src="docs/screenshots/workout.png" alt="Workout mode with big weight and reps boxes and a running clock" width="240">
+  <img src="docs/screenshots/meals.png" alt="Meals with calorie and protein meters" width="240">
 </p>
 <p>
+  <img src="docs/screenshots/builder-plan.png" alt="The plan builder showing daily targets and the week" width="240">
   <img src="docs/screenshots/progress.png" alt="Progress screen with streak and calendar" width="240">
-  <img src="docs/screenshots/more.png" alt="Your data screen with backup and storage status" width="240">
-  <img src="docs/screenshots/today-light.png" alt="Light theme" width="240">
+  <img src="docs/screenshots/workout-light.png" alt="Light theme" width="240">
 </p>
 
 ## What it does
 
-- **Today:** your workout, meals, supplements and water as big tappable tiles, a progress ring, and a scrollable week strip with completion dots. Tap the day title to jump to any day of the plan.
-- **Log every set:** tap an exercise to open a sheet with one row per set. Enter weight and reps, tick each set, add or remove sets. Values are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10"), so progress is easy to see. The round tick on a tile still marks the whole exercise done in one tap.
-- **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration.
+- **Today:** a calm summary. A progress ring, your streak, a week strip with completion dots, one big **Start workout** button, your meals at a glance and water. Tap the day title to jump to any day of the plan.
+- **Workout mode:** one screen, no pop-ups. Every exercise is listed, the one you are on is open with a row for each set and big weight and reps boxes. Tick a set and the next exercise opens by itself. A clock runs while you train (it even starts on your first ticked set), and **Finish workout** shows your time, sets and total weight lifted. Boxes are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10").
+- **Meals:** calories and protein meters, each meal as a big tick tile, supplements and water.
+- **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration. It sits at the top of the screen and pushes the page down instead of covering it.
 - **Form videos:** each exercise can carry a video link. If it doesn't, the **Form video** button opens a YouTube search for that exercise.
 - **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
 - **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
 - **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
-- **Several plans** with a switcher, and an **editor** for every exercise, meal and extra.
+- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, your heaviest lift per exercise (with new bests), and daily averages for calories, protein and water. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
+- **Plans in one place:** **More > My plan** to switch, edit or add a plan. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
+- An **editor** for every exercise, meal and extra.
 - **Keeps your data safe:** asks the browser to protect your data, reminds you to back up, and makes moving to a new phone easy (see below).
 - **Dark by default**, with light and match-my-phone themes. Works offline after the first load.
 - A built in **4 week beginner plan with vegetarian Indian meals**, so it is useful on first open.
@@ -35,9 +38,10 @@ Everything stays on your device. There is no server to send anything to. See [PR
 
 ## How to use it
 
-1. **Open the app.** On first open it loads the sample plan and you land on **Today**. Tap the round tick to mark an exercise done, or tap the exercise to log each set.
-2. **Add your own plan:** go to **Plans, then New plan**, and pick **Build one for me**, **Paste or upload a plan**, or the sample.
-3. **Check your progress** on the **Progress** tab, and use **More** to see when you last backed up.
+1. **Open the app.** First time, pick how to start: **Build a plan for me**, **I already have a plan**, or **Just show me around** (a 4 week sample).
+2. **Train.** On **Today** tap **Start workout**. Tick each set as you do it. When you finish an exercise the next one opens. Tap **Finish workout** for your summary.
+3. **Eat.** Tick meals off on the **Meals** tab, and tap **+** on the water tile through the day.
+4. **Check your progress** on the **Progress** tab, and use **More** to manage plans, themes, backups and settings.
 
 ### Install it on your phone
 
@@ -57,7 +61,7 @@ TickFit stores everything in your browser on your phone. That is what makes it p
 
 ## Build a plan from your details
 
-**Plans > New plan > Build one for me.** You answer about a dozen taps and numbers, see a preview (daily calories and protein, the week, a sample workout), and then create the plan.
+**More > My plan > New plan > Build one for me.** You answer about a dozen taps and numbers, see a preview (daily calories and protein, the week, a sample workout), and then create the plan.
 
 How it works, so you can judge it:
 
@@ -73,7 +77,7 @@ Prefer to let a chatbot design it? **Or copy a prompt for a chatbot** copies the
 
 You do not need to write JSON by hand. Any free chatbot can convert a plan document for you:
 
-1. In TickFit, open **Plans > New plan > Paste or upload a plan** and tap **Copy AI prompt**.
+1. In TickFit, open **More > New plan > Paste or upload a plan** and tap **Copy AI prompt**.
 2. Open any chatbot (ChatGPT, Gemini, Claude, Copilot, anything free). Paste the prompt, then paste your plan document under it. For a PDF from your trainer or dietitian, tap **Upload PDF or text** in TickFit to extract its text on your phone, then **Copy prompt with this text**.
 3. The chatbot replies with JSON. Copy the whole reply.
 4. Paste it into TickFit's box and tap **Import plan**. Stray text and code fences around the JSON are handled for you.

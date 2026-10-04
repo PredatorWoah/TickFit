@@ -6,11 +6,17 @@ import { icon } from './icons.js';
 import { getState } from './store.js';
 import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
 import { todayStr, fromStr, toStr, addDays } from './dates.js';
+import { openSheet } from './sheet.js';
+import { setSetting } from './store.js';
+import { periodRange, shiftAnchor, summarize, DEFAULT_BODY_KG } from './summary.js';
+import { formatDuration } from './logging.js';
 
 const LOCALE = 'en'; // Phase 3 swaps this for the chosen language
 
 // Which month the calendar shows ("YYYY-MM-01"). Kept here so it survives re-draws.
 let monthStart = null;
+// Which summary is showing: a week or a month, and a date inside it.
+const sum = { kind: 'week', anchor: null };
 
 /** 0 = nothing, 1 = a little, 2 = some, 3 = most, 4 = everything. Drives the cell colour. */
 function level(pct) {
@@ -45,7 +51,8 @@ export function renderProgress(root, plan, goto) {
       stat('calendar', week === null ? '–' : `${week}%`, 'last 7 days'),
       stat('trophy', best, 'best streak')
     ),
-    h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`)
+    h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`),
+    summaryCard(root, plan, records, today, goto)
   );
 
   // ----- calendar -----
@@ -114,4 +121,142 @@ export function renderProgress(root, plan, goto) {
 
 function stat(iconName, value, label) {
   return h('div', { class: 'stat' }, h('div', { class: 'stat-icon', 'aria-hidden': 'true' }, icon(iconName, 26)), h('div', { class: 'stat-value' }, String(value)), h('div', { class: 'stat-label' }, label));
+}
+
+// ----- weekly / monthly summary -----
+
+const fmt = (n) => Math.round(n).toLocaleString();
+
+/** "+12%" / "-8%" chip, or nothing when there is no earlier period to compare with. */
+function delta(pct, hasPrev) {
+  if (pct === null || !hasPrev) return null;
+  return h('span', { class: 'delta ' + (pct > 0 ? 'up' : pct < 0 ? 'down' : '') }, `${pct > 0 ? '+' : ''}${pct}%`);
+}
+
+/** One number tile: big value, small label, optional change chip. */
+function big(value, unit, label, chip) {
+  return h('div', { class: 'sum-tile' }, h('div', { class: 'sum-num' }, value, unit && h('small', {}, ' ' + unit)), h('div', { class: 'sum-label' }, label, chip));
+}
+
+function summaryCard(root, plan, records, today, goto) {
+  if (!sum.anchor) sum.anchor = today;
+  const range = periodRange(sum.kind, sum.anchor);
+  const st = getState().settings;
+  const bodyKg = Number(st.bodyWeightKg) || Number((st.profile || {}).weightKg) || DEFAULT_BODY_KG;
+  const s = summarize(plan, records, range, bodyKg, today);
+  const redraw = () => {
+    const y = window.scrollY;
+    renderProgress(root, plan, goto);
+    window.scrollTo(0, y);
+  };
+
+  const isNow = range.start <= today && today <= range.end;
+  const dayText = (d) => fromStr(d).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+  const title = sum.kind === 'month' ? fromStr(range.start).toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' }) : isNow ? 'This week' : `${dayText(range.start)} to ${dayText(range.end)}`;
+  const vsWord = sum.kind === 'month' ? 'last month' : 'last week';
+
+  const seg = h(
+    'div',
+    { class: 'seg', role: 'group', 'aria-label': 'Summary period' },
+    ['week', 'month'].map((k) =>
+      h('button', { type: 'button', 'aria-pressed': String(sum.kind === k), onclick: () => { sum.kind = k; sum.anchor = today; redraw(); } }, k === 'week' ? 'Weekly' : 'Monthly')
+    )
+  );
+  const nav = h(
+    'div',
+    { class: 'cal-head' },
+    h('button', { class: 'icon-btn small', type: 'button', 'aria-label': 'Previous ' + sum.kind, onclick: () => { sum.anchor = shiftAnchor(sum.kind, sum.anchor, -1); redraw(); } }, icon('back', 20)),
+    h('h2', { class: 'cal-title' }, title),
+    h('button', { class: 'icon-btn small', type: 'button', 'aria-label': 'Next ' + sum.kind, disabled: isNow, onclick: () => { sum.anchor = shiftAnchor(sum.kind, sum.anchor, 1); redraw(); } }, icon('chevron-right', 20))
+  );
+
+  const card = h('section', { class: 'card sum', 'aria-label': 'Summary' }, seg, nav);
+
+  if (!s.workouts) {
+    card.append(h('p', { class: 'hint sum-empty' }, 'No workouts logged in this period yet. Tick your sets on the Workout tab and your summary builds itself here.'));
+  } else {
+    // Bars: one per day, tallest = most minutes. Month view shows thin bars.
+    const maxMin = Math.max(...s.days.map((d) => d.minutes), 1);
+    const bars = h(
+      'div',
+      { class: 'sum-bars ' + sum.kind, role: 'img', 'aria-label': `Minutes trained each day, ${s.minutes} in total` },
+      s.days.map((d) => h('div', { class: 'sum-bar-col', title: `${dayText(d.date)}: ${d.minutes} min` }, h('div', { class: 'sum-bar' + (d.minutes ? ' on' : ''), style: `height:${d.minutes ? Math.max(8, (d.minutes / maxMin) * 100) : 4}%` })))
+    );
+    const labels = sum.kind === 'week' ? h('div', { class: 'sum-bar-days', 'aria-hidden': 'true' }, s.days.map((d) => h('span', {}, fromStr(d.date).toLocaleDateString(LOCALE, { weekday: 'narrow' })))) : null;
+
+    card.append(
+      h('div', { class: 'sum-hero' }, h('div', { class: 'sum-hero-num' }, '~' + fmt(s.kcal)), h('div', { class: 'sum-hero-label' }, 'kcal burnt in workouts (estimate)', delta(s.vs.kcal, s.hasPrev))),
+      bars,
+      labels || '',
+      h(
+        'div',
+        { class: 'sum-grid' },
+        big(String(s.workouts), '', s.workouts === 1 ? 'workout' : 'workouts', delta(s.vs.workouts, s.hasPrev)),
+        big(s.minutes >= 90 ? (s.minutes / 60).toFixed(1) : String(s.minutes), s.minutes >= 90 ? 'h' : 'min', 'training time', delta(s.vs.minutes, s.hasPrev)),
+        big(String(s.sets), '', 'sets done'),
+        big(fmt(s.volumeKg), 'kg', 'total lifted', delta(s.vs.volumeKg, s.hasPrev))
+      )
+    );
+  }
+
+  // Strength: heaviest weight per exercise against everything before this period.
+  if (s.lifts.length) {
+    card.append(
+      h('h3', { class: 'sum-sub' }, 'Strength', s.prs ? h('span', { class: 'delta up' }, `${s.prs} new best${s.prs === 1 ? '' : 's'}`) : null),
+      h(
+        'ul',
+        { class: 'lift-list' },
+        s.lifts.slice(0, sum.kind === 'month' ? 8 : 5).map((l) =>
+          h(
+            'li',
+            { class: 'lift' },
+            h('span', { class: 'lift-name' }, l.name),
+            h('span', { class: 'lift-now' }, `${l.now} kg`, l.reps ? h('small', {}, ` × ${l.reps}`) : null),
+            h('span', { class: 'delta ' + (l.gain > 0 ? 'up' : l.gain < 0 ? 'down' : '') }, l.gain === null ? 'new' : l.gain === 0 ? 'same' : `${l.gain > 0 ? '+' : ''}${Math.round(l.gain * 10) / 10} kg`)
+          )
+        )
+      ),
+      h('p', { class: 'hint' }, 'Heaviest set of each exercise, compared with your best before this ' + sum.kind + '.')
+    );
+  }
+
+  // Eating and habits.
+  if (s.avgEaten !== null || s.avgPct !== null || s.avgWaterL !== null) {
+    const avg = [
+      s.avgEaten !== null ? big(fmt(s.avgEaten), 'kcal', 'eaten') : null,
+      s.avgProtein ? big(String(s.avgProtein), 'g', 'protein') : null,
+      s.avgWaterL !== null ? big(String(s.avgWaterL), 'L', 'water') : null,
+      s.avgPct !== null ? big(`${s.avgPct}%`, '', 'of plan done') : null,
+    ].filter(Boolean);
+    card.append(h('h3', { class: 'sum-sub' }, 'Daily average'), h('div', { class: 'sum-grid' }, avg));
+  }
+
+  card.append(
+    h(
+      'p',
+      { class: 'hint' },
+      `Calories burnt are a rough guess: 5 METs for lifting, using ${bodyKg} kg and your workout time. Real numbers can be 30% off either way. `,
+      h('button', { class: 'link-btn', type: 'button', onclick: () => editBodyWeight(bodyKg, redraw) }, 'Change body weight')
+    )
+  );
+  return card;
+}
+
+/** A small sheet to set the body weight used for the calorie estimate. */
+function editBodyWeight(current, done) {
+  openSheet({
+    title: 'Body weight',
+    build(body, close) {
+      const input = h('input', { type: 'number', inputmode: 'decimal', min: '25', max: '300', step: '0.1', value: String(current), 'aria-label': 'Body weight in kilograms' });
+      body.append(
+        h('p', { class: 'hint' }, 'Used only for the calorie estimate. Stays on this phone.'),
+        h('label', { class: 'field' }, h('span', {}, 'Weight (kg)'), input),
+        h('button', { class: 'btn primary wide', type: 'button', onclick: () => {
+          const v = Number(input.value);
+          if (v >= 25 && v <= 300) { setSetting('bodyWeightKg', Math.round(v * 10) / 10); close(); done(); }
+          else input.setCustomValidity('Enter a weight between 25 and 300 kg'), input.reportValidity();
+        } }, 'Save')
+      );
+    },
+  });
 }

@@ -1,5 +1,5 @@
 // Tests for set logging. Run: node tests/logging.mjs
-import { rowsFor, saveRows, toggleExercise } from '../js/logging.js';
+import { rowsFor, saveRows, toggleExercise, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from '../js/logging.js';
 import { weightNumber, repsTarget, exerciseProgress, lastPerformance, formatSets, plannedSets } from '../js/stats.js';
 
 let failed = 0;
@@ -74,6 +74,37 @@ eq('last performance uses legacy weight', lastPerformance(plan, { '2026-09-27': 
 eq('format identical sets folds', formatSets([{ w: 20, r: 12 }, { w: 20, r: 12 }, { w: 20, r: 12 }]), '3 sets of 20 × 12');
 eq('format mixed sets', formatSets([{ w: 20, r: 12 }, { w: 20, r: 10 }]), '20 × 12, 20 × 10');
 eq('format weight only', formatSets([{ w: 17.5, r: null }]), '17.5 kg');
+
+
+// ----- workout sessions
+const rs = {};
+eq('new record is idle', sessionState(rs), 'idle');
+eq('idle has no time', sessionMs(rs, 5000), 0);
+startSession(rs, 1000);
+eq('after start it is active', sessionState(rs), 'active');
+eq('clock runs from the start', sessionMs(rs, 61000), 60000);
+finishSession(rs, 121000);
+eq('after finish it is finished', sessionState(rs), 'finished');
+eq('finished clock stops', [sessionMs(rs, 121000), sessionMs(rs, 999999)], [120000, 120000]);
+reopenSession(rs);
+eq('reopening makes it active again', sessionState(rs), 'active');
+const rf = {}; finishSession(rf, 500);
+eq('finishing without starting still works (zero length)', [sessionState(rf), sessionMs(rf, 900)], ['finished', 0]);
+eq('duration m:ss', formatDuration(83000), '1:23');
+eq('duration h:mm:ss', formatDuration(3725000), '1:02:05');
+eq('duration zero', formatDuration(0), '0:00');
+
+const wd = { workout: [{ id: 'w1', exercise: 'A', sets: 3 }, { id: 'w2', exercise: 'B', sets: 2 }, { id: 'w3', exercise: 'C', sets: 2 }] };
+const wr = { ticks: { w1: true }, weights: {}, sets: { w1: [{ w: 20, r: 10, done: true }, { w: 20, r: 10, done: true }, { w: 22.5, r: 8, done: true }], w2: [{ w: 40, r: 10, done: true }, { w: 40, r: 10, done: false }] } };
+const sum = workoutSummary(wd, wr);
+eq('summary sets done / total', [sum.setsDone, sum.setsTotal], [4, 7]);
+eq('summary exercises done', [sum.exercisesDone, sum.exercisesTotal], [1, 3]);
+eq('summary volume counts only done sets (20*10 + 20*10 + 22.5*8 + 40*10)', sum.volumeKg, 200 + 200 + 180 + 400);
+eq('next exercise is the first not done', nextExercise(wd, wr).id, 'w2');
+eq('next exercise is null when everything is done', nextExercise(wd, { ticks: { w1: true, w2: true, w3: true } }), null);
+eq('estimate: 7 sets is about 15-20 min, never under 10', [estimateMinutes(wd) >= 10, estimateMinutes(wd) % 5], [true, 0]);
+eq('estimate floors at 10 minutes', estimateMinutes({ workout: [{ id: 'x', exercise: 'x', sets: 1 }] }), 10);
+eq('old tick-only record still counts as done sets', workoutSummary({ workout: [{ id: 'w1', exercise: 'A', sets: 3 }] }, { ticks: { w1: true } }).setsDone, 3);
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);
