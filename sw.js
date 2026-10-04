@@ -9,7 +9,7 @@
 // CACHE_VERSION when you want everyone's cache rebuilt. (vendor/pdfjs is deliberately NOT listed: it is
 // big, so it is cached the first time someone uploads a PDF instead.) `node tests/check-sw.mjs` checks the list.
 
-const CACHE_VERSION = 'tickfit-v2';
+const CACHE_VERSION = 'tickfit-v3';
 const NETWORK_TIMEOUT_MS = 3000;
 
 const APP_FILES = [
@@ -28,6 +28,7 @@ const APP_FILES = [
   'js/parser.js',
   'js/plans.js',
   'js/progress.js',
+  'js/schedule.js',
   'js/stats.js',
   'js/store.js',
   'js/theme.js',

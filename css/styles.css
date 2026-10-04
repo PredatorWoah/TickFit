@@ -183,11 +183,12 @@ button { cursor: pointer; }
 
 /* ---------- toast ---------- */
 .toast {
-  position: fixed; left: 50%; bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
-  background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 999px; font-weight: 600;
-  opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 20; max-width: 90vw;
+  position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px);
+  bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); transform: translateY(20px); text-align: center;
+  background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 600;
+  opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 20;
 }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.show { opacity: 1; transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
@@ -271,3 +272,12 @@ button { cursor: pointer; }
 .upload-row { display: flex; gap: 8px; }
 .upload-row .btn { flex: 1; }
 .status { color: var(--muted); font-size: 14px; margin: 6px 2px; }
+
+/* ---------- fixes: spinner arrows, long notes ---------- */
+input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+details.callout { padding: 0 14px; }
+details.callout summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; font-weight: 650; color: var(--text); }
+details.callout p { margin: 0 0 12px; white-space: pre-line; }
