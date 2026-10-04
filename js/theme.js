@@ -2,7 +2,7 @@
 // Dark is the default. "auto" follows the phone's own setting.
 // (js/theme-boot.js does the same thing before first paint, to avoid a flash.)
 
-const COLORS = { dark: '#0e1116', light: '#f4f6f9' }; // matches --bg, used for the phone's browser bar
+const COLORS = { dark: '#0a0d12', light: '#f2f4f7' }; // matches --bg, used for the phone's browser bar
 
 export function resolveTheme(pref) {
   if (pref === 'light') return 'light';

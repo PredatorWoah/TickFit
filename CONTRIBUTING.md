@@ -47,12 +47,15 @@ You can also open `tests/parser.test.html` through the local server to run the p
 | `js/store.js` | localStorage, backups, storage protection |
 | `js/schedule.js` | Which plan day lands on which date (cycle and weekday plans) |
 | `js/stats.js` | Counting what is done, streaks, last-time lookup, target parsing |
-| `js/logging.js` | How set by set logging changes a day's record |
-| `js/today.js` | The Today screen and the set sheet |
+| `js/logging.js` | Set by set logging and workout sessions (start, finish, summary) |
+| `js/home.js` | The Today screen (summary, streak, cards) |
+| `js/workout.js` | Workout mode: inline sets, the clock, Finish |
+| `js/meals.js` | The Meals screen |
+| `js/dayview.js` | Shared pieces of the day screens: date bar, week strip, ring, tiles, water |
 | `js/sheet.js`, `js/icons.js`, `js/dom.js` | Bottom sheet, SVG icons, tiny DOM helper |
 | `js/progress.js` | Streak, week percentage, calendar |
 | `js/editor.js` | Editing a plan |
-| `js/plans.js`, `js/more.js` | Plans, new plan and import screens; settings and your data |
+| `js/plans.js`, `js/more.js` | Welcome, plans, new plan and import screens; More (my plan, settings, your data) |
 | `js/safety.js`, `js/backup.js` | Backup reminders, share sheet and file backup |
 | `js/builder.js`, `js/exercises.js`, `js/foods.js` | The plan builder: maths, exercise library, Indian food library |
 | `js/build.js` | The plan builder screen |

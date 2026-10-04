@@ -4,7 +4,7 @@
 
 import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
-import { getState, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb } from './store.js';
+import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb } from './store.js';
 import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { validatePlan } from './parser.js';
@@ -140,8 +140,26 @@ export function renderMore(root, actions) {
   const keyInput = h('input', { class: 'text-input', type: 'password', autocomplete: 'off', spellcheck: false, placeholder: cfg.key ? 'Key saved (hidden)' : 'Paste your Gemini API key', 'aria-label': 'Gemini API key' });
   const modelInput = h('input', { class: 'text-input', type: 'text', autocomplete: 'off', spellcheck: false, value: cfg.model, 'aria-label': 'Gemini model name' });
 
+  // ----- my plan: the one obvious place to switch, edit or add plans -----
+  const plan = getActivePlan();
+  const planCard = h(
+    'section',
+    { class: 'card' },
+    h('h2', {}, 'My plan'),
+    h('div', { class: 'plan-name' }, plan ? plan.name : 'No plan yet'),
+    plan && h('p', { class: 'row-meta' }, `${getState().plans.length} plan${getState().plans.length === 1 ? '' : 's'} saved on this phone`),
+    h(
+      'div',
+      { class: 'btn-row' },
+      h('button', { class: 'btn', type: 'button', onclick: () => actions.show('plans') }, 'Switch plans'),
+      plan && h('button', { class: 'btn', type: 'button', onclick: () => actions.show('edit', { planId: plan.id }) }, 'Edit this plan'),
+      h('button', { class: 'btn primary', type: 'button', onclick: () => actions.show('new') }, icon('plus', 18), 'New plan')
+    )
+  );
+
   root.append(
     h('h1', { class: 'page-title' }, 'More'),
+    planCard,
     dataCard,
     h('section', { class: 'card' }, h('h2', {}, 'Appearance'), h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)),
     h(
