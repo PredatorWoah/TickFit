@@ -2,6 +2,7 @@
 // The Progress screen: streak, this week's completion, and a month calendar of past days.
 
 import { h, clear } from './dom.js';
+import { icon } from './icons.js';
 import { getState } from './store.js';
 import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
 import { todayStr, fromStr, toStr, addDays } from './dates.js';
@@ -40,9 +41,9 @@ export function renderProgress(root, plan, goto) {
     h(
       'section',
       { class: 'stats' },
-      stat('🔥', streak, 'day streak'),
-      stat('📅', week === null ? '–' : `${week}%`, 'last 7 days'),
-      stat('🏆', best, 'best streak')
+      stat('flame', streak, 'day streak'),
+      stat('calendar', week === null ? '–' : `${week}%`, 'last 7 days'),
+      stat('trophy', best, 'best streak')
     ),
     h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`)
   );
@@ -94,9 +95,9 @@ export function renderProgress(root, plan, goto) {
       h(
         'div',
         { class: 'cal-head' },
-        h('button', { class: 'icon-btn small', 'aria-label': 'Previous month', onclick: () => shift(-1) }, '‹'),
+        h('button', { class: 'icon-btn small', 'aria-label': 'Previous month', onclick: () => shift(-1) }, icon('back', 20)),
         h('h2', { class: 'cal-title' }, title),
-        h('button', { class: 'icon-btn small', 'aria-label': 'Next month', onclick: () => shift(1) }, '›')
+        h('button', { class: 'icon-btn small', 'aria-label': 'Next month', onclick: () => shift(1) }, icon('chevron-right', 20))
       ),
       grid,
       h(
@@ -111,6 +112,6 @@ export function renderProgress(root, plan, goto) {
   );
 }
 
-function stat(icon, value, label) {
-  return h('div', { class: 'stat' }, h('div', { class: 'stat-icon', 'aria-hidden': 'true' }, icon), h('div', { class: 'stat-value' }, String(value)), h('div', { class: 'stat-label' }, label));
+function stat(iconName, value, label) {
+  return h('div', { class: 'stat' }, h('div', { class: 'stat-icon', 'aria-hidden': 'true' }, icon(iconName, 26)), h('div', { class: 'stat-value' }, String(value)), h('div', { class: 'stat-label' }, label));
 }

@@ -249,13 +249,22 @@ function validateExercise(w, where, j, used, errors, warnings) {
   // Rest: 90 -> "90s", "90 sec" stays as written.
   let rest = typeof w.rest === 'number' ? `${w.rest}s` : str(w.rest);
 
+  // Optional video link. Only web links are kept (so nothing odd like javascript: can sneak in).
+  let video = str(w.video);
+  if (video && !/^https?:\/\/\S+$/i.test(video)) {
+    warnings.push(`${label}: "video" must be a web link starting with http:// or https://, so I ignored it.`);
+    video = '';
+  }
+
   return {
     id: pickId(w.id, 'w', j, used),
     exercise,
     sets: sets === null ? null : Math.round(sets),
     reps: str(w.reps),
+    weight: str(w.weight), // optional target, like "20 kg"
     rest,
     notes: str(w.notes),
+    video,
   };
 }
 

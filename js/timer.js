@@ -83,6 +83,7 @@ export function stopRest() {
   interval = null;
   if (bar) bar.remove();
   bar = null;
+  document.body.classList.remove('has-rest');
 }
 
 /** Start (or restart) the rest timer. Call this from a tap so audio is allowed. */
@@ -109,6 +110,7 @@ export function startRest(seconds, label) {
     h('button', { class: 'btn small', onclick: stopRest }, 'Skip')
   );
   document.body.append(bar);
+  document.body.classList.add('has-rest');
 
   function tick() {
     if (!bar) return;

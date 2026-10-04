@@ -41,6 +41,11 @@ export const cases = [
   { name: 'duplicate ids are fixed', input: '{"name":"X","days":[{"label":"D","workout":[{"id":"a","exercise":"A"},{"id":"a","exercise":"B"}],"meals":[]}]}', ok: true, check: (p) => p.days[0].workout[0].id !== p.days[0].workout[1].id },
   { name: 'emoji and hindi text survive', input: '{"name":"योजना 💪","days":[{"label":"दिन 1","workout":[],"meals":[{"name":"नाश्ता","items":["पोहा"]}]}]}', ok: true, check: (p) => p.name === 'योजना 💪' },
 
+  { name: 'weight and video are kept', input: '{"name":"X","days":[{"label":"D","workout":[{"exercise":"Squat","weight":"40 kg","video":"https://youtu.be/abc"}],"meals":[]}]}', ok: true, check: (p) => p.days[0].workout[0].weight === '40 kg' && p.days[0].workout[0].video === 'https://youtu.be/abc' },
+  { name: 'numeric weight becomes text', input: '{"name":"X","days":[{"label":"D","workout":[{"exercise":"Squat","weight":40}],"meals":[]}]}', ok: true, check: (p) => p.days[0].workout[0].weight === '40' },
+  { name: 'non web video link is dropped with a warning', input: '{"name":"X","days":[{"label":"D","workout":[{"exercise":"Squat","video":"javascript:alert(1)"}],"meals":[]}]}', ok: true, warnings: ['video'], check: (p) => p.days[0].workout[0].video === '' },
+  { name: 'video text that is not a link is dropped', input: '{"name":"X","days":[{"label":"D","workout":[{"exercise":"Squat","video":"watch on youtube"}],"meals":[]}]}', ok: true, warnings: ['video'] },
+
   // ----- should fail with a friendly message -----
   { name: 'day missing meals', input: '{"name":"X","days":[{"label":"D1","workout":[],"meals":[{"name":"B","items":["Egg"]}]},{"label":"D2","workout":[]},{"label":"D3","workout":[]}]}', ok: false, errors: ['Day 2 is missing meals', 'Day 3 is missing meals'] },
   { name: 'day missing workout', input: '{"name":"X","days":[{"label":"D1","meals":[]}]}', ok: false, errors: ['Day 1 is missing "workout"', 'rest day'] },

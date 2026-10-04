@@ -10,7 +10,7 @@ const EXAMPLE = {
     {
       label: 'Day 1 Push',
       workout: [
-        { exercise: 'Bench Press', sets: 3, reps: '8 to 10', rest: '90s', notes: 'Control the lowering' },
+        { exercise: 'Bench Press', sets: 3, reps: '8 to 10', rest: '90s', weight: '20 kg', notes: 'Control the lowering' },
         { exercise: 'Plank', sets: 3, reps: '30 sec', rest: '45s', notes: '' },
       ],
       meals: [
@@ -50,7 +50,9 @@ SCHEMA
           "sets": number,               // optional
           "reps": string,               // optional, e.g. "8 to 10" or "30 sec"
           "rest": string,               // optional, e.g. "90s"
-          "notes": string               // optional
+          "weight": string,             // optional target, e.g. "20 kg" or "bodyweight"
+          "notes": string,              // optional
+          "video": string               // optional link, ONLY if the document contains a real URL
         }
       ],
       "meals": [                        // required, can be []
@@ -78,7 +80,7 @@ RULES
 1. Return ONLY valid JSON. No explanation, no greeting, no markdown, no code fences.
 2. Use double quotes for all keys and strings. No trailing commas. No comments.
 3. Every day must have both "workout" and "meals". Use [] for a rest day workout.
-4. Do not invent exercises, foods, calories or protein. If the document does not say, leave the field out.
+4. Do not invent exercises, foods, calories, protein, weights or video links. If the document does not say, leave the field out.
 5. If the document describes one week that repeats and has no weekday names, return 7 days for that week. If it spans several weeks, return every day. (Weekday named plans: see rule 9.)
 6. Use numbers for sets, calories, protein and waterLiters. Use text for reps, rest and time.
 7. Keep my wording for exercise and food names.

@@ -141,7 +141,9 @@ export function renderEditor(root, plan, actions, dayIdx = null) {
               textField('Reps', w.reps, (v) => (w.reps = v)),
               textField('Rest', w.rest, (v) => (w.rest = v))
             ),
-            textField('Notes', w.notes, (v) => (w.notes = v))
+            textField('Target weight (optional, like 20 kg)', w.weight, (v) => (w.weight = v)),
+            textField('Notes', w.notes, (v) => (w.notes = v)),
+            textField('Video link (optional)', w.video, (v) => (w.video = v), { validate: (v) => (v && !/^https?:\/\/\S+$/i.test(v) ? 'The link must start with http:// or https://' : null) })
           )
         ),
         h(
@@ -149,7 +151,7 @@ export function renderEditor(root, plan, actions, dayIdx = null) {
           {
             class: 'btn wide',
             onclick: () => {
-              day.workout.push({ id: newItemId('w', day.workout), exercise: 'New exercise', sets: 3, reps: '10', rest: '60s', notes: '' });
+              day.workout.push({ id: newItemId('w', day.workout), exercise: 'New exercise', sets: 3, reps: '10', weight: '', rest: '60s', notes: '', video: '' });
               savePlans();
               redraw();
             },
@@ -224,6 +226,12 @@ function textField(label, value, onCommit, opts = {}) {
     if (opts.required && !v) {
       input.value = opts.fallback ?? '';
       toast(`${label} can't be empty`);
+      return;
+    }
+    const problem = opts.validate && opts.validate(v);
+    if (problem) {
+      input.value = opts.fallback ?? value ?? '';
+      toast(problem);
       return;
     }
     onCommit(v);

@@ -18,7 +18,7 @@ let state = defaults();
 let storageWorks = true;
 
 function defaults() {
-  return { version: 1, activePlanId: null, plans: [], progress: {}, settings: { theme: 'dark', lang: 'en' } };
+  return { version: 1, activePlanId: null, plans: [], progress: {}, settings: { theme: 'dark', autoRest: true } };
 }
 
 /** Read everything from localStorage. Never throws; falls back to an empty state. */
@@ -98,15 +98,16 @@ export function setStartDate(id, startDate) {
 
 /** Read a day's record. Returns an empty (unsaved) record if there is none. */
 export function getRecord(planId, date) {
-  return (state.progress[planId] && state.progress[planId][date]) || { ticks: {}, weights: {}, waterMl: 0, notes: '' };
+  return (state.progress[planId] && state.progress[planId][date]) || { ticks: {}, weights: {}, sets: {}, waterMl: 0, notes: '' };
 }
 
 /** Change a day's record: update(planId, date, (rec) => { rec.ticks.w1 = true; }) */
 export function updateRecord(planId, date, fn) {
   const plan = (state.progress[planId] ||= {});
-  const rec = (plan[date] ||= { ticks: {}, weights: {}, waterMl: 0, notes: '' });
+  const rec = (plan[date] ||= { ticks: {}, weights: {}, sets: {}, waterMl: 0, notes: '' });
   rec.ticks ||= {};
   rec.weights ||= {};
+  rec.sets ||= {};
   fn(rec);
   save();
   return rec;
