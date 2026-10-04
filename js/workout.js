@@ -9,11 +9,14 @@
 import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
+import { openBackupSheet } from './backupui.js';
+import { nudgeDue, loggedDayCount } from './safety.js';
 import { getState } from './store.js';
+import { exerciseBurn, singleBurn, bodyWeightKg } from './burn.js';
 import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets } from './stats.js';
 import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from './logging.js';
 import { parseRestSeconds, startRest } from './timer.js';
-import { fromStr } from './dates.js';
+import { fromStr, todayStr } from './dates.js';
 import { createCtx, dateBar, LOCALE } from './dayview.js';
 
 let clockTimer = null; // the 1 second tick for the running clock
@@ -66,8 +69,12 @@ export function renderWorkout(root, plan, date, goto) {
   const clockEls = []; // every element that shows the running clock
   const tick = () => clockEls.forEach((el) => (el.textContent = formatDuration(sessionMs(ctx.rec()))));
 
+  /** Offer a backup on the summary when today's backup is missing. */
+  const backupDue = () => nudgeDue({ loggedDays: loggedDayCount(getState().progress), lastBackup: getState().settings.lastBackup, snoozeUntil: null }, todayStr());
+
   function openSummary() {
     const s = workoutSummary(day, ctx.rec());
+    const burn = exerciseBurn(day, ctx.rec(), bodyWeightKg(getState().settings, getState().bodyLog, todayStr()));
     openSheet({
       title: 'Workout complete',
       build(body, close) {
@@ -76,7 +83,10 @@ export function renderWorkout(root, plan, date, goto) {
           ...[
             h('p', { class: 'sheet-target' }, `${day.label} · ${fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' })}`),
             h('div', { class: 'stats' }, stat(formatDuration(sessionMs(ctx.rec())), 'time'), stat(`${s.setsDone}/${s.setsTotal}`, 'sets'), stat(s.volumeKg ? s.volumeKg.toLocaleString() : '–', s.volumeKg ? 'kg lifted' : 'lifted')),
+            burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `~${burn.kcal} kcal`), ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
+            burn.items.length > 0 && h('ul', { class: 'burn-list' }, burn.items.map((i) => h('li', {}, h('span', {}, i.name), h('span', {}, `~${i.kcal} kcal`)))),
             s.exercisesDone < s.exercisesTotal && h('p', { class: 'hint' }, `${s.exercisesTotal - s.exercisesDone} exercise${s.exercisesTotal - s.exercisesDone === 1 ? '' : 's'} not finished. You can still tick them off later.`),
+            backupDue() && h('button', { class: 'btn wide', type: 'button', onclick: () => { close(); openBackupSheet(); } }, icon('upload', 20), 'Back up my progress'),
             h('button', { class: 'btn primary wide big', type: 'button', onclick: close }, 'Done'),
           ].filter(Boolean)
         );
@@ -333,7 +343,9 @@ export function renderWorkout(root, plan, date, goto) {
       li.classList.toggle('done', ticked);
       badge.replaceChildren(ticked ? icon('check', 18) : String(number));
       const logged = (r.sets && r.sets[w.id] || []).filter((s) => s.done && (s.w != null || s.r != null));
-      sub.textContent = ticked ? (logged.length ? formatSets(logged) : 'Done') : p.done > 0 ? `${p.done} of ${p.total} sets done` : facts.join(' · ');
+      const kcal = p.done > 0 ? singleBurn(day, r, w, bodyWeightKg(getState().settings, getState().bodyLog, todayStr())) : 0;
+      const burnTxt = kcal ? ` · ~${kcal} kcal` : '';
+      sub.textContent = (ticked ? (logged.length ? formatSets(logged) : 'Done') : p.done > 0 ? `${p.done} of ${p.total} sets done` : facts.join(' · ')) + burnTxt;
     });
     return li;
   }

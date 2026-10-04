@@ -9,9 +9,10 @@ import { addDays, fromStr, toStr } from './dates.js';
 import { dayFor } from './schedule.js';
 import { workoutSummary, sessionState, sessionMs } from './logging.js';
 import { dayStats, mealTotals, weightNumber } from './stats.js';
+import { periodChange } from './weight.js';
+import { exerciseBurn, LIFTING_MET, DEFAULT_BODY_KG } from './burn.js';
 
-export const LIFTING_MET = 5;
-export const DEFAULT_BODY_KG = 70;
+export { LIFTING_MET, DEFAULT_BODY_KG };
 const MIN_PER_SET = 2.5; // set + rest, used when there is no stopwatch time
 const MAX_SESSION_MIN = 240; // a clock left running all day is not a 20 hour workout
 
@@ -74,7 +75,7 @@ export function bestLifts(plan, records, from, to) {
 
 /** Totals for one stretch of days. */
 function totals(plan, records, from, to, bodyKg, today) {
-  const t = { days: [], workouts: 0, minutes: 0, sets: 0, volumeKg: 0, kcal: 0, loggedDays: 0, pctSum: 0, pctDays: 0, eatenKcal: 0, eatenDays: 0, protein: 0, waterMl: 0, waterDays: 0 };
+  const t = { days: [], byExercise: new Map(), cardioMinutes: 0, cardioKcal: 0, workouts: 0, minutes: 0, sets: 0, volumeKg: 0, kcal: 0, loggedDays: 0, pctSum: 0, pctDays: 0, eatenKcal: 0, eatenDays: 0, protein: 0, waterMl: 0, waterDays: 0 };
   for (let date = from; date <= to; date = addDays(date, 1)) {
     const rec = (records && records[date]) || null;
     const day = { date, minutes: 0, kcal: 0 };
@@ -89,8 +90,18 @@ function totals(plan, records, from, to, bodyKg, today) {
       t.pctDays++;
     }
     if (ws.setsDone) {
-      day.minutes = workoutMinutes(rec, ws.setsDone);
-      day.kcal = kcalBurnt(day.minutes, bodyKg);
+      const burn = exerciseBurn(d, rec, bodyKg);
+      day.minutes = burn.minutes || workoutMinutes(rec, ws.setsDone);
+      day.kcal = burn.kcal || kcalBurnt(day.minutes, bodyKg);
+      t.cardioMinutes += burn.cardioMinutes;
+      t.cardioKcal += burn.cardioKcal;
+      for (const i of burn.items) {
+        const key = i.name.toLowerCase().trim();
+        const cur = t.byExercise.get(key) || { name: i.name, kind: i.kind, kcal: 0, minutes: 0 };
+        cur.kcal += i.kcal;
+        cur.minutes += i.minutes;
+        t.byExercise.set(key, cur);
+      }
       t.workouts++;
       t.sets += ws.setsDone;
       t.volumeKg += ws.volumeKg;
@@ -118,7 +129,7 @@ const change = (now, before) => (before > 0 ? Math.round(((now - before) / befor
  * Everything the Progress summary shows for one week or month.
  * Returns totals, per-day bars, "vs last period" changes and strength gains per exercise.
  */
-export function summarize(plan, records, range, bodyKg, today) {
+export function summarize(plan, records, range, bodyKg, today, bodyLog = {}) {
   const cur = totals(plan, records, range.start, range.end, bodyKg, today);
   const prev = totals(plan, records, range.prevStart, range.prevEnd, bodyKg, today);
 
@@ -144,6 +155,8 @@ export function summarize(plan, records, range, bodyKg, today) {
       volumeKg: change(cur.volumeKg, prev.volumeKg),
       workouts: change(cur.workouts, prev.workouts),
     },
+    topBurn: [...cur.byExercise.values()].sort((a, b) => b.kcal - a.kcal).slice(0, 5).map((e) => ({ ...e, minutes: Math.round(e.minutes) })),
+    weight: periodChange(bodyLog, range.start, range.end < today ? range.end : today),
     hasPrev: prev.workouts > 0,
     lifts,
     prs: lifts.filter((l) => l.gain !== null && l.gain > 0).length,

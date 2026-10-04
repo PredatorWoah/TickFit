@@ -10,6 +10,7 @@ import { icon } from './icons.js';
 import { updateRecord } from './store.js';
 import { dayStats, mealTotals, currentStreak } from './stats.js';
 import { sessionState, sessionMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
+import { weightTile } from './weightui.js';
 import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump } from './dayview.js';
 
 /**
@@ -124,6 +125,12 @@ export function renderHome(root, plan, date, goto, actions) {
 
   const water = waterTile(ctx);
   if (water) root.append(section('Water', null, water));
+
+  // ----- body weight (a small tile that opens the log sheet) -----
+  const weightHost = h('div', {});
+  const drawWeight = () => weightHost.replaceChildren(weightTile(drawWeight));
+  drawWeight();
+  root.append(section('Weight', null, weightHost));
 
   // ----- your own notes -----
   const notes = h('textarea', {

@@ -1,5 +1,5 @@
 // Tests for backup reminders. Run: node tests/safety.mjs
-import { loggedDayCount, daysSinceBackup, nudgeDue, describeBackupAge, snoozeDate } from '../js/safety.js';
+import { loggedDayCount, daysSinceBackup, nudgeDue, describeBackupAge, snoozeDate, backupStale, cleanFilename } from '../js/safety.js';
 
 let failed = 0;
 const eq = (name, got, want) => {
@@ -22,14 +22,24 @@ eq('days since: same day', daysSinceBackup('2026-10-04', '2026-10-04'), 0);
 eq('days since: clock went backwards is 0', daysSinceBackup('2026-10-10', '2026-10-04'), 0);
 
 const T = '2026-10-04';
-eq('no nudge for new users', nudgeDue({ loggedDays: 2, lastBackup: null, snoozeUntil: null }, T), false);
-eq('nudge when never backed up', nudgeDue({ loggedDays: 3, lastBackup: null, snoozeUntil: null }, T), true);
-eq('no nudge after a recent backup', nudgeDue({ loggedDays: 30, lastBackup: '2026-09-25', snoozeUntil: null }, T), false);
-eq('exactly 14 days is still fine', nudgeDue({ loggedDays: 30, lastBackup: '2026-09-20', snoozeUntil: null }, T), false);
-eq('15 days old backup nudges', nudgeDue({ loggedDays: 30, lastBackup: '2026-09-19', snoozeUntil: null }, T), true);
-eq('snoozed: no nudge', nudgeDue({ loggedDays: 30, lastBackup: null, snoozeUntil: '2026-10-08' }, T), false);
-eq('snooze ends the day after', nudgeDue({ loggedDays: 30, lastBackup: null, snoozeUntil: '2026-10-08' }, '2026-10-09'), true);
-eq('snooze lasts 7 days', snoozeDate('2026-10-04'), '2026-10-11');
+eq('no nudge when nothing is logged', nudgeDue({ loggedDays: 0, lastBackup: null, snoozeUntil: null }, T), false);
+eq('nudge when never backed up', nudgeDue({ loggedDays: 1, lastBackup: null, snoozeUntil: null }, T), true);
+eq('no nudge after a backup today', nudgeDue({ loggedDays: 30, lastBackup: '2026-10-04', snoozeUntil: null }, T), false);
+eq('nudge the day after a backup (daily)', nudgeDue({ loggedDays: 30, lastBackup: '2026-10-03', snoozeUntil: null }, T), true);
+eq('snoozed today: no nudge', nudgeDue({ loggedDays: 30, lastBackup: null, snoozeUntil: T }, T), false);
+eq('snooze ends tomorrow', nudgeDue({ loggedDays: 30, lastBackup: null, snoozeUntil: T }, '2026-10-05'), true);
+eq('snooze lasts the rest of today', snoozeDate('2026-10-04'), '2026-10-04');
+eq('stale: never backed up with progress', backupStale({ loggedDays: 2, lastBackup: null }, T), true);
+eq('stale: 2 days old is fine', backupStale({ loggedDays: 2, lastBackup: '2026-10-02' }, T), false);
+eq('stale: 3 days old', backupStale({ loggedDays: 2, lastBackup: '2026-10-01' }, T), true);
+eq('stale: nothing to lose', backupStale({ loggedDays: 0, lastBackup: null }, T), false);
+
+eq('filename: plain', cleanFilename('my backup', 'x'), 'my backup.json');
+eq('filename: strips .json and slashes', cleanFilename('../a/b:c*.JSON', 'x'), 'abc.json');
+eq('filename: empty falls back', cleanFilename('   ', 'tickfit-backup'), 'tickfit-backup.json');
+eq('filename: only illegal chars falls back', cleanFilename('///', 'fb'), 'fb.json');
+eq('filename: long names are cut', cleanFilename('a'.repeat(200), 'x').length, 65);
+eq('filename: leading dots removed', cleanFilename('...hidden', 'x'), 'hidden.json');
 
 eq('describe never', describeBackupAge(null, T), 'never');
 eq('describe today', describeBackupAge('2026-10-04', T), 'today');

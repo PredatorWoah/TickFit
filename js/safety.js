@@ -24,9 +24,10 @@ export function daysSinceBackup(lastBackup, today) {
   return lastBackup ? Math.max(0, diffDays(lastBackup, today)) : null;
 }
 
-export const NUDGE_AFTER_DAYS = 14; // remind when the last backup is older than this
-export const NUDGE_MIN_LOGGED_DAYS = 3; // don't nag brand new users who have nothing to lose yet
-export const SNOOZE_DAYS = 7;
+export const NUDGE_AFTER_DAYS = 1; // remind when the last backup is at least this many days old (so: daily)
+export const NUDGE_MIN_LOGGED_DAYS = 1; // nothing to lose yet means no nagging
+export const STALE_AFTER_DAYS = 3; // the More tab shows a dot when the backup is this old
+export const SNOOZE_DAYS = 0; // "Remind me later" hides it for the rest of today, it returns tomorrow
 
 /**
  * Should we show the "back up your progress" reminder today?
@@ -36,10 +37,31 @@ export function nudgeDue({ loggedDays, lastBackup, snoozeUntil }, today) {
   if (loggedDays < NUDGE_MIN_LOGGED_DAYS) return false;
   if (snoozeUntil && today <= snoozeUntil) return false;
   const since = daysSinceBackup(lastBackup, today);
-  return since === null || since > NUDGE_AFTER_DAYS;
+  return since === null || since >= NUDGE_AFTER_DAYS;
+}
+
+/** Is the backup old enough (or missing) that the More tab should show a warning dot? */
+export function backupStale({ loggedDays, lastBackup }, today) {
+  if (loggedDays < NUDGE_MIN_LOGGED_DAYS) return false;
+  const since = daysSinceBackup(lastBackup, today);
+  return since === null || since >= STALE_AFTER_DAYS;
 }
 
 export const snoozeDate = (today) => addDays(today, SNOOZE_DAYS);
+
+/** A safe backup file name: no slashes or odd characters, always ends in .json. */
+export function cleanFilename(input, fallback) {
+  let name = String(input ?? '')
+    .replace(/[\u0000-\u001f\\/:*?"<>|]/g, '')
+    .replace(/\.json\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^\.+/, '')
+    .slice(0, 60)
+    .trim();
+  if (!name) name = fallback;
+  return name + '.json';
+}
 
 /** "never", "today", "yesterday", "5 days ago" */
 export function describeBackupAge(lastBackup, today) {
