@@ -9,7 +9,7 @@ import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
-import { canShareFiles, saveBackupFile, shareBackupFile } from './backup.js';
+import { openBackupSheet } from './backupui.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -49,47 +49,11 @@ export function renderMore(root, actions) {
   const installed = isInstalled();
   const row = (label, value, tone) => h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, label), h('span', { class: 'kv-value' + (tone ? ' ' + tone : '') }, value));
 
-  const backupButtons = [];
-  if (canShareFiles()) {
-    backupButtons.push(
-      h(
-        'button',
-        {
-          class: 'btn primary wide',
-          type: 'button',
-          onclick: async () => {
-            try {
-              if (await shareBackupFile()) {
-                toast('Backup shared');
-                again();
-              }
-            } catch {
-              toast('Could not open the share sheet. Try "Save backup file".');
-            }
-          },
-        },
-        icon('upload', 20),
-        'Share backup'
-      )
-    );
-  }
-  backupButtons.push(
-    h(
-      'button',
-      {
-        class: 'btn wide' + (backupButtons.length ? '' : ' primary'),
-        type: 'button',
-        onclick: () => {
-          saveBackupFile();
-          toast('Backup saved');
-          again();
-        },
-      },
-      'Save backup file'
-    ),
+  const backupButtons = [
+    h('button', { class: 'btn primary wide', type: 'button', onclick: () => openBackupSheet(again) }, icon('upload', 20), 'Back up now'),
     h('button', { class: 'btn wide', type: 'button', onclick: () => fileInput.click() }, 'Restore from a backup file'),
-    fileInput
-  );
+    fileInput,
+  ];
 
   const dataCard = h(
     'section',
@@ -178,6 +142,19 @@ export function renderMore(root, actions) {
         h('input', { type: 'checkbox', checked: settings.sound !== false, onchange: (e) => setSetting('sound', e.target.checked) }),
         'Beep and vibrate when rest ends'
       )
+    ),
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Food lookup (optional)'),
+      h('p', { class: 'hint' }, 'In the meal editor, "Estimate from foods" works offline for common foods. Turn this on to also look up unfamiliar foods online, mostly packaged products, using the free Open Food Facts database.'),
+      h(
+        'label',
+        { class: 'check-line' },
+        h('input', { type: 'checkbox', checked: !!settings.foodLookup, onchange: (e) => setSetting('foodLookup', e.target.checked) }),
+        'Look up foods online when I tap Estimate'
+      ),
+      h('p', { class: 'hint' }, 'What is sent: only the food name, such as "paneer tikka", to openfoodfacts.org. No amounts, plans, progress or personal details. Their servers can see your IP address, like any website. Off by default.')
     ),
     h(
       'section',

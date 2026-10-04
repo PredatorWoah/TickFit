@@ -20,15 +20,18 @@
 - **Today:** a calm summary. A progress ring, your streak, a week strip with completion dots, one big **Start workout** button, your meals at a glance and water. Tap the day title to jump to any day of the plan.
 - **Workout mode:** one screen, no pop-ups. Every exercise is listed, the one you are on is open with a row for each set and big weight and reps boxes. Tick a set and the next exercise opens by itself. A clock runs while you train (it even starts on your first ticked set), and **Finish workout** shows your time, sets and total weight lifted. Boxes are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10").
 - **Meals:** calories and protein meters, each meal as a big tick tile, supplements and water.
+- **Calories and protein for any meal:** in the plan editor type them yourself, or tap **Estimate from foods**. It reads lines like `2 rotis`, `100 g paneer` or `1 or 2 bananas` against a built-in table of common Indian foods, fully offline. Optional: in **More > Food lookup** you can let it look up unfamiliar foods online (Open Food Facts, no key). Off by default; only the food name is sent.
 - **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration. It sits at the top of the screen and pushes the page down instead of covering it.
 - **Form videos:** each exercise can carry a video link. If it doesn't, the **Form video** button opens a YouTube search for that exercise.
 - **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
 - **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
 - **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
+- **Daily weight tracker:** tap the Weight tile on Today to log your weight (big number, +/- 0.1 buttons). Progress shows a chart (30 or 90 days), your 7 day average and how much you gained or lost versus last week. The average matters more than any one day, because weight swings a kilo or two with water and food.
+- **Calories per exercise:** every exercise has an effort level (lifting about 5 to 6 METs, a run about 9, a walk about 4, stretching 2.5). TickFit estimates what each exercise burnt from that, your body weight and the time it took (timed work like "30 min" uses its real time; the workout clock is used when you finish). The finish summary shows the total and each exercise, and cardio gets its own line.
 - **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, your heaviest lift per exercise (with new bests), and daily averages for calories, protein and water. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
-- **Keeps your data safe:** asks the browser to protect your data, reminds you to back up, and makes moving to a new phone easy (see below).
+- **Keeps your data safe:** asks the browser to protect your data, nudges you to back up once a day (one tap, also offered after a workout, with a red dot on More when it is overdue), and makes moving to a new phone easy (see below).
 - **Dark by default**, with light and match-my-phone themes. Works offline after the first load.
 - A built in **4 week beginner plan with vegetarian Indian meals**, so it is useful on first open.
 
@@ -55,7 +58,7 @@ After that it opens full screen and works without internet. On an iPhone this al
 TickFit stores everything in your browser on your phone. That is what makes it private, free and offline. It also means there is no account to recover from, so:
 
 - **Install it** to your Home Screen (see above). Installed apps are far less likely to have their data cleared.
-- **Back up now and then.** TickFit shows a gentle reminder on Today once you have a few days logged and no recent backup. **More > Share backup** opens your phone's share sheet (save to Files or Drive, send it on WhatsApp or email). **Save backup file** downloads it instead.
+- **Back up daily.** A web page cannot save files by itself (no browser allows it), so TickFit makes it as easy as possible: a reminder on Today once a day, a one tap **Back up now** sheet, and a red dot on the More tab when your backup is 3 days old. In the sheet you can rename the file, share it (save to Files or Drive, send it on WhatsApp or email) or download it. Android and iPhone cannot overwrite an old file, so a repeated name becomes "name (1)"; desktop Chrome and Edge can use **Save over an existing file**.
 - **New phone?** Make a backup on the old phone, open the same link on the new one, then **More > Restore from a backup file**. Your Gemini key (if you set one) is never in the backup, on purpose.
 - **Two devices do not sync.** Without a server that isn't possible, so each device keeps its own history.
 
@@ -164,7 +167,7 @@ All paths in the app are relative, so it works under any `/REPO-NAME/` address.
 node tests/all.mjs
 ```
 
-No installs needed. It covers the plan importer (valid, messy and broken inputs), weekday scheduling, streaks, set logging, rest-time parsing, the backup reminder logic, the offline file list, and the plan builder: the builder test generates **2,700 plans across every combination of answers** and checks each one is valid, uses only the equipment you have, avoids exercises that stress your injuries, respects your diet, stays close to its calorie target and varies day to day. See [CONTRIBUTING.md](CONTRIBUTING.md).
+No installs needed. It covers the plan importer (valid, messy and broken inputs), weekday scheduling, streaks, set logging, rest-time parsing, the backup reminder logic, the weekly and monthly summaries, calorie burn, the body weight maths, the food estimate and the opt-in lookup (with a faked network), the offline file list, and the plan builder: the builder test generates **2,700 plans across every combination of answers** and checks each one is valid, uses only the equipment you have, avoids exercises that stress your injuries, respects your diet, stays close to its calorie target and varies day to day. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing
 

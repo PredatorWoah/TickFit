@@ -6,9 +6,10 @@ import { icon } from './icons.js';
 import { getState } from './store.js';
 import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
 import { todayStr, fromStr, toStr, addDays } from './dates.js';
-import { openSheet } from './sheet.js';
-import { setSetting } from './store.js';
-import { periodRange, shiftAnchor, summarize, DEFAULT_BODY_KG } from './summary.js';
+import { periodRange, shiftAnchor, summarize } from './summary.js';
+import { bodyWeightKg } from './burn.js';
+import { weightCard, openWeightSheet } from './weightui.js';
+import { formatDelta } from './weight.js';
 import { formatDuration } from './logging.js';
 
 const LOCALE = 'en'; // Phase 3 swaps this for the chosen language
@@ -52,7 +53,8 @@ export function renderProgress(root, plan, goto) {
       stat('trophy', best, 'best streak')
     ),
     h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`),
-    summaryCard(root, plan, records, today, goto)
+    summaryCard(root, plan, records, today, goto),
+    weightCard(() => renderProgress(root, plan, goto))
   );
 
   // ----- calendar -----
@@ -142,8 +144,8 @@ function summaryCard(root, plan, records, today, goto) {
   if (!sum.anchor) sum.anchor = today;
   const range = periodRange(sum.kind, sum.anchor);
   const st = getState().settings;
-  const bodyKg = Number(st.bodyWeightKg) || Number((st.profile || {}).weightKg) || DEFAULT_BODY_KG;
-  const s = summarize(plan, records, range, bodyKg, today);
+  const bodyKg = bodyWeightKg(st, getState().bodyLog, today);
+  const s = summarize(plan, records, range, bodyKg, today, getState().bodyLog);
   const redraw = () => {
     const y = window.scrollY;
     renderProgress(root, plan, goto);
@@ -199,6 +201,14 @@ function summaryCard(root, plan, records, today, goto) {
     );
   }
 
+  // Where the calories came from.
+  if (s.topBurn.length) {
+    card.append(
+      h('h3', { class: 'sum-sub' }, 'Calories by exercise', s.cardioMinutes ? h('span', { class: 'delta' }, `cardio ${s.cardioMinutes} min · ~${fmt(s.cardioKcal)} kcal`) : null),
+      h('ul', { class: 'lift-list' }, s.topBurn.map((e) => h('li', { class: 'lift' }, h('span', { class: 'lift-name' }, e.name), h('span', { class: 'lift-now' }, `${e.minutes} min`), h('span', { class: 'delta' }, `~${fmt(e.kcal)} kcal`))))
+    );
+  }
+
   // Strength: heaviest weight per exercise against everything before this period.
   if (s.lifts.length) {
     card.append(
@@ -220,6 +230,13 @@ function summaryCard(root, plan, records, today, goto) {
     );
   }
 
+  if (s.weight && s.weight.count) {
+    card.append(
+      h('h3', { class: 'sum-sub' }, 'Body weight'),
+      h('div', { class: 'sum-grid' }, big(`${s.weight.to}`, 'kg', s.weight.delta === 0 && s.weight.count < 2 ? 'latest weigh-in' : `from ${s.weight.from} kg`, s.weight.count >= 2 || s.weight.from !== s.weight.to ? h('span', { class: 'delta' }, formatDelta(s.weight.delta)) : null))
+    );
+  }
+
   // Eating and habits.
   if (s.avgEaten !== null || s.avgPct !== null || s.avgWaterL !== null) {
     const avg = [
@@ -235,28 +252,9 @@ function summaryCard(root, plan, records, today, goto) {
     h(
       'p',
       { class: 'hint' },
-      `Calories burnt are a rough guess: 5 METs for lifting, using ${bodyKg} kg and your workout time. Real numbers can be 30% off either way. `,
-      h('button', { class: 'link-btn', type: 'button', onclick: () => editBodyWeight(bodyKg, redraw) }, 'Change body weight')
+      `Calories burnt are a rough guess: each exercise has an effort level (lifting about 5 to 6 METs, a run about 9), used with your ${bodyKg} kg and the time you trained. Real numbers can be 30% off either way. `,
+      h('button', { class: 'link-btn', type: 'button', onclick: () => openWeightSheet(today, redraw) }, 'Log today\'s weight')
     )
   );
   return card;
-}
-
-/** A small sheet to set the body weight used for the calorie estimate. */
-function editBodyWeight(current, done) {
-  openSheet({
-    title: 'Body weight',
-    build(body, close) {
-      const input = h('input', { type: 'number', inputmode: 'decimal', min: '25', max: '300', step: '0.1', value: String(current), 'aria-label': 'Body weight in kilograms' });
-      body.append(
-        h('p', { class: 'hint' }, 'Used only for the calorie estimate. Stays on this phone.'),
-        h('label', { class: 'field' }, h('span', {}, 'Weight (kg)'), input),
-        h('button', { class: 'btn primary wide', type: 'button', onclick: () => {
-          const v = Number(input.value);
-          if (v >= 25 && v <= 300) { setSetting('bodyWeightKg', Math.round(v * 10) / 10); close(); done(); }
-          else input.setCustomValidity('Enter a weight between 25 and 300 kg'), input.reportValidity();
-        } }, 'Save')
-      );
-    },
-  });
 }

@@ -17,8 +17,8 @@ import { renderEditor } from './editor.js';
 import { renderMore } from './more.js';
 import { renderBuild } from './build.js';
 import { applyTheme } from './theme.js';
-import { nudgeDue, loggedDayCount, snoozeDate } from './safety.js';
-import { canShareFiles, saveBackupFile, shareBackupFile } from './backup.js';
+import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
+import { openBackupSheet } from './backupui.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -53,12 +53,15 @@ function drawNav() {
   clear(nav);
   const activeTab = MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
   nav.hidden = view.screen === 'welcome';
+  const { progress, settings } = getState();
+  const stale = backupStale({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup }, todayStr());
   for (const t of TABS) {
     nav.append(
       h(
         'button',
         { class: 'tab' + (activeTab === t.id ? ' active' : ''), type: 'button', 'aria-current': activeTab === t.id ? 'page' : null, onclick: () => show(t.id) },
         icon(t.icon, 24),
+        t.id === 'more' && stale && h('span', { class: 'tab-dot', role: 'img', 'aria-label': 'Backup is overdue' }),
         h('span', {}, t.label)
       )
     );
@@ -103,22 +106,12 @@ function showBackupNudge() {
   const today = todayStr();
   if (!nudgeDue({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup, snoozeUntil: settings.backupSnoozeUntil }, today)) return;
 
-  const doBackup = async () => {
-    try {
-      if (canShareFiles()) {
-        if (!(await shareBackupFile())) return; // they closed the share sheet
-      } else saveBackupFile();
-      toast('Backup done. Nice.');
-      draw();
-    } catch {
-      toast('Could not make the backup. Try More, then Save backup file.');
-    }
-  };
+  const doBackup = () => openBackupSheet(draw);
   root.prepend(
     h(
       'div',
       { class: 'nudge', role: 'region', 'aria-label': 'Backup reminder' },
-      h('p', {}, settings.lastBackup ? 'It has been a while since your last backup. Your progress only lives on this phone.' : 'You have not backed up yet. Your progress only lives on this phone, so a backup file keeps it safe if you lose it or switch phones.'),
+      h('p', {}, settings.lastBackup ? 'Time for today\'s backup. It takes one tap, and your progress only lives on this phone.' : 'You have not backed up yet. Your progress only lives on this phone, so a backup file keeps it safe if you lose it or switch phones.'),
       h(
         'div',
         { class: 'nudge-actions' },
@@ -133,7 +126,7 @@ function showBackupNudge() {
               draw();
             },
           },
-          'Remind me later'
+          'Later today'
         )
       )
     )

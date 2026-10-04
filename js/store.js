@@ -7,10 +7,12 @@
 //     activePlanId: "p_abc",
 //     plans:    [ { id, name, startDate, days: [...] } ],
 //     progress: { [planId]: { "2026-10-04": { ticks, weights, waterMl, notes } } },
+//     bodyLog:  { "2026-10-04": 72.4 },   // body weight in kg, one per day
 //     settings: { theme: "dark", lang: "en" }
 //   }
 
 import { todayStr } from './dates.js';
+import { validWeight, cleanLog } from './weight.js';
 
 const KEY = 'tickfit:v1';
 
@@ -18,7 +20,7 @@ let state = defaults();
 let storageWorks = true;
 
 function defaults() {
-  return { version: 1, activePlanId: null, plans: [], progress: {}, settings: { theme: 'dark', autoRest: true } };
+  return { version: 1, activePlanId: null, plans: [], progress: {}, bodyLog: {}, settings: { theme: 'dark', autoRest: true } };
 }
 
 /** Read everything from localStorage. Never throws; falls back to an empty state. */
@@ -171,6 +173,7 @@ export function importBackup(obj, validatePlan) {
     ...defaults(),
     plans,
     progress,
+    bodyLog: cleanLog(obj.data.bodyLog),
     activePlanId: ids.has(obj.data.activePlanId) ? obj.data.activePlanId : plans[0] ? plans[0].id : null,
     settings: { ...defaults().settings, ...(obj.data.settings || {}) },
   };
@@ -220,4 +223,21 @@ export function markBackedUp() {
 export function snoozeBackupNudge(untilDate) {
   state.settings.backupSnoozeUntil = untilDate;
   save();
+}
+
+// ----- body weight log -----
+
+/** Save (or with null, delete) the body weight for a date. Returns the saved number, or null if it was not a sane weight. */
+export function setBodyWeight(date, value) {
+  if (!state.bodyLog) state.bodyLog = {};
+  if (value === null) {
+    delete state.bodyLog[date];
+    save();
+    return null;
+  }
+  const kg = validWeight(value);
+  if (kg === null) return null;
+  state.bodyLog[date] = kg;
+  save();
+  return kg;
 }

@@ -7,6 +7,9 @@
 
 import { h, clear, toast } from './dom.js';
 import { savePlans, newItemId } from './store.js';
+import { icon } from './icons.js';
+import { estimateMeal } from './estimate.js';
+import { lookupEnabled, lookupFood } from './lookup.js';
 
 /**
  * @param root     element to fill
@@ -175,7 +178,7 @@ export function renderEditor(root, plan, actions, dayIdx = null) {
             },
             h('div', { class: 'grid2' }, textField('Time', m.time, (v) => (m.time = v)), textField('Meal name', m.name, (v) => (m.name = v), { required: true, fallback: m.name })),
             listField('Foods (one per line)', m.items, (list) => (m.items = list), { minOne: true }),
-            h('div', { class: 'grid2' }, numberField('Calories', m.calories ?? null, (v) => setOrDelete(m, 'calories', v)), numberField('Protein (g)', m.protein ?? null, (v) => setOrDelete(m, 'protein', v)))
+            ...caloriesFields(m)
           )
         ),
         h(
@@ -206,6 +209,62 @@ export function renderEditor(root, plan, actions, dayIdx = null) {
 }
 
 // ---------- small form helpers ----------
+
+/**
+ * The calories and protein boxes for a meal, plus an "Estimate from foods" button.
+ * You can always type the numbers yourself. The button fills them in from the built-in food table,
+ * and (only if you turned on online lookup in More) looks up foods the table does not know.
+ */
+function caloriesFields(m) {
+  const kcal = numberField('Calories', m.calories ?? null, (v) => setOrDelete(m, 'calories', v));
+  const protein = numberField('Protein (g)', m.protein ?? null, (v) => setOrDelete(m, 'protein', v));
+  const status = h('p', { class: 'hint est-status', role: 'status' });
+  const fill = (field, value) => {
+    field.input.value = String(value);
+    field.input.dispatchEvent(new Event('change')); // saves it like a typed change
+  };
+  const button = h(
+    'button',
+    {
+      class: 'btn wide',
+      type: 'button',
+      onclick: async () => {
+        const est = estimateMeal(m.items);
+        let calories = est.calories;
+        let prot = est.protein;
+        const online = [];
+        if (est.missing.length && lookupEnabled()) {
+          button.disabled = true;
+          status.textContent = 'Looking up the rest online…';
+          for (const line of est.missing.slice(0, 6)) {
+            const r = await lookupFood(line);
+            if (r) {
+              calories += r.kcal;
+              prot += r.protein;
+              online.push(r);
+            }
+          }
+          button.disabled = false;
+        }
+        const count = est.found.length + online.length;
+        if (!count) {
+          status.textContent = 'Could not recognise these foods. Type the calories and protein yourself.';
+          return;
+        }
+        fill(kcal, Math.round(calories));
+        fill(protein, Math.round(prot));
+        const bits = [`Estimated ${Math.round(calories)} kcal and ${Math.round(prot)} g protein from ${count} food${count === 1 ? '' : 's'}.`];
+        if (online.length) bits.push(`${online.length} looked up online${online.some((o) => o.assumed) ? ' (a typical serving was assumed where you gave no weight)' : ''}.`);
+        if (est.missing.length - online.length > 0) bits.push(`${est.missing.length - online.length} not recognised, so add those yourself${lookupEnabled() ? '' : ' or turn on online lookup in More'}.`);
+        bits.push('It is a rough guess. Change the numbers if you know better.');
+        status.textContent = bits.join(' ');
+      },
+    },
+    icon('sparkle', 18),
+    'Estimate from foods'
+  );
+  return [h('div', { class: 'grid2' }, kcal, protein), button, status];
+}
 
 function setOrDelete(obj, key, value) {
   if (value === null || value < 0) delete obj[key];
@@ -250,7 +309,9 @@ function numberField(label, value, onCommit) {
     onCommit(isFinite(n) ? n : null);
     savePlans();
   });
-  return h('label', { class: 'f' }, h('span', {}, label), input);
+  const field = h('label', { class: 'f' }, h('span', {}, label), input);
+  field.input = input; // so other code can fill it in
+  return field;
 }
 
 /** Several lines of text, saved as a list. */

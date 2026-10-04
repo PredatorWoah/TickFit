@@ -30,11 +30,15 @@ const records = {
 };
 const s = summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07');
 ok(s.workouts === 1 && s.sets === 2, 'one workout, two sets this week');
-ok(s.minutes === 30 && s.kcal === 200, '30 min at 80 kg = 200 kcal');
+ok(s.minutes === 30 && s.kcal === 240, 'bench press (6 METs) 30 min at 80 kg = 240 kcal');
 ok(s.volumeKg === 25 * 10 + 25 * 8, 'volume adds up weight x reps');
 ok(s.lifts.length === 1 && s.lifts[0].gain === 5 && s.prs === 1, 'bench went 20 -> 25 kg = a PR');
 ok(s.vs.minutes === 500 && s.hasPrev, 'compares with last week (5 min estimated -> 30 min = +500%)');
 ok(s.avgEaten === 600 && s.avgProtein === 30, 'average eaten calories and protein');
+const wlog = { '2026-10-02': 80, '2026-10-06': 79.2 };
+const sw = summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07', wlog);
+ok(sw.weight && sw.weight.from === 80 && sw.weight.to === 79.2 && sw.weight.delta === -0.8, 'weekly summary carries weight change from last weigh-in before the week');
+ok(summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07').weight === null, 'no weight log = no weight row');
 const empty = summarize(plan, {}, periodRange('month', '2026-10-07'), 70, '2026-10-07');
 ok(empty.workouts === 0 && empty.kcal === 0 && empty.lifts.length === 0 && empty.avgPct === null && empty.avgEaten === null, 'empty period has no NaN');
 const future = summarize(plan, records, periodRange('week', '2026-10-07'), 70, '2026-10-06');

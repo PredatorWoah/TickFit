@@ -12,7 +12,9 @@ Nothing, with one optional exception:
 
 - **Gemini AI helper (off unless you turn it on).** If you paste your own Google Gemini API key in **More**, then tapping **Convert with Gemini** sends the text of the document you are converting to Google's servers. Nothing else is sent. On Google's free tier, Google may use what you send to improve its products, so do not send anything you consider private. If you never add a key, no request to Google is ever made.
 
-TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site and to `generativelanguage.googleapis.com`. A bug or a bad edit cannot quietly start talking to some other server.
+- **Online food lookup (off unless you turn it on).** If you switch on **More > Food lookup**, tapping **Estimate from foods** in the plan editor sends the *name* of a food the built-in table does not know (for example `quinoa crunch`) to Open Food Facts (`world.openfoodfacts.org`), a free open food database. No amounts, plans, progress, weight or personal details are sent. Like any website, they can see your IP address. If you never turn it on, no request is ever made.
+
+TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to `generativelanguage.googleapis.com` and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
 
 ## Your Gemini key
 
@@ -31,7 +33,7 @@ The "Form video" button simply opens a link (your own, or a YouTube search for t
 
 ## Backups
 
-A backup file contains all your plans, progress, notes, settings and plan builder answers (but never your Gemini key). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
+A backup file contains all your plans, progress, notes, body weight log, settings and plan builder answers (but never your Gemini key). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
 
 ## Files you upload
 

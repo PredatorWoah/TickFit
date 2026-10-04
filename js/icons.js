@@ -28,6 +28,7 @@ const PATHS = {
   dumbbell: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>',
   meal: '<path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 1.5-3 4-3 7 0 2 1 3 3 3v8"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>',
+  scale: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 9.5a4.5 4 0 0 1 7 0M12 9.5l1.6-1.8"/>',
 };
 
 export function icon(name, size = 24) {
