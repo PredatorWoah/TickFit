@@ -3,7 +3,10 @@
 // tile, supplements, and water.
 
 import { h, clear } from './dom.js';
-import { mealTotals } from './stats.js';
+import { mealTotals, mealNumbers } from './stats.js';
+import { savePlans } from './store.js';
+import { estimateMeal } from './estimate.js';
+import { toast } from './dom.js';
 import { createCtx, dateBar, tickTile, waterTile, section, meter } from './dayview.js';
 
 export function renderMeals(root, plan, date, goto) {
@@ -21,8 +24,9 @@ export function renderMeals(root, plan, date, goto) {
   // ----- calories and protein -----
   const first = mealTotals(day, ctx.rec());
   if (first.calories !== null || first.protein !== null) {
-    const kcal = first.calories !== null ? meter('Calories', 'kcal') : null;
-    const protein = first.protein !== null ? meter('Protein', 'g') : null;
+    const tag = first.estimated ? ' (estimated)' : '';
+    const kcal = first.calories !== null ? meter('Calories' + tag, 'kcal') : null;
+    const protein = first.protein !== null ? meter('Protein' + tag, 'g') : null;
     root.append(h('div', { class: 'meters' }, ...[kcal && kcal.el, protein && protein.el].filter(Boolean)));
     ctx.refreshers.push(() => {
       const t = mealTotals(day, ctx.rec());
@@ -42,10 +46,45 @@ export function renderMeals(root, plan, date, goto) {
           { class: 'tiles' },
           day.meals.map((m) => {
             const macros = [];
-            if (typeof m.calories === 'number') macros.push(`${m.calories} kcal`);
-            if (typeof m.protein === 'number') macros.push(`${m.protein} g protein`);
+            const n = mealNumbers(m);
+            const approx = n.estimated ? '~' : '';
+            if (typeof n.calories === 'number') macros.push(`${approx}${n.calories} kcal`);
+            if (typeof n.protein === 'number') macros.push(`${approx}${n.protein} g protein`);
             return tickTile(ctx, m.id, [m.time && h('span', { class: 'time' }, m.time), m.name], m.items.join(', '), macros.join(' · '));
           })
+        )
+      )
+    );
+  }
+
+  // A pasted plan often has no calories or protein. Offer to write the estimates into the plan so they can be edited.
+  const missing = plan.days.some((d) => d.meals.some((m) => typeof m.calories !== 'number' || typeof m.protein !== 'number'));
+  if (missing) {
+    root.append(
+      h(
+        'div',
+        { class: 'callout est-callout' },
+        h('p', {}, 'Calories and protein marked ~ are estimates worked out from the food names. They are rough, so edit any meal in the plan editor if you know better.'),
+        h(
+          'button',
+          {
+            class: 'btn small',
+            type: 'button',
+            onclick: () => {
+              let count = 0;
+              for (const d of plan.days)
+                for (const m of d.meals) {
+                  const est = estimateMeal(m.items);
+                  if (!est.found.length) continue;
+                  if (typeof m.calories !== 'number') { m.calories = est.calories; count++; }
+                  if (typeof m.protein !== 'number') m.protein = est.protein;
+                }
+              savePlans();
+              toast(count ? `Saved estimates for ${count} meals` : 'Nothing to estimate');
+              renderMeals(root, plan, date, goto);
+            },
+          },
+          'Save estimates into my plan'
         )
       )
     );

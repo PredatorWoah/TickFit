@@ -6,6 +6,7 @@
 
 import { addDays } from './dates.js';
 import { dayFor } from './schedule.js';
+import { estimateMeal } from './estimate.js';
 
 export const WATER_STEP_ML = 250;
 
@@ -34,28 +35,48 @@ export function dayStats(day, record) {
   return { done, total: items.length, pct: items.length ? Math.round((done / items.length) * 100) : 0 };
 }
 
-/** Calories and protein: planned total and eaten (ticked meals). Null when the plan has none. */
+/**
+ * Calories and protein for one meal. Uses the numbers in the plan; when the plan has none (a pasted
+ * plan often doesn't), estimates them from the food names. Returns { calories, protein, estimated }.
+ * Either number can be null if there is nothing to go on.
+ */
+export function mealNumbers(m) {
+  const hasK = typeof m.calories === 'number';
+  const hasP = typeof m.protein === 'number';
+  if (hasK && hasP) return { calories: m.calories, protein: m.protein, estimated: false };
+  const est = estimateMeal(m.items);
+  const use = est.found.length > 0;
+  return {
+    calories: hasK ? m.calories : use ? est.calories : null,
+    protein: hasP ? m.protein : use ? est.protein : null,
+    estimated: (!hasK || !hasP) && use,
+  };
+}
+
+/** Calories and protein: planned total and eaten (ticked meals). Null when there is nothing to count. `estimated` is true when any meal used a food-name estimate. */
 export function mealTotals(day, record) {
+  let estimated = false;
   const sum = (key, onlyEaten) => {
     let any = false;
     let total = 0;
     for (const m of day.meals) {
-      if (typeof m[key] !== 'number') continue;
-      if (onlyEaten && !(record.ticks && record.ticks[m.id])) {
-        any = true;
-        continue;
-      }
+      const n = mealNumbers(m);
+      if (typeof n[key] !== 'number') continue;
       any = true;
-      total += m[key];
+      if (n.estimated) estimated = true;
+      if (onlyEaten && !(record.ticks && record.ticks[m.id])) continue;
+      total += n[key];
     }
     return any ? total : null;
   };
-  return {
+  const out = {
     calories: sum('calories', false),
     caloriesEaten: sum('calories', true),
     protein: sum('protein', false),
     proteinEaten: sum('protein', true),
   };
+  out.estimated = estimated;
+  return out;
 }
 
 // ----- streaks and weekly numbers -----

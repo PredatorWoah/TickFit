@@ -32,5 +32,15 @@ eq('week percent of 4 days', weekPercent(plan, rec, '2026-01-04'), Math.round((1
 eq('week percent before start is null', weekPercent(plan, {}, '2025-12-30'), null);
 eq('streak before start is 0', currentStreak(plan, {}, '2025-12-30'), 0);
 
+// meals without numbers (a pasted plan) get estimates from the food names
+import { mealNumbers, mealTotals } from '../js/stats.js';
+eq('mealNumbers keeps the plan numbers', mealNumbers({ items: ['2 rotis'], calories: 999, protein: 9 }), { calories: 999, protein: 9, estimated: false });
+eq('mealNumbers estimates when missing', mealNumbers({ items: ['2 rotis', 'A bowl of dal'] }), { calories: 350, protein: 15, estimated: true });
+eq('mealNumbers fills only the missing one', mealNumbers({ items: ['2 rotis'], calories: 500 }), { calories: 500, protein: 6, estimated: true });
+eq('mealNumbers with unknown foods is null', mealNumbers({ items: ['Mystery'] }), { calories: null, protein: null, estimated: false });
+const pasted = { meals: [{ id: 'm1', items: ['2 rotis'] }, { id: 'm2', items: ['1 scoop whey'] }] };
+eq('mealTotals uses estimates and says so', mealTotals(pasted, { ticks: { m1: true } }), { calories: 320, caloriesEaten: 200, protein: 30, proteinEaten: 6, estimated: true });
+eq('mealTotals with real numbers is not estimated', mealTotals({ meals: [{ id: 'a', items: ['x'], calories: 100, protein: 5 }] }, { ticks: {} }).estimated, false);
+
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);
