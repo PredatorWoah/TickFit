@@ -1,0 +1,2214 @@
+{
+ "schemaVersion": 1,
+ "name": "Beginner Muscle Plan (4 weeks, veg Indian)",
+ "days": [
+  {
+   "label": "Week 1 Day 1: Upper Body A",
+   "workout": [
+    {
+     "exercise": "Dumbbell Bench Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Light weight, slow lowering"
+    },
+    {
+     "exercise": "Seated Cable Row",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Squeeze shoulder blades"
+    },
+    {
+     "exercise": "Dumbbell Shoulder Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Lat Pulldown",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Plank",
+     "sets": 2,
+     "reps": "30 sec",
+     "rest": "45s",
+     "notes": "Keep hips level"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Paneer bhurji (100g paneer)",
+      "2 rotis",
+      "1 glass milk"
+     ],
+     "calories": 520,
+     "protein": 28
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl dal",
+      "1 cup rice",
+      "Mixed veg sabzi",
+      "Cucumber salad"
+     ],
+     "calories": 580,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Sprouts chaat (1 cup)",
+      "Handful roasted chana"
+     ],
+     "calories": 250,
+     "protein": 15
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Palak paneer (100g paneer)",
+      "1 bowl curd"
+     ],
+     "calories": 650,
+     "protein": 32
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 1 Day 2: Lower Body",
+   "workout": [
+    {
+     "exercise": "Goblet Squat",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Hold one dumbbell at chest"
+    },
+    {
+     "exercise": "Romanian Deadlift (dumbbells)",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Back flat, hinge at hips"
+    },
+    {
+     "exercise": "Leg Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Glute Bridge",
+     "sets": 2,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    },
+    {
+     "exercise": "Calf Raises",
+     "sets": 2,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Vegetable poha",
+      "1 glass milk",
+      "1 banana"
+     ],
+     "calories": 480,
+     "protein": 16
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl rajma",
+      "1 cup rice",
+      "Onion tomato salad"
+     ],
+     "calories": 600,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Hung curd with fruit",
+      "8 almonds"
+     ],
+     "calories": 250,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Soya chunk curry (50g dry soya)",
+      "Seasonal sabzi"
+     ],
+     "calories": 620,
+     "protein": 36
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 1 Day 3: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 moong dal chillas stuffed with paneer",
+      "Mint chutney"
+     ],
+     "calories": 450,
+     "protein": 26
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl chole",
+      "2 rotis",
+      "Onion salad"
+     ],
+     "calories": 620,
+     "protein": 24
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Peanut chaat (small bowl)",
+      "1 glass buttermilk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1 bowl dal tadka",
+      "1 cup rice",
+      "Bhindi sabzi",
+      "1 bowl curd"
+     ],
+     "calories": 640,
+     "protein": 24
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 1 Day 4: Upper Body B",
+   "workout": [
+    {
+     "exercise": "Incline Dumbbell Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "One Arm Dumbbell Row",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Each side"
+    },
+    {
+     "exercise": "Lateral Raises",
+     "sets": 2,
+     "reps": "12 to 15",
+     "rest": "60s",
+     "notes": "Very light"
+    },
+    {
+     "exercise": "Biceps Curl",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Triceps Pushdown",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Oats cooked in milk",
+      "1 banana",
+      "5 almonds"
+     ],
+     "calories": 480,
+     "protein": 18
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Paneer bhurji wrap (2 rotis, 80g paneer)",
+      "Green salad"
+     ],
+     "calories": 600,
+     "protein": 30
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Mixed sprouts salad with lemon",
+      "Cucumber slices"
+     ],
+     "calories": 220,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1.5 cups moong dal khichdi",
+      "1 bowl curd",
+      "Roasted papad"
+     ],
+     "calories": 650,
+     "protein": 26
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 1 Day 5: Lower and Core",
+   "workout": [
+    {
+     "exercise": "Leg Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Walking Lunges",
+     "sets": 2,
+     "reps": "10 each leg",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Leg Curl Machine",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Dead Bug",
+     "sets": 2,
+     "reps": "10 each side",
+     "rest": "45s",
+     "notes": "Slow and controlled"
+    },
+    {
+     "exercise": "Side Plank",
+     "sets": 2,
+     "reps": "20 sec each side",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 besan chillas",
+      "1 bowl curd"
+     ],
+     "calories": 450,
+     "protein": 22
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl kadhi",
+      "1 cup rice",
+      "Aloo gobhi"
+     ],
+     "calories": 600,
+     "protein": 18
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 bowl roasted makhana",
+      "1 glass milk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer tikka (100g paneer)",
+      "2 rotis",
+      "1 bowl dal"
+     ],
+     "calories": 680,
+     "protein": 38
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 1 Day 6: Walk and Mobility",
+   "workout": [
+    {
+     "exercise": "Brisk walk or easy cycling",
+     "sets": 1,
+     "reps": "30 min",
+     "rest": "",
+     "notes": "Conversation pace"
+    },
+    {
+     "exercise": "Full body stretching",
+     "sets": 1,
+     "reps": "10 min",
+     "rest": "",
+     "notes": "Hold each stretch 20 to 30 sec"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "4 idlis",
+      "Sambar",
+      "Coconut chutney"
+     ],
+     "calories": 440,
+     "protein": 14
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Soya pulao (1.5 cups)",
+      "1 bowl raita"
+     ],
+     "calories": 620,
+     "protein": 28
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 banana",
+      "Peanut butter toast (1 tbsp)"
+     ],
+     "calories": 280,
+     "protein": 10
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer curry (100g paneer)",
+      "2 rotis",
+      "Salad"
+     ],
+     "calories": 640,
+     "protein": 30
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Easy day. Do not push hard."
+   }
+  },
+  {
+   "label": "Week 1 Day 7: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "2 paneer parathas",
+      "1 bowl curd"
+     ],
+     "calories": 560,
+     "protein": 24
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Light dal makhani (1 bowl)",
+      "1 cup rice",
+      "Salad"
+     ],
+     "calories": 620,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Fruit bowl",
+      "Handful mixed nuts"
+     ],
+     "calories": 250,
+     "protein": 6
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Veg soup",
+      "2 rotis",
+      "Mixed sprouts curry"
+     ],
+     "calories": 560,
+     "protein": 22
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 2 Day 1: Upper Body A",
+   "workout": [
+    {
+     "exercise": "Dumbbell Bench Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Light weight, slow lowering"
+    },
+    {
+     "exercise": "Seated Cable Row",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Squeeze shoulder blades"
+    },
+    {
+     "exercise": "Dumbbell Shoulder Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Lat Pulldown",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Plank",
+     "sets": 2,
+     "reps": "30 sec",
+     "rest": "45s",
+     "notes": "Keep hips level"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Oats cooked in milk",
+      "1 banana",
+      "5 almonds"
+     ],
+     "calories": 480,
+     "protein": 18
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Paneer bhurji wrap (2 rotis, 80g paneer)",
+      "Green salad"
+     ],
+     "calories": 600,
+     "protein": 30
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Mixed sprouts salad with lemon",
+      "Cucumber slices"
+     ],
+     "calories": 220,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1.5 cups moong dal khichdi",
+      "1 bowl curd",
+      "Roasted papad"
+     ],
+     "calories": 650,
+     "protein": 26
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 2 Day 2: Lower Body",
+   "workout": [
+    {
+     "exercise": "Goblet Squat",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Hold one dumbbell at chest"
+    },
+    {
+     "exercise": "Romanian Deadlift (dumbbells)",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Back flat, hinge at hips"
+    },
+    {
+     "exercise": "Leg Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Glute Bridge",
+     "sets": 2,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    },
+    {
+     "exercise": "Calf Raises",
+     "sets": 2,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 besan chillas",
+      "1 bowl curd"
+     ],
+     "calories": 450,
+     "protein": 22
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl kadhi",
+      "1 cup rice",
+      "Aloo gobhi"
+     ],
+     "calories": 600,
+     "protein": 18
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 bowl roasted makhana",
+      "1 glass milk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer tikka (100g paneer)",
+      "2 rotis",
+      "1 bowl dal"
+     ],
+     "calories": 680,
+     "protein": 38
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 2 Day 3: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "4 idlis",
+      "Sambar",
+      "Coconut chutney"
+     ],
+     "calories": 440,
+     "protein": 14
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Soya pulao (1.5 cups)",
+      "1 bowl raita"
+     ],
+     "calories": 620,
+     "protein": 28
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 banana",
+      "Peanut butter toast (1 tbsp)"
+     ],
+     "calories": 280,
+     "protein": 10
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer curry (100g paneer)",
+      "2 rotis",
+      "Salad"
+     ],
+     "calories": 640,
+     "protein": 30
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 2 Day 4: Upper Body B",
+   "workout": [
+    {
+     "exercise": "Incline Dumbbell Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "One Arm Dumbbell Row",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": "Each side"
+    },
+    {
+     "exercise": "Lateral Raises",
+     "sets": 2,
+     "reps": "12 to 15",
+     "rest": "60s",
+     "notes": "Very light"
+    },
+    {
+     "exercise": "Biceps Curl",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Triceps Pushdown",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "2 paneer parathas",
+      "1 bowl curd"
+     ],
+     "calories": 560,
+     "protein": 24
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Light dal makhani (1 bowl)",
+      "1 cup rice",
+      "Salad"
+     ],
+     "calories": 620,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Fruit bowl",
+      "Handful mixed nuts"
+     ],
+     "calories": 250,
+     "protein": 6
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Veg soup",
+      "2 rotis",
+      "Mixed sprouts curry"
+     ],
+     "calories": 560,
+     "protein": 22
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 2 Day 5: Lower and Core",
+   "workout": [
+    {
+     "exercise": "Leg Press",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Walking Lunges",
+     "sets": 2,
+     "reps": "10 each leg",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Leg Curl Machine",
+     "sets": 2,
+     "reps": "12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Dead Bug",
+     "sets": 2,
+     "reps": "10 each side",
+     "rest": "45s",
+     "notes": "Slow and controlled"
+    },
+    {
+     "exercise": "Side Plank",
+     "sets": 2,
+     "reps": "20 sec each side",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Paneer bhurji (100g paneer)",
+      "2 rotis",
+      "1 glass milk"
+     ],
+     "calories": 520,
+     "protein": 28
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl dal",
+      "1 cup rice",
+      "Mixed veg sabzi",
+      "Cucumber salad"
+     ],
+     "calories": 580,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Sprouts chaat (1 cup)",
+      "Handful roasted chana"
+     ],
+     "calories": 250,
+     "protein": 15
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Palak paneer (100g paneer)",
+      "1 bowl curd"
+     ],
+     "calories": 650,
+     "protein": 32
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 2 Day 6: Walk and Mobility",
+   "workout": [
+    {
+     "exercise": "Brisk walk or easy cycling",
+     "sets": 1,
+     "reps": "30 min",
+     "rest": "",
+     "notes": "Conversation pace"
+    },
+    {
+     "exercise": "Full body stretching",
+     "sets": 1,
+     "reps": "10 min",
+     "rest": "",
+     "notes": "Hold each stretch 20 to 30 sec"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Vegetable poha",
+      "1 glass milk",
+      "1 banana"
+     ],
+     "calories": 480,
+     "protein": 16
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl rajma",
+      "1 cup rice",
+      "Onion tomato salad"
+     ],
+     "calories": 600,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Hung curd with fruit",
+      "8 almonds"
+     ],
+     "calories": 250,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Soya chunk curry (50g dry soya)",
+      "Seasonal sabzi"
+     ],
+     "calories": 620,
+     "protein": 36
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Easy day. Do not push hard."
+   }
+  },
+  {
+   "label": "Week 2 Day 7: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 moong dal chillas stuffed with paneer",
+      "Mint chutney"
+     ],
+     "calories": 450,
+     "protein": 26
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl chole",
+      "2 rotis",
+      "Onion salad"
+     ],
+     "calories": 620,
+     "protein": 24
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Peanut chaat (small bowl)",
+      "1 glass buttermilk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1 bowl dal tadka",
+      "1 cup rice",
+      "Bhindi sabzi",
+      "1 bowl curd"
+     ],
+     "calories": 640,
+     "protein": 24
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 3 Day 1: Upper Body A",
+   "workout": [
+    {
+     "exercise": "Dumbbell Bench Press",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": "Light weight, slow lowering"
+    },
+    {
+     "exercise": "Seated Cable Row",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": "Squeeze shoulder blades"
+    },
+    {
+     "exercise": "Dumbbell Shoulder Press",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Lat Pulldown",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Plank",
+     "sets": 3,
+     "reps": "30 sec",
+     "rest": "45s",
+     "notes": "Keep hips level"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "2 paneer parathas",
+      "1 bowl curd"
+     ],
+     "calories": 560,
+     "protein": 24
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Light dal makhani (1 bowl)",
+      "1 cup rice",
+      "Salad"
+     ],
+     "calories": 620,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Fruit bowl",
+      "Handful mixed nuts"
+     ],
+     "calories": 250,
+     "protein": 6
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Veg soup",
+      "2 rotis",
+      "Mixed sprouts curry"
+     ],
+     "calories": 560,
+     "protein": 22
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 3 Day 2: Lower Body",
+   "workout": [
+    {
+     "exercise": "Goblet Squat",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": "Hold one dumbbell at chest"
+    },
+    {
+     "exercise": "Romanian Deadlift (dumbbells)",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": "Back flat, hinge at hips"
+    },
+    {
+     "exercise": "Leg Press",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Glute Bridge",
+     "sets": 3,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    },
+    {
+     "exercise": "Calf Raises",
+     "sets": 3,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Paneer bhurji (100g paneer)",
+      "2 rotis",
+      "1 glass milk"
+     ],
+     "calories": 520,
+     "protein": 28
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl dal",
+      "1 cup rice",
+      "Mixed veg sabzi",
+      "Cucumber salad"
+     ],
+     "calories": 580,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Sprouts chaat (1 cup)",
+      "Handful roasted chana"
+     ],
+     "calories": 250,
+     "protein": 15
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Palak paneer (100g paneer)",
+      "1 bowl curd"
+     ],
+     "calories": 650,
+     "protein": 32
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 3 Day 3: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Vegetable poha",
+      "1 glass milk",
+      "1 banana"
+     ],
+     "calories": 480,
+     "protein": 16
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl rajma",
+      "1 cup rice",
+      "Onion tomato salad"
+     ],
+     "calories": 600,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Hung curd with fruit",
+      "8 almonds"
+     ],
+     "calories": 250,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Soya chunk curry (50g dry soya)",
+      "Seasonal sabzi"
+     ],
+     "calories": 620,
+     "protein": 36
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 3 Day 4: Upper Body B",
+   "workout": [
+    {
+     "exercise": "Incline Dumbbell Press",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "One Arm Dumbbell Row",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": "Each side"
+    },
+    {
+     "exercise": "Lateral Raises",
+     "sets": 3,
+     "reps": "12 to 15",
+     "rest": "60s",
+     "notes": "Very light"
+    },
+    {
+     "exercise": "Biceps Curl",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Triceps Pushdown",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "60s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 moong dal chillas stuffed with paneer",
+      "Mint chutney"
+     ],
+     "calories": 450,
+     "protein": 26
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl chole",
+      "2 rotis",
+      "Onion salad"
+     ],
+     "calories": 620,
+     "protein": 24
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Peanut chaat (small bowl)",
+      "1 glass buttermilk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1 bowl dal tadka",
+      "1 cup rice",
+      "Bhindi sabzi",
+      "1 bowl curd"
+     ],
+     "calories": 640,
+     "protein": 24
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 3 Day 5: Lower and Core",
+   "workout": [
+    {
+     "exercise": "Leg Press",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Walking Lunges",
+     "sets": 3,
+     "reps": "10 each leg",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Leg Curl Machine",
+     "sets": 3,
+     "reps": "10 to 12",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Dead Bug",
+     "sets": 3,
+     "reps": "10 each side",
+     "rest": "45s",
+     "notes": "Slow and controlled"
+    },
+    {
+     "exercise": "Side Plank",
+     "sets": 3,
+     "reps": "20 sec each side",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Oats cooked in milk",
+      "1 banana",
+      "5 almonds"
+     ],
+     "calories": 480,
+     "protein": 18
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Paneer bhurji wrap (2 rotis, 80g paneer)",
+      "Green salad"
+     ],
+     "calories": 600,
+     "protein": 30
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Mixed sprouts salad with lemon",
+      "Cucumber slices"
+     ],
+     "calories": 220,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1.5 cups moong dal khichdi",
+      "1 bowl curd",
+      "Roasted papad"
+     ],
+     "calories": 650,
+     "protein": 26
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 3 Day 6: Walk and Mobility",
+   "workout": [
+    {
+     "exercise": "Brisk walk or easy cycling",
+     "sets": 1,
+     "reps": "30 min",
+     "rest": "",
+     "notes": "Conversation pace"
+    },
+    {
+     "exercise": "Full body stretching",
+     "sets": 1,
+     "reps": "10 min",
+     "rest": "",
+     "notes": "Hold each stretch 20 to 30 sec"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 besan chillas",
+      "1 bowl curd"
+     ],
+     "calories": 450,
+     "protein": 22
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl kadhi",
+      "1 cup rice",
+      "Aloo gobhi"
+     ],
+     "calories": 600,
+     "protein": 18
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 bowl roasted makhana",
+      "1 glass milk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer tikka (100g paneer)",
+      "2 rotis",
+      "1 bowl dal"
+     ],
+     "calories": 680,
+     "protein": 38
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Easy day. Do not push hard."
+   }
+  },
+  {
+   "label": "Week 3 Day 7: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "4 idlis",
+      "Sambar",
+      "Coconut chutney"
+     ],
+     "calories": 440,
+     "protein": 14
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Soya pulao (1.5 cups)",
+      "1 bowl raita"
+     ],
+     "calories": 620,
+     "protein": 28
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 banana",
+      "Peanut butter toast (1 tbsp)"
+     ],
+     "calories": 280,
+     "protein": 10
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer curry (100g paneer)",
+      "2 rotis",
+      "Salad"
+     ],
+     "calories": 640,
+     "protein": 30
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 4 Day 1: Upper Body A",
+   "workout": [
+    {
+     "exercise": "Dumbbell Bench Press",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": "Light weight, slow lowering"
+    },
+    {
+     "exercise": "Seated Cable Row",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": "Squeeze shoulder blades"
+    },
+    {
+     "exercise": "Dumbbell Shoulder Press",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Lat Pulldown",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Plank",
+     "sets": 3,
+     "reps": "30 sec",
+     "rest": "45s",
+     "notes": "Keep hips level"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 moong dal chillas stuffed with paneer",
+      "Mint chutney"
+     ],
+     "calories": 450,
+     "protein": 26
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl chole",
+      "2 rotis",
+      "Onion salad"
+     ],
+     "calories": 620,
+     "protein": 24
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Peanut chaat (small bowl)",
+      "1 glass buttermilk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1 bowl dal tadka",
+      "1 cup rice",
+      "Bhindi sabzi",
+      "1 bowl curd"
+     ],
+     "calories": 640,
+     "protein": 24
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 4 Day 2: Lower Body",
+   "workout": [
+    {
+     "exercise": "Goblet Squat",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": "Hold one dumbbell at chest"
+    },
+    {
+     "exercise": "Romanian Deadlift (dumbbells)",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": "Back flat, hinge at hips"
+    },
+    {
+     "exercise": "Leg Press",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Glute Bridge",
+     "sets": 3,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    },
+    {
+     "exercise": "Calf Raises",
+     "sets": 3,
+     "reps": "15",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Oats cooked in milk",
+      "1 banana",
+      "5 almonds"
+     ],
+     "calories": 480,
+     "protein": 18
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Paneer bhurji wrap (2 rotis, 80g paneer)",
+      "Green salad"
+     ],
+     "calories": 600,
+     "protein": 30
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Mixed sprouts salad with lemon",
+      "Cucumber slices"
+     ],
+     "calories": 220,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "1.5 cups moong dal khichdi",
+      "1 bowl curd",
+      "Roasted papad"
+     ],
+     "calories": 650,
+     "protein": 26
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 4 Day 3: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "3 besan chillas",
+      "1 bowl curd"
+     ],
+     "calories": 450,
+     "protein": 22
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl kadhi",
+      "1 cup rice",
+      "Aloo gobhi"
+     ],
+     "calories": 600,
+     "protein": 18
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 bowl roasted makhana",
+      "1 glass milk"
+     ],
+     "calories": 260,
+     "protein": 12
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer tikka (100g paneer)",
+      "2 rotis",
+      "1 bowl dal"
+     ],
+     "calories": 680,
+     "protein": 38
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  },
+  {
+   "label": "Week 4 Day 4: Upper Body B",
+   "workout": [
+    {
+     "exercise": "Incline Dumbbell Press",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "One Arm Dumbbell Row",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": "Each side"
+    },
+    {
+     "exercise": "Lateral Raises",
+     "sets": 3,
+     "reps": "12 to 15",
+     "rest": "60s",
+     "notes": "Very light"
+    },
+    {
+     "exercise": "Biceps Curl",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "60s",
+     "notes": ""
+    },
+    {
+     "exercise": "Triceps Pushdown",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "60s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "4 idlis",
+      "Sambar",
+      "Coconut chutney"
+     ],
+     "calories": 440,
+     "protein": 14
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Soya pulao (1.5 cups)",
+      "1 bowl raita"
+     ],
+     "calories": 620,
+     "protein": 28
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "1 banana",
+      "Peanut butter toast (1 tbsp)"
+     ],
+     "calories": 280,
+     "protein": 10
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Paneer curry (100g paneer)",
+      "2 rotis",
+      "Salad"
+     ],
+     "calories": 640,
+     "protein": 30
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 4 Day 5: Lower and Core",
+   "workout": [
+    {
+     "exercise": "Leg Press",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Walking Lunges",
+     "sets": 3,
+     "reps": "10 each leg",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Leg Curl Machine",
+     "sets": 3,
+     "reps": "8 to 10",
+     "rest": "90s",
+     "notes": ""
+    },
+    {
+     "exercise": "Dead Bug",
+     "sets": 3,
+     "reps": "10 each side",
+     "rest": "45s",
+     "notes": "Slow and controlled"
+    },
+    {
+     "exercise": "Side Plank",
+     "sets": 3,
+     "reps": "20 sec each side",
+     "rest": "45s",
+     "notes": ""
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "2 paneer parathas",
+      "1 bowl curd"
+     ],
+     "calories": 560,
+     "protein": 24
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "Light dal makhani (1 bowl)",
+      "1 cup rice",
+      "Salad"
+     ],
+     "calories": 620,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Fruit bowl",
+      "Handful mixed nuts"
+     ],
+     "calories": 250,
+     "protein": 6
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "Veg soup",
+      "2 rotis",
+      "Mixed sprouts curry"
+     ],
+     "calories": 560,
+     "protein": 22
+    }
+   ],
+   "extras": {
+    "waterLiters": 3,
+    "supplements": [
+     "Multivitamin (optional)",
+     "Whey protein, 1 scoop after workout (optional)"
+    ],
+    "notes": "Warm up 5 minutes first. Stop a rep or two before failure and focus on form."
+   }
+  },
+  {
+   "label": "Week 4 Day 6: Walk and Mobility",
+   "workout": [
+    {
+     "exercise": "Brisk walk or easy cycling",
+     "sets": 1,
+     "reps": "30 min",
+     "rest": "",
+     "notes": "Conversation pace"
+    },
+    {
+     "exercise": "Full body stretching",
+     "sets": 1,
+     "reps": "10 min",
+     "rest": "",
+     "notes": "Hold each stretch 20 to 30 sec"
+    }
+   ],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Paneer bhurji (100g paneer)",
+      "2 rotis",
+      "1 glass milk"
+     ],
+     "calories": 520,
+     "protein": 28
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl dal",
+      "1 cup rice",
+      "Mixed veg sabzi",
+      "Cucumber salad"
+     ],
+     "calories": 580,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Sprouts chaat (1 cup)",
+      "Handful roasted chana"
+     ],
+     "calories": 250,
+     "protein": 15
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Palak paneer (100g paneer)",
+      "1 bowl curd"
+     ],
+     "calories": 650,
+     "protein": 32
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Easy day. Do not push hard."
+   }
+  },
+  {
+   "label": "Week 4 Day 7: Rest",
+   "workout": [],
+   "meals": [
+    {
+     "time": "8:00 AM",
+     "name": "Breakfast",
+     "items": [
+      "Vegetable poha",
+      "1 glass milk",
+      "1 banana"
+     ],
+     "calories": 480,
+     "protein": 16
+    },
+    {
+     "time": "1:00 PM",
+     "name": "Lunch",
+     "items": [
+      "1 bowl rajma",
+      "1 cup rice",
+      "Onion tomato salad"
+     ],
+     "calories": 600,
+     "protein": 22
+    },
+    {
+     "time": "5:00 PM",
+     "name": "Snack",
+     "items": [
+      "Hung curd with fruit",
+      "8 almonds"
+     ],
+     "calories": 250,
+     "protein": 14
+    },
+    {
+     "time": "8:30 PM",
+     "name": "Dinner",
+     "items": [
+      "2 rotis",
+      "Soya chunk curry (50g dry soya)",
+      "Seasonal sabzi"
+     ],
+     "calories": 620,
+     "protein": 36
+    }
+   ],
+   "extras": {
+    "waterLiters": 2.5,
+    "supplements": [
+     "Multivitamin (optional)"
+    ],
+    "notes": "Rest day. Sleep 7 to 8 hours and stay loose with a short walk."
+   }
+  }
+ ]
+}
