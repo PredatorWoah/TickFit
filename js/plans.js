@@ -8,6 +8,7 @@ import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
 import { convertWithGemini, hasGeminiKey } from './gemini.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
+import { weeklyWeekdays, weekdayName } from './schedule.js';
 
 /** Fetch the built in sample plan and add it. Returns true on success. */
 export async function addSamplePlan() {
@@ -39,6 +40,7 @@ export function renderPlans(root, actions) {
   }
   for (const p of state.plans) {
     const active = p.id === state.activePlanId;
+    const weekly = weeklyWeekdays(p); // weekday labelled plans follow the real calendar
     const startInput = h('input', {
       type: 'date',
       class: 'date-input',
@@ -58,8 +60,10 @@ export function renderPlans(root, actions) {
         'li',
         { class: 'plan' + (active ? ' active' : '') },
         h('div', { class: 'plan-name' }, p.name, active && h('span', { class: 'pill' }, 'Active')),
-        h('div', { class: 'row-meta' }, `${p.days.length} days · Day 1 on ${formatShort(p.startDate)}`),
-        h('label', { class: 'field' }, h('span', {}, 'Day 1 starts on'), startInput),
+        weekly
+          ? h('div', { class: 'row-meta' }, `Weekly plan, ${p.days.length} days (${weekly.map((w) => weekdayName(w).slice(0, 3)).join(', ')}). Follows the real weekdays; days not listed are rest days.`)
+          : h('div', { class: 'row-meta' }, `${p.days.length} days · Day 1 on ${formatShort(p.startDate)}`),
+        !weekly && h('label', { class: 'field' }, h('span', {}, 'Day 1 starts on'), startInput),
         h(
           'div',
           { class: 'plan-actions' },
@@ -219,7 +223,7 @@ export function renderPlans(root, actions) {
     box,
     geminiBtn,
     status,
-    h('label', { class: 'field' }, h('span', {}, 'Day 1 starts on'), startDate),
+    h('label', { class: 'field' }, h('span', {}, 'Day 1 starts on (not used by weekday plans)'), startDate),
     h('button', { class: 'btn primary wide', onclick: doImport }, 'Import plan'),
     messages
   );

@@ -8,7 +8,8 @@
 import { h, clear } from './dom.js';
 import { getRecord, updateRecord } from './store.js';
 import { dayStats, mealTotals, WATER_STEP_ML } from './stats.js';
-import { planDayIndex, todayStr, addDays, formatShort } from './dates.js';
+import { todayStr, addDays, formatShort } from './dates.js';
+import { dayIndexFor, dayFor, jumpDelta, weekdayOfDate, weekdayName } from './schedule.js';
 import { parseRestSeconds, startRest } from './timer.js';
 
 const RING_RADIUS = 52;
@@ -24,9 +25,8 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 export function renderToday(root, plan, date, goto) {
   clear(root);
 
-  const dayCount = plan.days.length;
-  const idx = planDayIndex(plan.startDate, date, dayCount);
-  const day = plan.days[idx];
+  const idx = dayIndexFor(plan, date); // -1 = a weekday this weekly plan doesn't list, so a rest day
+  const day = dayFor(plan, date);
   const today = todayStr();
 
   const refreshers = [];
@@ -46,13 +46,10 @@ export function renderToday(root, plan, date, goto) {
       onchange: (e) => {
         // Jump to the date closest to today that falls on the chosen plan day.
         const target = Number(e.target.value);
-        const todayIdx = planDayIndex(plan.startDate, today, dayCount);
-        let delta = target - todayIdx;
-        if (delta > dayCount / 2) delta -= dayCount;
-        if (delta < -dayCount / 2) delta += dayCount;
-        goto(addDays(today, delta));
+        if (target >= 0) goto(addDays(today, jumpDelta(plan, today, target)));
       },
     },
+    idx === -1 && h('option', { value: -1, selected: true }, `${weekdayName(weekdayOfDate(date))} (rest day)`),
     plan.days.map((d, i) => h('option', { value: i, selected: i === idx }, d.label))
   );
 
@@ -111,12 +108,20 @@ export function renderToday(root, plan, date, goto) {
     ringFill.style.strokeDashoffset = String(RING_LENGTH * (1 - s.pct / 100));
     ringPct.textContent = `${s.pct}%`;
     ringSub.textContent = `${s.done}/${s.total}`;
-    ringMsg.textContent = s.total === 0 ? 'Nothing planned for this day.' : s.done === s.total ? 'All done. Great work!' : `${s.total - s.done} left to tick`;
+    ringMsg.textContent = s.total === 0 ? 'Rest day. Nothing to tick.' : s.done === s.total ? 'All done. Great work!' : `${s.total - s.done} left to tick`;
     ringFill.classList.toggle('complete', s.total > 0 && s.done === s.total);
   });
 
   // ----- a plan note for the day -----
-  if (day.extras.notes) root.append(h('p', { class: 'callout' }, day.extras.notes));
+  // Long notes (some plans paste a whole paragraph of advice into every day) fold away so the
+  // workout stays on screen. Short ones show as they are.
+  if (day.extras.notes) {
+    root.append(
+      day.extras.notes.length > 140
+        ? h('details', { class: 'callout' }, h('summary', {}, 'Notes for today'), h('p', {}, day.extras.notes))
+        : h('p', { class: 'callout' }, day.extras.notes)
+    );
+  }
 
   // ----- tickable row builder -----
   /** A big tappable row. `content` goes next to the tick box; `after` is extra UI (not part of the tap area). */

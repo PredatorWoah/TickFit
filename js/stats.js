@@ -4,7 +4,8 @@
 // A progress "record" for one date looks like:
 //   { ticks: { w1: true, m2: true, s1: true }, weights: { w1: 20 }, waterMl: 1500, notes: "..." }
 
-import { planDayIndex, addDays } from './dates.js';
+import { addDays } from './dates.js';
+import { dayFor } from './schedule.js';
 
 export const WATER_STEP_ML = 250;
 
@@ -63,10 +64,14 @@ export function mealTotals(day, record) {
 /** A day counts toward your streak when at least this much of it is done. Change to taste. */
 export const STREAK_MIN_PCT = 50;
 
-/** Completion % of one calendar date for a plan. */
+/**
+ * Completion % of one calendar date for a plan, or null when that day has nothing to tick
+ * (like the Sunday of a Monday to Saturday plan). Null days are skipped by the numbers below,
+ * so a rest day never breaks your streak or drags down your week.
+ */
 export function pctFor(plan, records, date) {
-  const day = plan.days[planDayIndex(plan.startDate, date, plan.days.length)];
-  return dayStats(day, (records || {})[date]).pct;
+  const stats = dayStats(dayFor(plan, date), (records || {})[date]);
+  return stats.total === 0 ? null : stats.pct;
 }
 
 /**
@@ -74,13 +79,12 @@ export function pctFor(plan, records, date) {
  * Today being unfinished doesn't break the streak, it simply isn't counted yet.
  */
 export function currentStreak(plan, records, today) {
-  let d = today;
-  if (d < plan.startDate) return 0;
-  if (pctFor(plan, records, d) < STREAK_MIN_PCT) d = addDays(d, -1);
   let n = 0;
-  while (d >= plan.startDate && pctFor(plan, records, d) >= STREAK_MIN_PCT) {
-    n++;
-    d = addDays(d, -1);
+  for (let d = today; d >= plan.startDate; d = addDays(d, -1)) {
+    const pct = pctFor(plan, records, d);
+    if (pct === null) continue; // nothing to tick: neither helps nor hurts
+    if (pct >= STREAK_MIN_PCT) n++;
+    else if (d !== today) break; // a missed past day ends it
   }
   return n;
 }
@@ -90,7 +94,9 @@ export function longestStreak(plan, records, today) {
   let best = 0;
   let run = 0;
   for (let d = plan.startDate; d <= today; d = addDays(d, 1)) {
-    run = pctFor(plan, records, d) >= STREAK_MIN_PCT ? run + 1 : 0;
+    const pct = pctFor(plan, records, d);
+    if (pct === null) continue;
+    run = pct >= STREAK_MIN_PCT ? run + 1 : 0;
     best = Math.max(best, run);
   }
   return best;
@@ -103,7 +109,9 @@ export function weekPercent(plan, records, today) {
   for (let i = 0; i < 7; i++) {
     const d = addDays(today, -i);
     if (d < plan.startDate) break;
-    sum += pctFor(plan, records, d);
+    const pct = pctFor(plan, records, d);
+    if (pct === null) continue;
+    sum += pct;
     count++;
   }
   return count ? Math.round(sum / count) : null;

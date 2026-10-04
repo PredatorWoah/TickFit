@@ -79,10 +79,12 @@ RULES
 2. Use double quotes for all keys and strings. No trailing commas. No comments.
 3. Every day must have both "workout" and "meals". Use [] for a rest day workout.
 4. Do not invent exercises, foods, calories or protein. If the document does not say, leave the field out.
-5. If the document describes one week that repeats, return 7 days for that week. If it spans several weeks, return every day.
+5. If the document describes one week that repeats and has no weekday names, return 7 days for that week. If it spans several weeks, return every day. (Weekday named plans: see rule 9.)
 6. Use numbers for sets, calories, protein and waterLiters. Use text for reps, rest and time.
 7. Keep my wording for exercise and food names.
 8. Keep the JSON compact (no extra whitespace) so the whole plan fits in one reply.
+9. If the plan is a weekly schedule (Monday, Tuesday and so on), start every "label" with the weekday name, for example "Monday Chest + Triceps", and list each weekday once. Weekdays you leave out become rest days. Do not use weekday names in labels for plans that are not tied to real weekdays.
+10. Put the same long advice paragraph in only ONE place (the first day's "notes"), not repeated in every day.
 
 MY PLAN DOCUMENT:
 ${docText ? docText.trim() : '(paste it here)'}

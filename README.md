@@ -94,7 +94,12 @@ Plans are plain JSON. Rest days have an empty `workout` list.
 | `meals[].name`, `meals[].items` | **yes** | `time`, `calories`, `protein` are optional |
 | `extras` | no | `waterLiters`, `supplements` (list), `notes` |
 
-The plan repeats after its last day (a 7 day plan is a weekly cycle). The `rest` text is read for the timer: `90s`, `2 min`, `1:30` and `60 to 90s` all work.
+There are two kinds of plan:
+
+- **Cycle (default):** Day 1 is your start date, Day 2 the next day, and so on, repeating after the last day. The built in sample works like this.
+- **Weekly:** if **every** day label starts with a weekday (`"Monday Chest + Triceps"`, `"Tue: Back"`), the plan follows the real calendar instead. A Monday shows the Monday entry, and weekdays you don't list (say Sunday in a Monday to Saturday plan) are rest days. No start date is needed, and a 6 day plan no longer drifts.
+
+Rest days with nothing to tick never break your streak. The `rest` text is read for the timer: `90s`, `2 min`, `1:30` and `60 to 90s` all work.
 
 The importer is forgiving: it accepts code fences, chatty text around the JSON, trailing commas, curly or single quotes, unquoted keys, and numbers written as text.
 

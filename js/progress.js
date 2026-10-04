@@ -65,14 +65,15 @@ export function renderProgress(root, plan, goto) {
     const date = toStr(new Date(first.getFullYear(), first.getMonth(), n, 12));
     const beforeStart = date < plan.startDate;
     const future = date > today;
-    const pct = beforeStart || future ? 0 : pctFor(plan, records, date);
+    const raw = beforeStart || future ? 0 : pctFor(plan, records, date);
+    const pct = raw === null ? 0 : raw; // null = nothing to tick that day (a rest day)
     grid.append(
       h(
         'button',
         {
           class: `cal-day lv${level(pct)}` + (date === today ? ' is-today' : '') + (future ? ' future' : ''),
           disabled: beforeStart,
-          'aria-label': `${date}, ${beforeStart ? 'before plan start' : future ? 'upcoming' : pct + '% done'}`,
+          'aria-label': `${date}, ${beforeStart ? 'before plan start' : future ? 'upcoming' : raw === null ? 'rest day' : pct + '% done'}`,
           onclick: () => goto(date),
         },
         n
