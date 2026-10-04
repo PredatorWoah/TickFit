@@ -4,6 +4,8 @@
 // A progress "record" for one date looks like:
 //   { ticks: { w1: true, m2: true, s1: true }, weights: { w1: 20 }, waterMl: 1500, notes: "..." }
 
+import { planDayIndex, addDays } from './dates.js';
+
 export const WATER_STEP_ML = 250;
 
 /** Everything that can be ticked in a day: [{id, kind}] */
@@ -53,4 +55,56 @@ export function mealTotals(day, record) {
     protein: sum('protein', false),
     proteinEaten: sum('protein', true),
   };
+}
+
+// ----- streaks and weekly numbers -----
+// "records" below is progress[planId]: { "YYYY-MM-DD": record }
+
+/** A day counts toward your streak when at least this much of it is done. Change to taste. */
+export const STREAK_MIN_PCT = 50;
+
+/** Completion % of one calendar date for a plan. */
+export function pctFor(plan, records, date) {
+  const day = plan.days[planDayIndex(plan.startDate, date, plan.days.length)];
+  return dayStats(day, (records || {})[date]).pct;
+}
+
+/**
+ * Current streak: consecutive days (ending today) that reached STREAK_MIN_PCT.
+ * Today being unfinished doesn't break the streak, it simply isn't counted yet.
+ */
+export function currentStreak(plan, records, today) {
+  let d = today;
+  if (d < plan.startDate) return 0;
+  if (pctFor(plan, records, d) < STREAK_MIN_PCT) d = addDays(d, -1);
+  let n = 0;
+  while (d >= plan.startDate && pctFor(plan, records, d) >= STREAK_MIN_PCT) {
+    n++;
+    d = addDays(d, -1);
+  }
+  return n;
+}
+
+/** Longest run of qualifying days from the plan's start until today. */
+export function longestStreak(plan, records, today) {
+  let best = 0;
+  let run = 0;
+  for (let d = plan.startDate; d <= today; d = addDays(d, 1)) {
+    run = pctFor(plan, records, d) >= STREAK_MIN_PCT ? run + 1 : 0;
+    best = Math.max(best, run);
+  }
+  return best;
+}
+
+/** Average completion % over the last 7 days (only days since the plan started). Null if none yet. */
+export function weekPercent(plan, records, today) {
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, -i);
+    if (d < plan.startDate) break;
+    sum += pctFor(plan, records, d);
+    count++;
+  }
+  return count ? Math.round(sum / count) : null;
 }

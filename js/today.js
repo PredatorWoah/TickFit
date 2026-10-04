@@ -9,6 +9,7 @@ import { h, clear } from './dom.js';
 import { getRecord, updateRecord } from './store.js';
 import { dayStats, mealTotals, WATER_STEP_ML } from './stats.js';
 import { planDayIndex, todayStr, addDays, formatShort } from './dates.js';
+import { parseRestSeconds, startRest } from './timer.js';
 
 const RING_RADIUS = 52;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -66,7 +67,7 @@ export function renderToday(root, plan, date, goto) {
         h(
           'div',
           { class: 'date-title' },
-          h('div', { class: 'date-main' }, date === today ? 'Today' : formatShort(date)),
+          h('h1', { class: 'date-main' }, date === today ? 'Today' : formatShort(date)),
           h('div', { class: 'date-sub' }, date === today ? formatShort(date) : plan.name)
         ),
         h('button', { class: 'icon-btn', 'aria-label': 'Next day', onclick: () => goto(addDays(date, 1)) }, '›')
@@ -77,7 +78,16 @@ export function renderToday(root, plan, date, goto) {
   );
 
   // ----- progress ring -----
-  const ringFill = h('circle', { class: 'ring-fill', cx: 60, cy: 60, r: RING_RADIUS });
+  // SVG shapes must be made with createElementNS. (h() makes HTML elements, which an <svg> silently ignores.)
+  const svgCircle = (cls) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('class', cls);
+    c.setAttribute('cx', '60');
+    c.setAttribute('cy', '60');
+    c.setAttribute('r', String(RING_RADIUS));
+    return c;
+  };
+  const ringFill = svgCircle('ring-fill');
   ringFill.style.strokeDasharray = String(RING_LENGTH);
   const ringPct = h('div', { class: 'ring-pct' }, '0%');
   const ringSub = h('div', { class: 'ring-sub' }, '');
@@ -85,12 +95,7 @@ export function renderToday(root, plan, date, goto) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 120 120');
   svg.setAttribute('class', 'ring-svg');
-  const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  track.setAttribute('class', 'ring-track');
-  track.setAttribute('cx', '60');
-  track.setAttribute('cy', '60');
-  track.setAttribute('r', String(RING_RADIUS));
-  svg.append(track, ringFill);
+  svg.append(svgCircle('ring-track'), ringFill);
 
   const isRest = day.workout.length === 0;
   root.append(
@@ -184,7 +189,13 @@ export function renderToday(root, plan, date, goto) {
             });
             weight.value = rec().weights[w.id] ?? '';
 
-            return tickRow(w.id, text, h('label', { class: 'weight-wrap' }, weight));
+            // Rest timer button, only when the plan's "rest" text is something we can read as a time.
+            const restSecs = parseRestSeconds(w.rest);
+            const restBtn =
+              restSecs &&
+              h('button', { class: 'rest-btn', type: 'button', 'aria-label': `Start ${w.rest} rest timer`, onclick: () => startRest(restSecs, w.exercise) }, `⏱ ${w.rest}`);
+
+            return tickRow(w.id, text, h('div', { class: 'row-after' }, h('label', { class: 'weight-wrap' }, weight), restBtn));
           })
         )
       )
