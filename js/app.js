@@ -9,6 +9,7 @@ import { renderPlans, addSamplePlan } from './plans.js';
 import { renderProgress } from './progress.js';
 import { renderEditor } from './editor.js';
 import { renderMore } from './more.js';
+import { applyTheme } from './theme.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -84,6 +85,7 @@ function registerServiceWorker() {
 
 async function start() {
   load();
+  applyTheme(getState().settings.theme);
   // First open: add the built in sample plan so the app is useful straight away.
   if (!getActivePlan()) await addSamplePlan();
   view.screen = getActivePlan() ? 'today' : 'plans';

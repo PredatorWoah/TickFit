@@ -9,6 +9,7 @@ import { h, clear } from './dom.js';
 import { getRecord, updateRecord } from './store.js';
 import { dayStats, mealTotals, WATER_STEP_ML } from './stats.js';
 import { planDayIndex, todayStr, addDays, formatShort } from './dates.js';
+import { parseRestSeconds, startRest } from './timer.js';
 
 const RING_RADIUS = 52;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -184,7 +185,13 @@ export function renderToday(root, plan, date, goto) {
             });
             weight.value = rec().weights[w.id] ?? '';
 
-            return tickRow(w.id, text, h('label', { class: 'weight-wrap' }, weight));
+            // Rest timer button, only when the plan's "rest" text is something we can read as a time.
+            const restSecs = parseRestSeconds(w.rest);
+            const restBtn =
+              restSecs &&
+              h('button', { class: 'rest-btn', type: 'button', 'aria-label': `Start ${w.rest} rest timer`, onclick: () => startRest(restSecs, w.exercise) }, `⏱ ${w.rest}`);
+
+            return tickRow(w.id, text, h('div', { class: 'row-after' }, h('label', { class: 'weight-wrap' }, weight), restBtn));
           })
         )
       )

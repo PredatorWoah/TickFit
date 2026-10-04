@@ -28,7 +28,12 @@ const EXAMPLE = {
   ],
 };
 
-export function buildPrompt() {
+/**
+ * The full prompt. With no argument it ends with a placeholder for the user to paste their
+ * document under. With `docText` the document is already included (used for Gemini and for
+ * "Copy prompt with my text").
+ */
+export function buildPrompt(docText = '') {
   return `You convert a workout and meal plan into JSON for a checklist app called TickFit.
 
 I will paste my plan document below this message. Read it and return the plan in EXACTLY this JSON format.
@@ -80,6 +85,6 @@ RULES
 8. Keep the JSON compact (no extra whitespace) so the whole plan fits in one reply.
 
 MY PLAN DOCUMENT:
-(paste it here)
+${docText ? docText.trim() : '(paste it here)'}
 `;
 }

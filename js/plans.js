@@ -5,6 +5,8 @@ import { h, clear, copyText, toast } from './dom.js';
 import { getState, addPlan, setActivePlan, removePlan, setStartDate } from './store.js';
 import { parsePlanText } from './parser.js';
 import { buildPrompt } from './ai.js';
+import { extractText } from './extract.js';
+import { convertWithGemini, hasGeminiKey } from './gemini.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
 
 /** Fetch the built in sample plan and add it. Returns true on success. */
@@ -117,6 +119,60 @@ export function renderPlans(root, actions) {
     }
   }
 
+  const status = h('div', { class: 'status', 'aria-live': 'polite' });
+
+  // ----- optional: upload a PDF / text file (read on this device, nothing is uploaded) -----
+  const fileInput = h('input', {
+    type: 'file',
+    accept: '.pdf,.txt,.md,.json,.csv,application/pdf,text/plain',
+    hidden: true,
+    onchange: async (e) => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      status.textContent = `Reading ${file.name}...`;
+      try {
+        box.value = await extractText(file);
+        clear(messages);
+        status.textContent = `Read ${file.name} (${box.value.length.toLocaleString()} characters) on this device. If it is already plan JSON, tap Import. If it is a normal document, convert it with ${hasGeminiKey() ? 'Gemini or ' : ''}a chatbot using "Copy prompt with this text".`;
+      } catch (err) {
+        status.textContent = '';
+        showResult({ errors: [err.message], warnings: [] });
+      }
+    },
+  });
+
+  // ----- optional: convert with the user's own Gemini key -----
+  const geminiBtn = hasGeminiKey()
+    ? h(
+        'button',
+        {
+          class: 'btn wide',
+          onclick: async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.textContent = 'Converting with Gemini...';
+            clear(messages);
+            try {
+              const reply = await convertWithGemini(box.value);
+              const result = parsePlanText(reply);
+              // Show the JSON so the user can look it over before importing.
+              box.value = result.ok ? JSON.stringify(result.plan, null, 2) : reply;
+              status.textContent = result.ok ? 'Gemini converted it. Have a look, then tap Import plan.' : '';
+              showResult(result);
+            } catch (err) {
+              status.textContent = '';
+              showResult({ errors: [err.message], warnings: [] });
+            } finally {
+              btn.disabled = false;
+              btn.textContent = 'Convert with Gemini';
+            }
+          },
+        },
+        'Convert with Gemini'
+      )
+    : null;
+
   function doImport() {
     const result = parsePlanText(box.value);
     showResult(result);
@@ -146,7 +202,23 @@ export function renderPlans(root, actions) {
       },
       'Copy AI prompt'
     ),
+    h(
+      'div',
+      { class: 'upload-row' },
+      h('button', { class: 'btn', onclick: () => fileInput.click() }, 'Upload PDF or text'),
+      h(
+        'button',
+        {
+          class: 'btn',
+          onclick: async () => toast((await copyText(buildPrompt(box.value))) ? 'Prompt copied' : 'Could not copy'),
+        },
+        'Copy prompt with this text'
+      ),
+      fileInput
+    ),
     box,
+    geminiBtn,
+    status,
     h('label', { class: 'field' }, h('span', {}, 'Day 1 starts on'), startDate),
     h('button', { class: 'btn primary wide', onclick: doImport }, 'Import plan'),
     messages

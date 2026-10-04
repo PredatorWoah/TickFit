@@ -6,9 +6,10 @@
 //      when you are online) and falls back to the cache when the network is down or slow.
 //
 // MAINTAINERS: when you ADD a file to the app, add it to APP_FILES below, and bump
-// CACHE_VERSION when you want everyone's cache rebuilt. `node tests/check-sw.mjs` checks the list.
+// CACHE_VERSION when you want everyone's cache rebuilt. (vendor/pdfjs is deliberately NOT listed: it is
+// big, so it is cached the first time someone uploads a PDF instead.) `node tests/check-sw.mjs` checks the list.
 
-const CACHE_VERSION = 'tickfit-v1';
+const CACHE_VERSION = 'tickfit-v2';
 const NETWORK_TIMEOUT_MS = 3000;
 
 const APP_FILES = [
@@ -20,6 +21,8 @@ const APP_FILES = [
   'js/ai.js',
   'js/dates.js',
   'js/dom.js',
+  'js/extract.js',
+  'js/gemini.js',
   'js/editor.js',
   'js/more.js',
   'js/parser.js',
@@ -27,6 +30,9 @@ const APP_FILES = [
   'js/progress.js',
   'js/stats.js',
   'js/store.js',
+  'js/theme.js',
+  'js/theme-boot.js',
+  'js/timer.js',
   'js/today.js',
   'data/sample-plan.json',
   'icons/icon.svg',

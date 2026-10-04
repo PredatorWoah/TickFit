@@ -5,7 +5,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 const sw = readFileSync('sw.js', 'utf8');
 const listed = [...sw.matchAll(/^\s+'([^']+)',?$/gm)].map((m) => m[1]).filter((f) => f !== './');
 
-const folders = { css: /\.css$/, js: /\.js$/, data: /\.json$/, icons: /\.(png|svg)$/, vendor: /./ };
+const folders = { css: /\.css$/, js: /\.js$/, data: /\.json$/, icons: /\.(png|svg)$/ };  // vendor/ is cached on first use, see sw.js
 const found = ['index.html', 'manifest.webmanifest'];
 for (const [dir, re] of Object.entries(folders)) {
   if (!existsSync(dir)) continue;
