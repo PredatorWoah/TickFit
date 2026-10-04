@@ -335,7 +335,9 @@ export function renderToday(root, plan, date, goto) {
         }
         draw();
 
+        // Native append() would print a skipped `null` as the word "null", so drop empty items first.
         body.append(
+          ...[
           h('p', { class: 'sheet-target' }, target),
           w.notes && h('p', { class: 'sheet-note' }, w.notes),
           last && h('p', { class: 'last-time' }, h('b', {}, 'Last time '), `(${fromStr(last.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })}): ${formatSets(last.sets)}`),
@@ -346,7 +348,8 @@ export function renderToday(root, plan, date, goto) {
             h('a', { class: 'btn ghost', href: w.video || searchUrl, target: '_blank', rel: 'noopener noreferrer' }, icon('play', 16), w.video ? 'Watch video' : 'Form video'),
             restSecs && h('button', { class: 'btn ghost', type: 'button', onclick: () => startRest(restSecs, w.exercise) }, icon('timer', 18), `Rest ${w.rest}`)
           ),
-          h('button', { class: 'btn primary wide', type: 'button', onclick: close }, 'Done')
+          h('button', { class: 'btn primary wide', type: 'button', onclick: close }, 'Done'),
+          ].filter(Boolean)
         );
       },
     });
