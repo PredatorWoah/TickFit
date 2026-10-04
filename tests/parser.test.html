@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TickFit parser tests</title>
+<style>
+  body { font: 15px system-ui, sans-serif; background: #111; color: #eee; padding: 16px; }
+  .pass { color: #4ade80 } .fail { color: #f87171 } li { margin: 4px 0 }
+</style>
+<h1>Parser tests</h1>
+<p id="summary"></p>
+<ul id="out"></ul>
+<script type="module">
+  // Open this file through a local server (e.g. `python3 -m http.server`), not file://
+  import { parsePlanText } from '../js/parser.js';
+  import { runCases } from './cases.js';
+  const results = runCases(parsePlanText);
+  const out = document.getElementById('out');
+  for (const r of results) {
+    const li = document.createElement('li');
+    li.className = r.pass ? 'pass' : 'fail';
+    li.textContent = (r.pass ? 'PASS ' : 'FAIL ') + r.name + (r.pass ? '' : ' : ' + r.why);
+    out.append(li);
+  }
+  const failed = results.filter((r) => !r.pass).length;
+  document.getElementById('summary').textContent = `${results.length - failed}/${results.length} passed`;
+  document.title = failed ? 'FAILED' : 'ALL PASSED';
+</script>
