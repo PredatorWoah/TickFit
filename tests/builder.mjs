@@ -1,5 +1,5 @@
 // Tests for the plan builder. Run: node tests/builder.mjs
-import { validateProfile, bmr, bmi, targets, buildPlan, buildSession, dose, cardioPlan } from '../js/builder.js';
+import { validateProfile, bmr, bmi, targets, buildPlan, buildSession, dose, cardioPlan, dayDiets, nonvegWeekdays, describeProfile } from '../js/builder.js';
 import { EXERCISES, ALLOWED_EQUIP } from '../js/exercises.js';
 import { validatePlan } from '../js/parser.js';
 import { weeklyWeekdays } from '../js/schedule.js';
@@ -162,6 +162,36 @@ check('beginner upper day avoids pull-ups and barbell press', !beginnerUpper.som
 check('big targets get five meals', buildPlan({ ...base, weightKg: 100, heightCm: 190, goal: 'muscle', days: 6, life: 'physical' }).plan.days[0].meals.length === 5);
 check('normal targets get four meals', buildPlan({ ...base, sex: 'female', weightKg: 60, heightCm: 165, goal: 'fit', days: 3 }).plan.days[0].meals.length === 4);
 check('water scales with weight', buildPlan({ ...base, weightKg: 100 }).plan.days[0].extras.waterLiters > buildPlan({ ...base, weightKg: 50 }).plan.days[0].extras.waterLiters);
+
+// ----- mixed and per-day diets
+const textOf = (day) => day.meals.flatMap((m) => m.items).join(' ');
+const NV = /chicken|fish|egg/i;
+check('nonveg weekdays are distinct and spread for 1 to 6 days', [1, 2, 3, 4, 5, 6].every((n) => new Set(nonvegWeekdays(n)).size === n));
+check('default is the same diet every day', dayDiets({ ...base, diet: 'egg' }).every((d) => d === 'egg'));
+const mixedProf = { ...base, diet: 'veg', dietMode: 'mixed', nonvegDays: 3 };
+check('mixed profile validates', validateProfile(mixedProf).ok);
+check('mixed with a non-veg main diet is rejected', !validateProfile({ ...mixedProf, diet: 'nonveg' }).ok);
+check('mixed with 0 or 7 non-veg days is rejected', !validateProfile({ ...mixedProf, nonvegDays: 0 }).ok && !validateProfile({ ...mixedProf, nonvegDays: 7 }).ok);
+const mixedPlan = buildPlan(mixedProf);
+const md = dayDiets(mixedProf);
+check('mixed: validates as a plan', validatePlan(mixedPlan.plan).ok);
+check('mixed: veg days have no meat, egg or fish', mixedPlan.plan.days.every((d, i) => md[i] === 'nonveg' || !NV.test(textOf(d))), mixedPlan.plan.days.map((d, i) => md[i] + ':' + textOf(d).slice(0, 0)).join());
+check('mixed: every non-veg day has some meat, egg or fish', mixedPlan.plan.days.every((d, i) => md[i] !== 'nonveg' || NV.test(textOf(d))));
+check('mixed: summary lists the diet of each day', JSON.stringify(mixedPlan.summary.dayDiets) === JSON.stringify(md));
+const vegan3 = buildPlan({ ...base, diet: 'vegan', dietMode: 'mixed', nonvegDays: 2 });
+const vd = dayDiets({ ...base, diet: 'vegan', dietMode: 'mixed', nonvegDays: 2 });
+check('mixed vegan: vegan days have no dairy or meat', vegan3.plan.days.every((d, i) => vd[i] === 'nonveg' || !(NV.test(textOf(d)) || DAIRY.test(textOf(d)))));
+const perDay = { ...base, diet: 'veg', dietMode: 'perday', dayDiets: ['veg', 'veg', 'nonveg', 'egg', 'vegan', 'nonveg', 'veg'] };
+check('per-day profile validates', validateProfile(perDay).ok);
+check('per-day needs seven valid entries', !validateProfile({ ...perDay, dayDiets: ['veg'] }).ok && !validateProfile({ ...perDay, dayDiets: [...perDay.dayDiets.slice(0, 6), 'junk'] }).ok);
+const perPlan = buildPlan(perDay).plan.days;
+check('per-day: Wednesday and Saturday are non-veg', NV.test(textOf(perPlan[2])) && NV.test(textOf(perPlan[5])));
+check('per-day: vegan Friday has no dairy, egg or meat', !(NV.test(textOf(perPlan[4])) || DAIRY.test(textOf(perPlan[4]))), textOf(perPlan[4]));
+check('per-day: veg Monday has no meat, egg or fish', !NV.test(textOf(perPlan[0])));
+check('per-day: eggetarian Thursday has no chicken or fish', !/chicken|fish/i.test(textOf(perPlan[3])));
+check('chatbot prompt spells out each day when the diet varies', /Tuesday non-vegetarian/.test(describeProfile(mixedProf)) && /Monday vegetarian/.test(describeProfile(mixedProf)));
+check('chatbot prompt for one diet is unchanged', /Food: vegetarian \(dairy ok\), Indian home cooking preferred/.test(describeProfile(base)));
+check('old saved profiles without a diet mode still work', validateProfile(base).ok && buildPlan(base).plan.days.length === 7);
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);

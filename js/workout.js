@@ -9,6 +9,7 @@
 import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
+import { notesCard } from './notesui.js';
 import { openBackupSheet } from './backupui.js';
 import { nudgeDue, loggedDayCount } from './safety.js';
 import { getState } from './store.js';
@@ -41,7 +42,7 @@ export function renderWorkout(root, plan, date, goto) {
   // ----- a rest day -----
   if (!day.workout.length) {
     root.append(h('div', { class: 'empty-card' }, h('div', { class: 'empty-icon' }, icon('flame', 32)), h('h1', { class: 'wk-title' }, 'Rest day'), h('p', {}, 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.')));
-    if (day.extras.notes) root.append(h('p', { class: 'callout' }, day.extras.notes));
+    root.append(notesCard(ctx));
     return;
   }
 
@@ -57,13 +58,7 @@ export function renderWorkout(root, plan, date, goto) {
     h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
     stateArea
   );
-  if (day.extras.notes) {
-    root.append(
-      day.extras.notes.length > 140
-        ? h('details', { class: 'callout' }, h('summary', {}, 'Notes for today'), h('p', {}, day.extras.notes))
-        : h('p', { class: 'callout' }, day.extras.notes)
-    );
-  }
+  root.append(notesCard(ctx));
 
   // ----- the clock and the finish summary -----
   const clockEls = []; // every element that shows the running clock

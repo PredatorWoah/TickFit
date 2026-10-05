@@ -43,6 +43,8 @@ const APP_FILES = [
   'js/logging.js',
   'js/meals.js',
   'js/more.js',
+  'js/notes.js',
+  'js/notesui.js',
   'js/parser.js',
   'js/plans.js',
   'js/progress.js',
