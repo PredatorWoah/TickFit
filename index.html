@@ -18,6 +18,44 @@
   <meta name="apple-mobile-web-app-title" content="TickFit">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Fetch every module the app needs at startup in parallel, instead of finding them one by one as each file loads.
+       tests/preload.mjs keeps this list in step with the real imports. -->
+  <link rel="modulepreload" href="js/adjustui.js">
+  <link rel="modulepreload" href="js/ai.js">
+  <link rel="modulepreload" href="js/backnav.js">
+  <link rel="modulepreload" href="js/backup.js">
+  <link rel="modulepreload" href="js/backupui.js">
+  <link rel="modulepreload" href="js/burn.js">
+  <link rel="modulepreload" href="js/dates.js">
+  <link rel="modulepreload" href="js/dayview.js">
+  <link rel="modulepreload" href="js/dom.js">
+  <link rel="modulepreload" href="js/estimate.js">
+  <link rel="modulepreload" href="js/extract.js">
+  <link rel="modulepreload" href="js/gemini.js">
+  <link rel="modulepreload" href="js/home.js">
+  <link rel="modulepreload" href="js/icons.js">
+  <link rel="modulepreload" href="js/install.js">
+  <link rel="modulepreload" href="js/logging.js">
+  <link rel="modulepreload" href="js/meals.js">
+  <link rel="modulepreload" href="js/more.js">
+  <link rel="modulepreload" href="js/notes.js">
+  <link rel="modulepreload" href="js/notesui.js">
+  <link rel="modulepreload" href="js/parser.js">
+  <link rel="modulepreload" href="js/plans.js">
+  <link rel="modulepreload" href="js/platform.js">
+  <link rel="modulepreload" href="js/progress.js">
+  <link rel="modulepreload" href="js/safety.js">
+  <link rel="modulepreload" href="js/schedule.js">
+  <link rel="modulepreload" href="js/sheet.js">
+  <link rel="modulepreload" href="js/stats.js">
+  <link rel="modulepreload" href="js/store.js">
+  <link rel="modulepreload" href="js/summary.js">
+  <link rel="modulepreload" href="js/theme.js">
+  <link rel="modulepreload" href="js/timer.js">
+  <link rel="modulepreload" href="js/update.js">
+  <link rel="modulepreload" href="js/weight.js">
+  <link rel="modulepreload" href="js/weightui.js">
+  <link rel="modulepreload" href="js/workout.js">
 </head>
 <body>
   <main id="app"></main>

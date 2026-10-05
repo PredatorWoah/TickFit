@@ -5,7 +5,7 @@
 // 1 is sitting still, 3.5 is a brisk walk, 8 is a run. The numbers come from the public Compendium of
 // Physical Activities. Real burn varies by 30% or more from person to person.
 
-import { exerciseProgress, plannedSets } from './stats.js';
+import { exerciseProgress } from './stats.js';
 import { sessionState, sessionMs } from './logging.js';
 import { latest } from './weight.js';
 

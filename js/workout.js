@@ -6,7 +6,7 @@
 //   * A rest timer starts after each set (More has a switch for that).
 //   * Finish workout shows a summary: time, sets and total weight lifted.
 
-import { h, clear, toast } from './dom.js';
+import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { notesCard } from './notesui.js';

@@ -12,6 +12,7 @@ eq('module: parent import', stampModule("import { x } from '../a/b.js';", 'v1'),
 eq('module: side-effect import', stampModule("import './theme.js';", 'v1'), "import './theme.js?v=v1';");
 eq('module: already stamped is left alone', stampModule("import { h } from './dom.js?v=old';", 'v1'), "import { h } from './dom.js?v=old';");
 eq('module: dynamic import of a vendor file is left alone', stampModule("await import('../vendor/pdfjs/pdf.min.mjs');", 'v1'), "await import('../vendor/pdfjs/pdf.min.mjs');");
+eq('module: on-demand import of our own file is stamped', stampModule("const m = await import('./build.js');", 'v1'), "const m = await import('./build.js?v=v1');");
 eq('module: bare/URL imports are left alone', stampModule("import x from 'https://a.b/c.js';", 'v1'), "import x from 'https://a.b/c.js';");
 eq('html: script, module and css', stampHtml('<script src="js/theme-boot.js"></script><link href="css/styles.css"><script type="module" src="js/app.js"></script>', 'v1'),
   '<script src="js/theme-boot.js?v=v1"></script><link href="css/styles.css?v=v1"><script type="module" src="js/app.js?v=v1"></script>');
@@ -28,7 +29,11 @@ for (const f of readdirSync(join(dir, 'js'))) {
   for (const m of text.matchAll(/\bfrom\s+'(\.{1,2}\/[^']+)'|\bimport\s+'(\.{1,2}\/[^']+)'/g)) if (!/\?v=abc1234$/.test(m[1] || m[2])) unstamped.push(`${f}: ${m[1] || m[2]}`);
 }
 eq('every relative import in the real site is stamped', unstamped, []);
-eq('real index.html links are stamped', (readFileSync(join(dir, 'index.html'), 'utf8').match(/\?v=abc1234/g) || []).length, 3);
+{
+  const html = readFileSync(join(dir, 'index.html'), 'utf8');
+  const links = [...html.matchAll(/(?:src|href)="((?:js|css)\/[^"]+)"/g)].map((m) => m[1]);
+  eq('every js and css link in the real index.html is stamped (including the preload links)', [links.length > 30, links.every((l) => /\?v=abc1234$/.test(l))], [true, true]);
+}
 eq('real sw.js has the deploy cache name', /const CACHE_VERSION = 'tickfit-abc1234';/.test(readFileSync(join(dir, 'sw.js'), 'utf8')), true);
 let threw = false; try { stampSite(dir, "x'; evil()"); } catch { threw = true; }
 eq('an odd version string is refused', threw, true);

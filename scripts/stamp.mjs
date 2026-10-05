@@ -19,11 +19,12 @@ export function stampHtml(text, v) {
   return text.replace(/((?:src|href)="(?:js|css)\/[^"?]+\.(?:js|css))"/g, `$1?v=${v}"`);
 }
 
-/** Stamp the relative imports in a JavaScript module: from './x.js' -> from './x.js?v=…' */
+/** Stamp the relative imports in a JavaScript module: from './x.js' -> from './x.js?v=…' (also import('./x.js')) */
 export function stampModule(text, v) {
   return text
     .replace(/(\bfrom\s+'\.{1,2}\/[^'?]+\.js)'/g, `$1?v=${v}'`)
-    .replace(/(\bimport\s+'\.{1,2}\/[^'?]+\.js)'/g, `$1?v=${v}'`);
+    .replace(/(\bimport\s+'\.{1,2}\/[^'?]+\.js)'/g, `$1?v=${v}'`)
+    .replace(/(\bimport\(\s*'\.{1,2}\/[^'?]+\.js)'/g, `$1?v=${v}'`); // import('./build.js') loaded on demand
 }
 
 /** Give the service worker a cache name unique to this deploy, so old caches are dropped automatically. */

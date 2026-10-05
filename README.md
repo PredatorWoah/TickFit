@@ -1,8 +1,10 @@
 # TickFit
 
-**A free gym and meal tracker that lives on your phone.** Follow any workout and meal plan as a simple daily checklist, log your sets, and build a plan from your own details. No account, no backend, no tracking, no subscription. It works offline and installs like an app on iPhone and Android.
+**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, track calories burnt and your weight, and build a plan from your own details. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
 
-> Built to share with friends so nobody has to pay for a fitness app.
+**[Open the web app](https://predatorwoah.github.io/TickFit/)** · **[Download the Android app](https://github.com/PredatorWoah/TickFit/releases/latest)** · [Privacy](PRIVACY.md) · [Contribute](CONTRIBUTING.md)
+
+> Built to share with friends so nobody has to pay for a fitness app. Plain HTML, CSS and JavaScript with no build step, so anyone can read it, fork it and change it.
 
 <p>
   <img src="docs/screenshots/today.png" alt="Today: progress ring, streak, and cards to start your workout and open your meals" width="240">

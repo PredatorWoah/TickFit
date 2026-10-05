@@ -35,6 +35,7 @@ This runs, with no setup:
 - `tests/builder.mjs`: the plan builder, over 2,700 combinations of answers
 - `tests/timer.mjs`: rest time parsing ("90s", "2 min", "1:30")
 - `tests/check-sw.mjs`: every app file is listed in `sw.js`
+- `tests/preload.mjs`: the startup module list in `index.html` matches what the app really imports
 
 You can also open `tests/parser.test.html` through the local server to run the parser tests in a browser.
 
@@ -69,6 +70,7 @@ You can also open `tests/parser.test.html` through the local server to run the p
 ## Adding or changing files
 
 - **New file in `js/`, `css/`, `data/` or `icons/`?** Add it to the list in `sw.js` so it works offline, then run `node tests/check-sw.mjs`.
+- **New module that `app.js` imports (directly or not)?** Add a `<link rel="modulepreload" href="js/yourfile.js">` for it in `index.html`. `node tests/preload.mjs` tells you the exact line, and it fails if the list drifts. Big screens that are rarely opened (the plan builder and the plan editor) are loaded on demand with `import()` in `app.js` instead, so they stay out of the startup path and the preload list. Use the same pattern for any new big, rarely used screen.
 - **Changed anything users would notice?** Bump `CACHE_VERSION` in `sw.js`.
 - **Changed the plan format?** Update `js/parser.js`, `js/ai.js`, `js/editor.js`, the README and add test cases.
 - **Rendering text?** Use the `h()` helper in `js/dom.js`. Passing a `null` straight to the browser's own `append()` prints the word "null".
