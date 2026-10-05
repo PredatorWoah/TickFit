@@ -11,10 +11,12 @@ import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
 import { runningVersion, forceUpdate } from './update.js';
+import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
+import { isNative, appVersion } from './platform.js';
+import { burnFactor } from './burn.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const isInstalled = () => navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
 /** @param actions { refresh() } redraw the app after a restore */
 export function renderMore(root, actions) {
@@ -47,7 +49,8 @@ export function renderMore(root, actions) {
   });
 
   const persisted = isStoragePersisted();
-  const installed = isInstalled();
+  const installed = isInstalledApp(); // true in the Android app and for an installed web app
+  const inApp = isNative();
   const row = (label, value, tone) => h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, label), h('span', { class: 'kv-value' + (tone ? ' ' + tone : '') }, value));
 
   const backupButtons = [
@@ -63,7 +66,7 @@ export function renderMore(root, actions) {
     h('p', { class: 'hint' }, 'Everything lives on this phone only. Nothing is sent anywhere, which also means nobody else can recover it for you. A backup file is your safety net.'),
     row('Last backup', describeBackupAge(settings.lastBackup, todayStr()), settings.lastBackup ? '' : 'warn-text'),
     row('Saved on this phone', `${dataSizeKb()} KB`),
-    row('Protected from auto clean up', persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', persisted === true ? 'good-text' : ''),
+    row('Protected from auto clean up', inApp || persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', inApp || persisted === true ? 'good-text' : ''),
     row('Installed as an app', installed ? 'Yes' : 'No', installed ? 'good-text' : ''),
     !installed && isIos() && h('div', { class: 'msg warn' }, h('b', {}, 'Install it on your iPhone. '), 'Safari can erase a website\'s data after about a week of not opening it. Tap Share, then "Add to Home Screen", and open TickFit from there. That removes the risk.'),
     !installed && !isIos() && h('p', { class: 'hint' }, 'Tip: install TickFit from your browser menu ("Install app" or "Add to Home screen"). Installed apps are far less likely to have their data cleared.'),
@@ -75,7 +78,7 @@ export function renderMore(root, actions) {
       h(
         'ol',
         { class: 'steps' },
-        h('li', {}, 'On the OLD phone: tap "Share backup" (or "Save backup file") and send the file to yourself, for example through email, Drive or WhatsApp.'),
+        h('li', {}, 'On the OLD phone: tap "Back up now" and send the file to yourself, for example through Drive, email or WhatsApp.'),
         h('li', {}, 'On the NEW phone: open the same TickFit link and install it.'),
         h('li', {}, 'Open this More screen, tap "Restore from a backup file" and pick the file.'),
         h('li', {}, 'Check your plans and history, then you are done. Your Gemini key (if you set one) is never in the file, so add it again.')
@@ -99,6 +102,23 @@ export function renderMore(root, actions) {
       { dark: 'Dark', light: 'Light', auto: 'Match phone' }[t]
     )
   );
+
+  // ----- get the app (only shown in a browser tab, not once it is installed) -----
+  function getAppCard() {
+    if (isInstalledApp()) return null;
+    const install = canPromptInstall()
+      ? h('button', { class: 'btn primary wide', type: 'button', onclick: async () => ((await promptInstall()) ? toast('Installing TickFit…') : again()) }, icon('upload', 20), 'Install TickFit on this device')
+      : null;
+    return h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Get the app'),
+      h('p', { class: 'hint' }, 'TickFit works as an app too: its own icon, full screen, and it works offline. Your data is the same as on the website.'),
+      install,
+      h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'Android app (APK download)'),
+      h('p', { class: 'hint' }, 'iPhone: tap Share, then Add to Home Screen. Android APK: open the downloaded file and allow "install unknown apps" for your browser when asked.')
+    );
+  }
 
   // ----- app version (the deploy stamp on the running code) -----
   const versionRow = h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'Running version'), h('span', { class: 'kv-value' }, runningVersion()));
@@ -133,6 +153,30 @@ export function renderMore(root, actions) {
     h(
       'section',
       { class: 'card' },
+      h('h2', {}, 'Calorie estimates'),
+      h('p', { class: 'hint' }, 'TickFit estimates the calories you burn. If your watch or gym machine usually shows more or less, nudge all the estimates here. You can also correct a single day on the Progress tab. Calories you type in yourself are never changed.'),
+      h(
+        'div',
+        { class: 'seg', role: 'group', 'aria-label': 'Calorie estimate adjustment' },
+        [80, 90, 100, 110, 120].map((pct) =>
+          h('button', { type: 'button', 'aria-pressed': String(Math.round(burnFactor(settings) * 100) === pct), onclick: () => { setSetting('burnCalibration', pct); again(); } }, `${pct}%`)
+        )
+      )
+    ),
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'After a workout'),
+      h(
+        'label',
+        { class: 'check-line' },
+        h('input', { type: 'checkbox', checked: settings.askBackupAfterWorkout !== false, onchange: (e) => setSetting('askBackupAfterWorkout', e.target.checked) }),
+        'Ask me to back up my progress'
+      )
+    ),
+    h(
+      'section',
+      { class: 'card' },
       h('h2', {}, 'Rest timer'),
       h(
         'label',
@@ -147,14 +191,24 @@ export function renderMore(root, actions) {
         'Beep and vibrate when rest ends'
       )
     ),
-    h(
-      'section',
-      { class: 'card' },
-      h('h2', {}, 'App version'),
-      h('p', { class: 'hint' }, 'TickFit updates itself when you are online. If a new feature does not show up after reloading, tap this. It reloads the newest files. Your plans and progress are not touched.'),
-      versionRow,
-      h('button', { class: 'btn wide', type: 'button', onclick: () => forceUpdate() }, 'Update TickFit now')
-    ),
+    getAppCard() || '',
+    isNative()
+      ? h(
+          'section',
+          { class: 'card' },
+          h('h2', {}, 'App version'),
+          h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'TickFit for Android'), h('span', { class: 'kv-value' }, appVersion())),
+          h('p', { class: 'hint' }, 'This app has everything inside it, so it works with no internet. New versions come as a new download on the Releases page. Your data stays on this phone when you update (install the new file over the old one).'),
+          h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'See the latest version')
+        )
+      : h(
+          'section',
+          { class: 'card' },
+          h('h2', {}, 'App version'),
+          h('p', { class: 'hint' }, 'TickFit updates itself when you are online. If a new feature does not show up after reloading, tap this. It reloads the newest files. Your plans and progress are not touched.'),
+          versionRow,
+          h('button', { class: 'btn wide', type: 'button', onclick: () => forceUpdate() }, 'Update TickFit now')
+        ),
     h(
       'section',
       { class: 'card' },

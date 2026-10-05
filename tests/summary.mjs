@@ -39,6 +39,15 @@ const wlog = { '2026-10-02': 80, '2026-10-06': 79.2 };
 const sw = summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07', wlog);
 ok(sw.weight && sw.weight.from === 80 && sw.weight.to === 79.2 && sw.weight.delta === -0.8, 'weekly summary carries weight change from last weigh-in before the week');
 ok(summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07').weight === null, 'no weight log = no weight row');
+// a day with a typed workout but no logged sets, and calibration
+const typedRecords = { ...records, '2026-10-06': { ticks: {}, sets: {}, manual: { minutes: 45, kcal: 380 } } };
+const typed = summarize(plan, typedRecords, periodRange('week', '2026-10-07'), 80, '2026-10-07');
+ok(typed.workouts === 2 && typed.minutes === 75 && typed.kcal === 240 + 380, 'a typed workout with no sets counts: ' + typed.workouts + ' workouts, ' + typed.minutes + ' min, ' + typed.kcal + ' kcal');
+ok(typed.days.find((d) => d.date === '2026-10-06').adjusted === true, 'the day is marked as adjusted');
+const adjusted = { ...records, '2026-10-05': { ...records['2026-10-05'], manual: { kcal: 500 } } };
+ok(summarize(plan, adjusted, periodRange('week', '2026-10-07'), 80, '2026-10-07').kcal === 500, 'typed calories replace a logged day estimate');
+const cal = summarize(plan, records, periodRange('week', '2026-10-07'), 80, '2026-10-07', {}, 1.25);
+ok(cal.kcal === Math.round(240 * 1.25), 'calibration 125% scales the estimates: ' + cal.kcal);
 const empty = summarize(plan, {}, periodRange('month', '2026-10-07'), 70, '2026-10-07');
 ok(empty.workouts === 0 && empty.kcal === 0 && empty.lifts.length === 0 && empty.avgPct === null && empty.avgEaten === null, 'empty period has no NaN');
 const future = summarize(plan, records, periodRange('week', '2026-10-07'), 70, '2026-10-06');

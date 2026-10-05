@@ -1,5 +1,5 @@
 // Tests for set logging. Run: node tests/logging.mjs
-import { rowsFor, saveRows, toggleExercise, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from '../js/logging.js';
+import { workoutMs, rowsFor, saveRows, toggleExercise, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from '../js/logging.js';
 import { weightNumber, repsTarget, exerciseProgress, lastPerformance, formatSets, plannedSets } from '../js/stats.js';
 
 let failed = 0;
@@ -106,5 +106,10 @@ eq('estimate: 7 sets is about 15-20 min, never under 10', [estimateMinutes(wd) >
 eq('estimate floors at 10 minutes', estimateMinutes({ workout: [{ id: 'x', exercise: 'x', sets: 1 }] }), 10);
 eq('old tick-only record still counts as done sets', workoutSummary({ workout: [{ id: 'w1', exercise: 'A', sets: 3 }] }, { ticks: { w1: true } }).setsDone, 3);
 
+// workout time shown: a typed time wins over the stopwatch
+eq('workoutMs uses the stopwatch', workoutMs({ session: { start: 0, end: 90 * 60000 } }), 90 * 60000);
+eq('workoutMs prefers typed minutes', workoutMs({ session: { start: 0, end: 90 * 60000 }, manual: { minutes: 45 } }), 45 * 60000);
+eq('workoutMs ignores silly typed minutes', workoutMs({ session: { start: 0, end: 10 * 60000 }, manual: { minutes: 99999 } }), 10 * 60000);
+eq('workoutMs with nothing is 0', workoutMs({}), 0);
 console.log(failed ? `\n${failed} failed` : '\nall passed');
 process.exit(failed ? 1 : 0);

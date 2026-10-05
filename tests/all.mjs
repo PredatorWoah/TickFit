@@ -1,7 +1,7 @@
 // Runs every test that needs no browser. Run: node tests/all.mjs
 import { spawnSync } from 'node:child_process';
 
-const files = ['tests/run.mjs', 'tests/stats.mjs', 'tests/schedule.mjs', 'tests/logging.mjs', 'tests/summary.mjs', 'tests/burn.mjs', 'tests/weight.mjs', 'tests/estimate.mjs', 'tests/lookup.mjs', 'tests/stamp.mjs', 'tests/notes.mjs', 'tests/safety.mjs', 'tests/builder.mjs', 'tests/privacy.mjs', 'tests/timer.mjs', 'tests/check-sw.mjs'];
+const files = ['tests/run.mjs', 'tests/stats.mjs', 'tests/schedule.mjs', 'tests/logging.mjs', 'tests/summary.mjs', 'tests/burn.mjs', 'tests/weight.mjs', 'tests/estimate.mjs', 'tests/lookup.mjs', 'tests/stamp.mjs', 'tests/notes.mjs', 'tests/manifest.mjs', 'tests/platform.mjs', 'tests/backnav.mjs', 'tests/safety.mjs', 'tests/builder.mjs', 'tests/privacy.mjs', 'tests/timer.mjs', 'tests/check-sw.mjs'];
 let failed = 0;
 for (const f of files) {
   console.log(`\n=== ${f}`);

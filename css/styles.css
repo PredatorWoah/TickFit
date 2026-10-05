@@ -45,16 +45,30 @@
 
 /* ---------- 2. base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { -webkit-text-size-adjust: 100%; }
+/* Safe areas (notch, status bar, gesture bar). Browsers and new WebViews give env(...); the Android app on
+   older WebViews gives --safe-area-inset-* instead. Take whichever is bigger. */
+:root {
+  --sa-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sa-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --sa-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --sa-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+}
+html { -webkit-text-size-adjust: 100%; overscroll-behavior: none; } /* no stretchy bounce that drags the tab bar around */
+body { overscroll-behavior: none; }
+/* No visible scroll bar on touch screens (it just covers the right edge). Scrolling still works. */
+@media (pointer: coarse) {
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+}
 body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 var(--font); }
 body.no-scroll { overflow: hidden; }
 #app {
   max-width: 560px; margin: 0 auto;
-  padding: calc(12px + env(safe-area-inset-top)) 16px calc(var(--nav-h) + 36px + env(safe-area-inset-bottom));
+  padding: calc(12px + var(--sa-top)) 16px calc(var(--nav-h) + 36px + var(--sa-bottom));
 }
 /* While the rest timer or the workout bar is showing, make room so they never cover content. */
-body.has-rest #app { padding-top: calc(98px + env(safe-area-inset-top)); }
-body.has-wkbar #app { padding-bottom: calc(var(--nav-h) + 110px + env(safe-area-inset-bottom)); }
+body.has-rest #app { padding-top: calc(98px + var(--sa-top)); }
+body.has-wkbar #app { padding-bottom: calc(var(--nav-h) + 110px + var(--sa-bottom)); }
 
 h1, h2 { margin: 0; }
 h2 { margin-bottom: 8px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
@@ -216,7 +230,7 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .done-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .done-text span { color: var(--muted); font-size: 14px; }
 .wk-bar {
-  position: fixed; left: 12px; right: 12px; z-index: 20; max-width: 536px; margin: 0 auto; bottom: calc(var(--nav-h) + 10px + env(safe-area-inset-bottom));
+  position: fixed; left: 12px; right: 12px; z-index: 20; max-width: 536px; margin: 0 auto; bottom: calc(var(--nav-h) + 10px + var(--sa-bottom));
   display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 18px; border-radius: 22px;
   background: var(--surface-3); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
@@ -293,7 +307,7 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .sheet-root { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
 .sheet-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; transition: opacity 0.2s; pointer-events: auto; }
 .sheet-root.open .sheet-backdrop { opacity: 1; }
-.sheet { position: relative; width: 100%; max-width: 560px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); border-radius: 28px 28px 0 0; transform: translateY(100%); transition: transform 0.22s ease; pointer-events: auto; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4); }
+.sheet { position: relative; width: 100%; max-width: 560px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); border-radius: 28px 28px 0 0; transform: translateY(100%); transition: transform 0.22s ease; pointer-events: auto; padding-bottom: var(--sa-bottom); box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4); }
 .sheet-root.open .sheet { transform: none; }
 .sheet-grab { width: 40px; height: 5px; border-radius: 3px; background: var(--surface-3); margin: 10px auto 0; flex: none; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px 4px 20px; flex: none; }
@@ -308,7 +322,7 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .jump-label { overflow-wrap: anywhere; }
 .jump-date { color: var(--muted); font-size: 14px; flex: none; }
 
-.rest-bar { position: fixed; left: 12px; right: 12px; z-index: 50; max-width: 536px; margin: 0 auto; top: calc(10px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 20px; background: var(--surface-3); border: 2px solid var(--accent); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+.rest-bar { position: fixed; left: 12px; right: 12px; z-index: 50; max-width: 536px; margin: 0 auto; top: calc(10px + var(--sa-top)); display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 20px; background: var(--surface-3); border: 2px solid var(--accent); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
 .rest-bar.done { background: var(--accent); color: var(--accent-ink); animation: pulse 0.6s ease 3; }
 .rest-bar.done .btn { color: var(--text); }
 .rest-info { flex: 1; min-width: 0; }
@@ -402,10 +416,10 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .nudge-actions .btn { flex: 1; min-height: 48px; }
 
 /* ---------- 10. tab bar and toast ---------- */
-#nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: center; padding-bottom: env(safe-area-inset-bottom); background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(12px); }
+#nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: center; padding-bottom: var(--sa-bottom); background: var(--surface); border-top: 1px solid var(--line); }
 .tab { flex: 1; max-width: 120px; height: var(--nav-h); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 700; }
 .tab.active { color: var(--accent); }
-.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px); z-index: 60; bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom)); transform: translateY(20px); text-align: center; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 700; opacity: 0; transition: opacity 0.25s, transform 0.25s; }
+.toast { position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100vw - 32px); z-index: 60; bottom: calc(var(--nav-h) + 20px + var(--sa-bottom)); transform: translateY(20px); text-align: center; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 700; opacity: 0; transition: opacity 0.25s, transform 0.25s; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -475,7 +489,7 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .est-status { margin: 6px 0 0; }
 
 /* ----- "New version" bar ----- */
-.update-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); font-weight: 700; }
+.update-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + var(--sa-bottom)); z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); font-weight: 700; }
 
 /* ----- Notes card (Workout) ----- */
 .notes-card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); margin: 12px 0; overflow: hidden; }
@@ -504,3 +518,104 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .daydiet button { min-height: 44px; padding: 0 1px; white-space: nowrap; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font: inherit; font-weight: 700; font-size: 12px; }
 .daydiet button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .diet-tag { margin-left: 8px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 700; }
+
+/* =====================================================================
+   Motion and polish. Calm and quick: everything is under half a second,
+   nothing loops, and it all switches off for people who ask for less motion
+   (see the prefers-reduced-motion rule near the top of this file).
+   ===================================================================== */
+:root {
+  --ease: cubic-bezier(0.22, 0.9, 0.3, 1); /* fast start, soft landing */
+  --spring: cubic-bezier(0.34, 1.5, 0.64, 1); /* a small overshoot, for ticks */
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.045) inset, 0 14px 30px -20px rgba(0, 0, 0, 0.75);
+}
+:root[data-theme='light'] { --lift: 0 1px 2px rgba(15, 23, 42, 0.06), 0 14px 26px -18px rgba(15, 23, 42, 0.22); }
+
+/* A soft glow at the top of every screen, so the page is not one flat colour. */
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(100% 42% at 50% -6%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%); }
+:root[data-theme='light'] body::before { background: radial-gradient(100% 38% at 50% -6%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 72%); }
+
+/* Depth: cards sit slightly above the page with a faint top light. */
+.card, .tile, .ex, .home-card, .notes-card, .stat, .sum-tile, .plan, .option, .callout { box-shadow: var(--lift); }
+:root:not([data-theme='light']) .card, :root:not([data-theme='light']) .tile, :root:not([data-theme='light']) .ex, :root:not([data-theme='light']) .home-card { background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.032), transparent 55%); }
+.btn.primary { background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, #fff), var(--accent)); box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 70%, transparent); }
+.ring-fill.complete { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 65%, transparent)); }
+
+/* ----- Press feedback: things give a little when you touch them ----- */
+.btn, .tile-hit, .chip, .icon-btn, .round, .option, .set-check, .ex-head, .chipbtn, .seg button, .jump-item, .notes-toggle, .daydiet button, .plan-chip, .notes-add, .tab, .day-title, .link-btn {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.16s var(--ease), background-color 0.22s var(--ease), border-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.22s var(--ease), opacity 0.2s;
+}
+.btn:active:not(:disabled), .chip:active, .icon-btn:active, .round:active, .option:active, .set-check:active, .chipbtn:active, .seg button:active, .jump-item:active, .daydiet button:active, .plan-chip:active, .notes-add:active { transform: scale(0.96); }
+.tile-hit:active, .ex-head:active, .notes-toggle:active { transform: scale(0.985); }
+.tab:active { transform: scale(0.92); }
+
+/* ----- Screens glide in. The first few items rise one after another. ----- */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes slide-next { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+#app.enter > * { animation: rise 0.42s var(--ease) both; }
+#app.enter[data-dir='next'] > * { animation-name: slide-next; }
+#app.enter[data-dir='prev'] > * { animation-name: slide-prev; }
+#app.enter > *:nth-child(2) { animation-delay: 0.035s; }
+#app.enter > *:nth-child(3) { animation-delay: 0.07s; }
+#app.enter > *:nth-child(4) { animation-delay: 0.105s; }
+#app.enter > *:nth-child(5) { animation-delay: 0.14s; }
+#app.enter > *:nth-child(6) { animation-delay: 0.175s; }
+#app.enter > *:nth-child(7) { animation-delay: 0.21s; }
+#app.enter > *:nth-child(n + 8) { animation-delay: 0.24s; }
+
+/* ----- Things that fill up do it smoothly ----- */
+.ring-fill { transition: stroke-dashoffset 0.8s var(--ease), filter 0.4s; }
+.bar-fill, .meter-fill { transition: width 0.6s var(--ease), background-color 0.3s; }
+
+/* ----- Ticks: the check mark pops in; the set you just ticked bounces once ----- */
+.check svg, .ex-badge svg { transition: transform 0.38s var(--spring), opacity 0.2s; }
+.tile:not(.done) .check svg { transform: scale(0.3); opacity: 0; }
+.tile.done .check svg { transform: none; opacity: 1; }
+.check { transition: background-color 0.22s var(--ease), border-color 0.22s var(--ease), transform 0.3s var(--spring); }
+.tile.done .check { transform: scale(1.04); }
+@keyframes pop { 0% { transform: scale(0.6); } 55% { transform: scale(1.18); } 100% { transform: none; } }
+.set-check.pop { animation: pop 0.4s var(--spring); }
+.ex.done .ex-badge { transition: background-color 0.3s var(--ease), transform 0.3s var(--spring); }
+
+/* ----- An exercise unfolds when it opens ----- */
+@keyframes unfold { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.ex.open .ex-body { animation: unfold 0.32s var(--ease) both; }
+.notes-body:not([hidden]) { animation: unfold 0.28s var(--ease) both; }
+.ex { transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.ex.open { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), var(--lift); }
+
+/* ----- Sheets and toasts ----- */
+.sheet { transition: transform 0.45s var(--ease); }
+.sheet-backdrop { transition: opacity 0.3s var(--ease); }
+.toast { transition: opacity 0.3s var(--ease), transform 0.4s var(--spring); }
+
+/* ----- Tab bar: a soft pill slides in behind the active tab ----- */
+.tab::before { content: ''; position: absolute; top: 11px; left: 50%; width: 58px; height: 32px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 16%, transparent); transform: translateX(-50%) scale(0.4); opacity: 0; transition: transform 0.35s var(--spring), opacity 0.25s var(--ease); }
+.tab.active::before { transform: translateX(-50%) scale(1); opacity: 1; }
+.tab > svg, .tab > span { position: relative; }
+.tab > svg { transition: transform 0.35s var(--spring); }
+.tab.active > svg { transform: translateY(-1px) scale(1.06); }
+.tab-dot { z-index: 2; }
+
+/* ----- Week strip: the selected day eases in ----- */
+.chip { transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.16s var(--ease); }
+
+/* ----- Edit time and calories ----- */
+.adjust-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.adjust-field { display: flex; flex-direction: column; gap: 6px; }
+.adjust-label { font-size: 13px; color: var(--muted); font-weight: 700; }
+.adjust-box { display: flex; align-items: baseline; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 0 12px; min-height: 64px; }
+.adjust-box:focus-within { border-color: var(--accent); }
+.adjust-box input { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; padding: 10px 0; }
+.adjust-box input::placeholder { color: var(--muted); opacity: 0.55; font-weight: 700; }
+.adjust-unit { color: var(--muted); font-weight: 700; }
+.done-actions { display: flex; gap: 4px; flex: none; }
+.edit-days { list-style: none; margin: 0; padding: 0; }
+.edit-day { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 10px; padding: 8px 4px; background: none; border: 0; border-top: 1px solid var(--line); color: var(--text); font: inherit; text-align: left; }
+.edit-days li:first-child .edit-day { border-top: 0; }
+.edit-day-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.edit-day-main small { color: var(--muted); overflow-wrap: anywhere; }
+.edit-day-val { color: var(--muted); font-size: 14px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-variant-numeric: tabular-nums; }
+.edited-tag { font-style: normal; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); }

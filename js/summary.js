@@ -10,7 +10,7 @@ import { dayFor } from './schedule.js';
 import { workoutSummary, sessionState, sessionMs } from './logging.js';
 import { dayStats, mealTotals, weightNumber } from './stats.js';
 import { periodChange } from './weight.js';
-import { exerciseBurn, LIFTING_MET, DEFAULT_BODY_KG } from './burn.js';
+import { exerciseBurn, hasManual, LIFTING_MET, DEFAULT_BODY_KG } from './burn.js';
 
 export { LIFTING_MET, DEFAULT_BODY_KG };
 const MIN_PER_SET = 2.5; // set + rest, used when there is no stopwatch time
@@ -74,7 +74,7 @@ export function bestLifts(plan, records, from, to) {
 }
 
 /** Totals for one stretch of days. */
-function totals(plan, records, from, to, bodyKg, today) {
+function totals(plan, records, from, to, bodyKg, today, factor = 1) {
   const t = { days: [], byExercise: new Map(), cardioMinutes: 0, cardioKcal: 0, workouts: 0, minutes: 0, sets: 0, volumeKg: 0, kcal: 0, loggedDays: 0, pctSum: 0, pctDays: 0, eatenKcal: 0, eatenDays: 0, protein: 0, waterMl: 0, waterDays: 0 };
   for (let date = from; date <= to; date = addDays(date, 1)) {
     const rec = (records && records[date]) || null;
@@ -89,10 +89,11 @@ function totals(plan, records, from, to, bodyKg, today) {
       t.pctSum += stats.pct;
       t.pctDays++;
     }
-    if (ws.setsDone) {
-      const burn = exerciseBurn(d, rec, bodyKg);
+    if (ws.setsDone || hasManual(rec)) {
+      const burn = exerciseBurn(d, rec, bodyKg, factor);
       day.minutes = burn.minutes || workoutMinutes(rec, ws.setsDone);
       day.kcal = burn.kcal || kcalBurnt(day.minutes, bodyKg);
+      day.adjusted = burn.adjustedMinutes || burn.adjustedKcal;
       t.cardioMinutes += burn.cardioMinutes;
       t.cardioKcal += burn.cardioKcal;
       for (const i of burn.items) {
@@ -129,9 +130,9 @@ const change = (now, before) => (before > 0 ? Math.round(((now - before) / befor
  * Everything the Progress summary shows for one week or month.
  * Returns totals, per-day bars, "vs last period" changes and strength gains per exercise.
  */
-export function summarize(plan, records, range, bodyKg, today, bodyLog = {}) {
-  const cur = totals(plan, records, range.start, range.end, bodyKg, today);
-  const prev = totals(plan, records, range.prevStart, range.prevEnd, bodyKg, today);
+export function summarize(plan, records, range, bodyKg, today, bodyLog = {}, factor = 1) {
+  const cur = totals(plan, records, range.start, range.end, bodyKg, today, factor);
+  const prev = totals(plan, records, range.prevStart, range.prevEnd, bodyKg, today, factor);
 
   // Strength: heaviest set this period against the heaviest ever before it.
   const now = bestLifts(plan, records, range.start, range.end);

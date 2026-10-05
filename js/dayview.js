@@ -13,6 +13,7 @@ import { getState, getRecord, updateRecord } from './store.js';
 import { WATER_STEP_ML, pctFor } from './stats.js';
 import { todayStr, addDays, fromStr } from './dates.js';
 import { dayIndexFor, dayFor, jumpDelta } from './schedule.js';
+import { haptic } from './platform.js';
 
 export const LOCALE = 'en';
 const STRIP_DAYS = 21; // days shown before and after the selected date in the week strip
@@ -178,11 +179,13 @@ export function tickTile(ctx, id, titleNodes, sub, extra) {
       type: 'button',
       role: 'checkbox',
       'aria-checked': 'false',
-      onclick: () =>
+      onclick: () => {
+        haptic();
         ctx.change((r) => {
           if (r.ticks[id]) delete r.ticks[id];
           else r.ticks[id] = true;
-        }),
+        });
+      },
     },
     h('span', { class: 'check static' }, icon('check', 22)),
     h('span', { class: 'tile-text' }, h('span', { class: 'tile-title' }, titleNodes), sub && h('span', { class: 'tile-sub' }, sub), extra && h('span', { class: 'tile-prog' }, extra))

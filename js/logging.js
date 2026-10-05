@@ -84,6 +84,12 @@ export function sessionMs(record, now = Date.now()) {
   return s ? Math.max(0, (s.end || now) - s.start) : 0;
 }
 
+/** How long the workout was for display: a time the person typed in, else the stopwatch. */
+export function workoutMs(record) {
+  const m = record && record.manual && Number(record.manual.minutes);
+  return m >= 1 && m <= 600 ? m * 60000 : sessionMs(record);
+}
+
 /** Totals for a day's workout: sets done, total sets, exercises done and total weight lifted (kg). */
 export function workoutSummary(day, record) {
   let setsDone = 0;

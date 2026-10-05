@@ -20,6 +20,9 @@ import { applyTheme } from './theme.js';
 import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
 import { showUpdateBanner } from './update.js';
+import './install.js'; // starts listening for the browser's install offer
+import { isNative, onBackButton, exitApp } from './platform.js';
+import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -46,27 +49,50 @@ function show(screen, opts = {}) {
 }
 
 function gotoDate(date) {
+  view.dir = date > view.date ? 'next' : 'prev';
   view.date = date;
   draw();
 }
 
+/** The tab bar is built once and then only updated, so the active tab can animate from one tab to the next. */
 function drawNav() {
-  clear(nav);
-  const activeTab = MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
   nav.hidden = view.screen === 'welcome';
+  if (nav.children.length !== TABS.length) {
+    clear(nav);
+    for (const t of TABS) {
+      nav.append(
+        h(
+          'button',
+          { class: 'tab', type: 'button', onclick: () => show(t.id) },
+          icon(t.icon, 24),
+          t.id === 'more' && h('span', { class: 'tab-dot', role: 'img', 'aria-label': 'Backup is overdue', hidden: true }),
+          h('span', {}, t.label)
+        )
+      );
+    }
+  }
+  const activeTab = MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
   const { progress, settings } = getState();
   const stale = backupStale({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup }, todayStr());
-  for (const t of TABS) {
-    nav.append(
-      h(
-        'button',
-        { class: 'tab' + (activeTab === t.id ? ' active' : ''), type: 'button', 'aria-current': activeTab === t.id ? 'page' : null, onclick: () => show(t.id) },
-        icon(t.icon, 24),
-        t.id === 'more' && stale && h('span', { class: 'tab-dot', role: 'img', 'aria-label': 'Backup is overdue' }),
-        h('span', {}, t.label)
-      )
-    );
-  }
+  TABS.forEach((t, i) => {
+    const btn = nav.children[i];
+    const active = activeTab === t.id;
+    btn.classList.toggle('active', active);
+    if (active) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
+    const dot = btn.querySelector('.tab-dot');
+    if (dot) dot.hidden = !stale;
+  });
+}
+
+let lastScreenKey = null;
+
+/** Fade the new screen in. Sliding sideways when you step to the next or previous day, rising when you change screen. */
+function playEnter(dir) {
+  root.dataset.dir = dir || 'up';
+  root.classList.remove('enter');
+  void root.offsetWidth; // restart the animation
+  root.classList.add('enter');
 }
 
 function draw() {
@@ -95,6 +121,12 @@ function draw() {
     renderHome(root, plan, view.date, gotoDate, actions);
     showBackupNudge();
   }
+
+  // Animate only when the screen or day really changed, not when the same screen is just redrawn after a change
+  const screenKey = `${view.screen}|${view.date}|${view.planId || ''}`;
+  if (screenKey !== lastScreenKey) playEnter(view.dir);
+  lastScreenKey = screenKey;
+  view.dir = null;
 
   if (!isPersistent()) {
     root.prepend(h('p', { class: 'msg warn' }, 'Your browser is blocking storage, so progress will be lost when you close this tab.'));
@@ -136,7 +168,7 @@ function showBackupNudge() {
 
 /** Offline support. The service worker caches the app after the first visit and keeps it up to date. */
 function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
+  if (!('serviceWorker' in navigator) || isNative()) return; // the Android app already has every file inside it
   // When a newer version takes over from one that was already running, offer a reload (never reloads on its own).
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange', () => hadController && showUpdateBanner());
@@ -154,6 +186,14 @@ function registerServiceWorker() {
   else window.addEventListener('load', register);
 }
 
+/** Android Back button / swipe-back: close a sheet, else go up one screen, and only leave the app from Today. */
+function handleBack(canGoBack) {
+  if (canGoBack || (history.state && history.state.tickfitSheet)) return history.back(); // an open sheet closes itself
+  const target = backTarget(view.screen, view.date, todayStr());
+  if (!target) return exitApp();
+  show(target.screen, target.date ? { date: target.date } : {});
+}
+
 function start() {
   load();
   applyTheme(getState().settings.theme);
@@ -163,6 +203,7 @@ function start() {
   view.screen = getActivePlan() ? 'today' : getState().settings.welcomed ? 'plans' : 'welcome';
   draw();
   registerServiceWorker();
+  onBackButton(handleBack);
 }
 
 start();
