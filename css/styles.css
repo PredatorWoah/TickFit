@@ -476,3 +476,31 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 
 /* ----- "New version" bar ----- */
 .update-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 16px; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius-sm); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); font-weight: 700; }
+
+/* ----- Notes card (Workout) ----- */
+.notes-card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); margin: 12px 0; overflow: hidden; }
+.notes-head { display: flex; align-items: center; gap: 4px; padding-right: 8px; }
+.notes-toggle { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 8px 0 16px; background: none; border: 0; color: var(--text); font: inherit; text-align: left; }
+.notes-title { font-weight: 800; }
+.notes-count { color: var(--muted); font-size: 13px; flex: 1; }
+.notes-toggle .chev { color: var(--muted); display: grid; transition: transform 0.2s; }
+.notes-toggle .chev.up { transform: rotate(180deg); }
+.notes-body { padding: 0 16px 14px; }
+.note-list { list-style: none; margin: 0; padding: 0; }
+.note-list li { position: relative; padding: 8px 0 8px 18px; line-height: 1.45; border-top: 1px solid var(--line); }
+.note-list li:first-child { border-top: 0; }
+.note-list li::before { content: ''; position: absolute; left: 2px; top: 17px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.note-label { color: var(--text); }
+.note-warn { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--warn); }
+.note-warn > b { color: var(--warn); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.note-warn .note-list li::before { background: var(--warn); }
+.notes-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; margin: 12px 0; border-radius: var(--radius-sm); border: 1px dashed var(--line); background: none; color: var(--muted); font: inherit; font-weight: 700; }
+.notes-edit { width: 100%; min-height: 200px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 12px; font: inherit; font-size: 16px; line-height: 1.5; margin: 8px 0; }
+
+/* ----- Diet per day (plan builder) ----- */
+.daydiets { display: grid; gap: 8px; margin: 6px 0; }
+.daydiet { display: grid; grid-template-columns: 44px repeat(4, 1fr); gap: 6px; align-items: center; }
+.daydiet-name { font-weight: 800; color: var(--muted); }
+.daydiet button { min-height: 44px; padding: 0 1px; white-space: nowrap; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font: inherit; font-weight: 700; font-size: 12px; }
+.daydiet button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.diet-tag { margin-left: 8px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 700; }

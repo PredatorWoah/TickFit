@@ -8,7 +8,7 @@
 // This is general guidance, not medical advice. The maths is deliberately conservative.
 
 import { candidatesFor, cardioFor } from './exercises.js';
-import { mealOptions, sizeMeal } from './foods.js';
+import { mealOptions, sizeMeal, RANK } from './foods.js';
 
 export const GOALS = {
   lose: 'Lose fat',
@@ -37,8 +37,41 @@ export function validateProfile(p) {
   if (![30, 45, 60, 75].includes(p.minutes)) errors.push('Pick a session length.');
   if (!['little', 'some', 'lots'].includes(p.cardio)) errors.push('Pick how much cardio you want.');
   if (!['desk', 'moving', 'physical'].includes(p.life)) errors.push('Pick how active your day is.');
-  if (!['vegan', 'veg', 'egg', 'nonveg'].includes(p.diet)) errors.push('Pick what you eat.');
+  if (!DIETS.includes(p.diet)) errors.push('Pick what you eat.');
+  const mode = p.dietMode || 'one';
+  if (!['one', 'mixed', 'perday'].includes(mode)) errors.push('Pick how your diet varies.');
+  if (mode === 'mixed') {
+    if (!['vegan', 'veg', 'egg'].includes(p.diet)) errors.push('For a mixed diet, pick vegetarian, eggetarian or vegan as your main diet.');
+    if (![1, 2, 3, 4, 5, 6].includes(Number(p.nonvegDays))) errors.push('Pick how many days a week you eat non-veg.');
+  }
+  if (mode === 'perday' && !(Array.isArray(p.dayDiets) && p.dayDiets.length === 7 && p.dayDiets.every((d) => DIETS.includes(d)))) errors.push('Pick a diet for every day of the week.');
   return { ok: errors.length === 0, errors };
+}
+
+export const DIETS = ['vegan', 'veg', 'egg', 'nonveg'];
+export const DIET_NAMES = { vegan: 'vegan', veg: 'vegetarian', egg: 'eggetarian', nonveg: 'non-veg' };
+
+/** Which weekdays (0 = Monday) are non-veg when someone eats non-veg `n` days a week: spread evenly through the week. */
+export function nonvegWeekdays(n) {
+  const count = Math.min(6, Math.max(0, Math.round(Number(n) || 0)));
+  return Array.from({ length: count }, (_, i) => Math.floor(((i + 0.5) * 7) / count));
+}
+
+/**
+ * The diet for each weekday, Monday to Sunday.
+ *   one    -> the same diet every day (the default)
+ *   mixed  -> your main diet, with non-veg on a few evenly spread days
+ *   perday -> you picked each day yourself
+ */
+export function dayDiets(p) {
+  const mode = p.dietMode || 'one';
+  if (mode === 'perday' && Array.isArray(p.dayDiets) && p.dayDiets.length === 7) return p.dayDiets.map((d) => (DIETS.includes(d) ? d : p.diet));
+  if (mode === 'mixed') {
+    const main = ['vegan', 'veg', 'egg'].includes(p.diet) ? p.diet : 'veg';
+    const nonveg = new Set(nonvegWeekdays(p.nonvegDays || 2));
+    return WEEKDAYS.map((_, i) => (nonveg.has(i) ? 'nonveg' : main));
+  }
+  return WEEKDAYS.map(() => p.diet);
 }
 
 // ---------------------------------------------------------------------------
@@ -209,13 +242,20 @@ const BIG_MEAL_SLOTS = [
 const mealError = (meal, targetK, targetP) => Math.abs(meal.calories - targetK) / targetK + 0.7 * Math.max(0, (targetP - meal.protein) / Math.max(1, targetP));
 
 /** The meals for one day (dayIndex 0..6), sized to the day's targets. */
-export function buildMeals(dayIndex, t, diet) {
+export function buildMeals(dayIndex, t, diet, strict = false) {
+  // For a mixed or per-day diet, a day you marked non-veg must actually have chicken or fish (lunch and dinner),
+  // and an egg day must have eggs at breakfast. (Single-diet plans keep their existing mix.)
+  const mustBe = { nonveg: ['lunch', 'dinner'], egg: ['breakfast'] }[diet] || [];
   const slots = t.calories >= 2500 ? BIG_MEAL_SLOTS : MEAL_SLOTS;
   const usedToday = new Set(); // dishes already on today's menu
   const usedProteins = new Set(); // main protein foods already used today (so not dal at lunch AND dinner)
   const mainProtein = (option) => option.items.find((i) => i.role === 'protein')?.c;
   return slots.map((slot) => {
-    const options = mealOptions(slot.key, diet);
+    let options = mealOptions(slot.key, diet);
+    if (strict && mustBe.includes(slot.key)) {
+      const exact = options.filter((o) => o.rank === RANK[diet]);
+      if (exact.length) options = exact;
+    }
     const targetK = t.calories * slot.share;
     const targetP = t.protein * slot.share;
     const sized = options.map((option) => ({ option, meal: sizeMeal(option, targetK, targetP) }));
@@ -271,6 +311,7 @@ export function buildPlan(p) {
 
   let ci = 0;
   let firstTrainingDay = true;
+  const diets = dayDiets(p);
   const days = WEEKDAYS.map((weekday, wd) => {
     const info = sessionByDay.get(wd);
     const training = !!info;
@@ -294,20 +335,23 @@ export function buildPlan(p) {
         'When you can do the top of the rep range on every set, add a little weight next time. ' +
         'Aim for 7 or more hours of sleep. This plan is general guidance, not medical advice.';
     }
-    return { label, workout, meals: buildMeals(wd, t, p.diet), extras: { waterLiters: waterFor(p.weightKg, training || workout.length > 0), supplements: [], notes } };
+    return { label, workout, meals: buildMeals(wd, t, diets[wd], (p.dietMode || 'one') !== 'one'), extras: { waterLiters: waterFor(p.weightKg, training || workout.length > 0), supplements: [], notes } };
   });
 
   const split = days.filter((d) => d.workout.length).map((d) => d.label);
   return {
     plan: { name: p.name || `${GOALS[p.goal]} plan, ${p.days} days a week`, days },
-    summary: { ...t, split, trainingDays: pattern.length, cardioSessions: cardio.sessions },
+    summary: { ...t, split, trainingDays: pattern.length, cardioSessions: cardio.sessions, dayDiets: diets },
   };
 }
 
 /** The profile as plain text, for the "ask a chatbot instead" prompt. */
 export function describeProfile(p) {
   const equip = { gym: 'a full gym', dumbbell: 'home with dumbbells', bodyweight: 'home with no equipment' }[p.equip];
-  const diet = { vegan: 'vegan', veg: 'vegetarian (dairy ok)', egg: 'eggetarian', nonveg: 'non-vegetarian' }[p.diet];
+  const names = { vegan: 'vegan', veg: 'vegetarian (dairy ok)', egg: 'eggetarian', nonveg: 'non-vegetarian' };
+  const perDay = dayDiets(p);
+  const mixed = (p.dietMode || 'one') !== 'one' && new Set(perDay).size > 1;
+  const diet = mixed ? 'a different diet on different days: ' + WEEKDAYS.map((d, i) => `${d} ${names[perDay[i]]}`).join(', ') : names[p.diet];
   const life = { desk: 'mostly sitting (desk job)', moving: 'on my feet some of the day', physical: 'a physical job' }[p.life];
   const cardio = { little: 'as little as possible', some: 'some (2 sessions a week)', lots: 'a lot (3 or more sessions a week)' }[p.cardio];
   return [

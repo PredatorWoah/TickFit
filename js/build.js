@@ -7,11 +7,12 @@ import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, setSetting, addPlan } from './store.js';
 import { validatePlan } from './parser.js';
-import { buildPlan, validateProfile, describeProfile, GOALS } from './builder.js';
+import { buildPlan, validateProfile, describeProfile, dayDiets, GOALS, DIET_NAMES } from './builder.js';
 import { buildPrompt } from './ai.js';
 import { todayStr } from './dates.js';
 
-const DEFAULTS = { sex: 'male', age: '', heightCm: '', weightKg: '', goal: 'muscle', experience: 'beginner', days: 3, equip: 'gym', minutes: 60, cardio: 'some', life: 'moving', diet: 'veg', avoid: [] };
+const DEFAULTS = { sex: 'male', age: '', heightCm: '', weightKg: '', goal: 'muscle', experience: 'beginner', days: 3, equip: 'gym', minutes: 60, cardio: 'some', life: 'moving', diet: 'veg', dietMode: 'one', nonvegDays: 2, dayDiets: ['veg', 'veg', 'veg', 'veg', 'veg', 'veg', 'veg'], avoid: [] };
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const GOAL_TEXT = {
   lose: 'Burn fat while keeping your muscle',
@@ -24,7 +25,9 @@ const GOAL_TEXT = {
 export function renderBuild(root, actions) {
   clear(root);
   // Start from your last answers if you have used the builder before.
-  const p = { ...DEFAULTS, ...(getState().settings.profile || {}), avoid: [...((getState().settings.profile || {}).avoid || [])] };
+  const saved = getState().settings.profile || {};
+  const p = { ...DEFAULTS, ...saved, avoid: [...(saved.avoid || [])] };
+  p.dayDiets = Array.isArray(saved.dayDiets) && saved.dayDiets.length === 7 ? [...saved.dayDiets] : [...DEFAULTS.dayDiets];
   const messages = h('div', { class: 'messages', 'aria-live': 'polite' });
 
   const redraw = () => {
@@ -33,6 +36,10 @@ export function renderBuild(root, actions) {
     window.scrollTo(0, y);
   };
   const set = (key, value) => {
+    if (key === 'dietMode' && value === 'perday' && (p.dietMode || 'one') !== 'perday') {
+      // start the per-day choices from what you had (the mixed pattern, or your single diet)
+      p.dayDiets = dayDiets({ ...p, dietMode: p.dietMode || 'one' });
+    }
     p[key] = value;
     setSetting('profile', p); // remembered on this device
     redraw();
@@ -65,6 +72,47 @@ export function renderBuild(root, actions) {
     return h('label', { class: 'f' }, h('span', {}, `${label} (${unit})`), input);
   };
 
+  /** The "What you eat" question: one diet, a mix, or a diet for each day. */
+  const dietQuestion = () => {
+    const mode = p.dietMode || 'one';
+    const parts = [seg('dietMode', [['one', 'Same every day'], ['mixed', 'Mixed'], ['perday', 'Pick per day']], 'How your diet varies')];
+    if (mode === 'one') {
+      parts.push(seg('diet', [['veg', 'Vegetarian'], ['egg', 'Eggetarian'], ['nonveg', 'Non-veg'], ['vegan', 'Vegan']], 'Diet', true));
+    } else if (mode === 'mixed') {
+      const nv = dayDiets({ ...p, dietMode: 'mixed' }).map((d, i) => (d === 'nonveg' ? DAY_NAMES[i] : null)).filter(Boolean);
+      parts.push(
+        h('p', { class: 'hint tight' }, 'Your main diet most days:'),
+        seg('diet', [['veg', 'Vegetarian'], ['egg', 'Eggetarian'], ['vegan', 'Vegan']], 'Main diet'),
+        h('p', { class: 'hint tight' }, 'Days a week you eat non-veg:'),
+        seg('nonvegDays', [[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']], 'Non-veg days a week'),
+        h('p', { class: 'hint' }, `Non-veg on ${nv.join(', ')}. The other days follow your main diet. You can change any day later by choosing "Pick per day".`)
+      );
+    } else {
+      parts.push(
+        h(
+          'div',
+          { class: 'daydiets' },
+          DAY_NAMES.map((name, i) =>
+            h(
+              'div',
+              { class: 'daydiet', role: 'group', 'aria-label': `Diet on ${name}` },
+              h('span', { class: 'daydiet-name' }, name),
+              [['veg', 'Veg'], ['egg', 'Egg'], ['nonveg', 'Non-veg'], ['vegan', 'Vegan']].map(([value, text]) =>
+                h('button', { type: 'button', 'aria-pressed': String(p.dayDiets[i] === value), 'aria-label': `${name} ${DIET_NAMES[value]}`, onclick: () => setDayDiet(i, value) }, text)
+              )
+            )
+          )
+        )
+      );
+    }
+    return question('What you eat', 'Meals use Indian home cooking.', ...parts);
+  };
+  const setDayDiet = (i, value) => {
+    p.dayDiets = p.dayDiets.map((d, j) => (j === i ? value : d));
+    setSetting('profile', p);
+    redraw();
+  };
+
   const avoidChip = (value, text) =>
     h(
       'button',
@@ -78,7 +126,7 @@ export function renderBuild(root, actions) {
     );
 
   function profileOrErrors() {
-    const profile = { ...p, age: Number(p.age), heightCm: Number(p.heightCm), weightKg: Number(p.weightKg), days: Number(p.days) };
+    const profile = { ...p, age: Number(p.age), heightCm: Number(p.heightCm), weightKg: Number(p.weightKg), days: Number(p.days), nonvegDays: Number(p.nonvegDays) };
     const check = validateProfile(profile);
     clear(messages);
     if (!check.ok) {
@@ -92,6 +140,7 @@ export function renderBuild(root, actions) {
     const profile = profileOrErrors();
     if (!profile) return;
     const { plan, summary } = buildPlan(profile);
+    const varied = new Set(summary.dayDiets).size > 1; // show each day's diet when it changes through the week
     const firstTraining = plan.days.find((d) => d.workout.length && !/Cardio/.test(d.label)) || plan.days[0];
 
     openSheet({
@@ -104,7 +153,7 @@ export function renderBuild(root, actions) {
           h('p', { class: 'hint' }, `Your body uses about ${summary.bmr} kcal a day at rest, and about ${summary.tdee} kcal with your activity. The calories above are set from that for your goal.`),
           ...summary.notes.map((n) => h('div', { class: 'msg warn' }, n)),
           h('h2', {}, 'Your week'),
-          h('ul', { class: 'week-list' }, plan.days.map((d) => h('li', {}, h('b', {}, d.label.split(' ')[0].slice(0, 3)), h('span', {}, d.label.split(' ').slice(1).join(' ') || 'Rest')))),
+          h('ul', { class: 'week-list' }, plan.days.map((d, i) => h('li', {}, h('b', {}, d.label.split(' ')[0].slice(0, 3)), h('span', {}, d.label.split(' ').slice(1).join(' ') || 'Rest', varied && h('small', { class: 'diet-tag' }, DIET_NAMES[summary.dayDiets[i]]))))),
           h('h2', {}, firstTraining.label),
           h('ul', { class: 'mini-list' }, firstTraining.workout.map((w) => h('li', {}, w.exercise, h('span', {}, w.sets === 1 ? w.reps : `${w.sets} × ${w.reps}`)))),
           h('p', { class: 'hint' }, 'You can edit every exercise and meal afterwards. Videos can be added per exercise, or tap "Form video" on any exercise to search.'),
@@ -166,7 +215,7 @@ export function renderBuild(root, actions) {
     question('Time per session', null, seg('minutes', [[30, '30 min'], [45, '45 min'], [60, '60 min'], [75, '75 min']], 'Session length')),
     question('Cardio', 'Walking, cycling or the treadmill on top of weights.', seg('cardio', [['little', 'A little'], ['some', 'Some'], ['lots', 'A lot']], 'Cardio')),
     question('Your day-to-day', 'Outside of workouts.', seg('life', [['desk', 'Mostly sitting'], ['moving', 'Moving some'], ['physical', 'Physical job']], 'Daily activity')),
-    question('What you eat', 'Meals use Indian home cooking.', seg('diet', [['veg', 'Vegetarian'], ['egg', 'Eggetarian'], ['nonveg', 'Non-veg'], ['vegan', 'Vegan']], 'Diet', true)),
+    dietQuestion(),
     question('Anything to avoid?', 'We leave out exercises that stress these.', h('div', { class: 'chips' }, avoidChip('knee', 'Bad knees'), avoidChip('back', 'Lower back pain'), avoidChip('shoulder', 'Shoulder pain'))),
 
     messages,
