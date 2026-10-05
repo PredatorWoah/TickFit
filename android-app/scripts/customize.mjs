@@ -5,7 +5,7 @@
 //
 //   VERSION_NAME=1.0.0 VERSION_CODE=1 node scripts/customize.mjs
 //
-// Every edit checks that it really changed something, so if a newer Capacitor changes its template
+// Every edit checks that the text it wants to change is really there, so if a newer Capacitor changes its template
 // the build fails loudly instead of quietly shipping an unconfigured app.
 
 import { readFileSync, writeFileSync, rmSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -23,12 +23,12 @@ const versionName = process.env.VERSION_NAME || '1.0.0';
 const versionCode = parseInt(process.env.VERSION_CODE || '1', 10);
 if (!/^[0-9A-Za-z.+-]{1,40}$/.test(versionName) || !(versionCode >= 1 && versionCode < 2100000000)) throw new Error('Odd VERSION_NAME or VERSION_CODE');
 
-/** Replace text in a file and insist that something changed. */
+/** Replace text in a file and insist that the thing we are looking for was really there. */
 function edit(file, from, to, label) {
   const text = readFileSync(file, 'utf8');
-  const next = text.replace(from, to);
-  if (next === text) throw new Error(`Could not ${label} in ${file}`);
-  writeFileSync(file, next);
+  const found = typeof from === 'string' ? text.includes(from) : from.test(text);
+  if (!found) throw new Error(`Could not ${label} in ${file} (the Capacitor template may have changed)`);
+  writeFileSync(file, text.replace(from, to));
 }
 
 // ----- version

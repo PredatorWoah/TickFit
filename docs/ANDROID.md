@@ -1,63 +1,78 @@
-# Making the Android app (APK) and putting it on GitHub Releases
+# The TickFit Android app
 
-TickFit's Android app is a **Trusted Web Activity (TWA)**: a thin Android shell that opens the website full screen, with no browser bars. That means:
+The Android app is a **complete app**: all of TickFit is packed inside the APK (using [Capacitor](https://capacitorjs.com)), so it works with no internet and no website. It is built from the same code as the website, by a GitHub Actions workflow, and attached to a GitHub Release.
 
-- the website and the app are **the same code**, so every website update reaches the app automatically
-- the app shares its saved data with Chrome for the same site
-- you only make a new APK when you change the app's name, icon or package, not when you change TickFit
+## What is different from the website
 
-You do this once. No Android Studio and no coding.
+- **Separate data.** The app keeps its own saved data, apart from the website's. To move your data in either direction, use **More, Back up now** on one side and **More, Restore from a backup file** on the other.
+- **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email.
+- **No service worker.** Every file is already on the phone. Updates come as a new APK (see below).
+- The status bar icons follow your light or dark theme.
 
-## 1. Build the APK with PWABuilder (about 10 minutes)
+## One-time setup: your signing key
 
-1. Make sure the site is live: https://predatorwoah.github.io/TickFit/
-2. Open https://www.pwabuilder.com, paste that address and press **Start**. It should show the manifest and service worker as passing.
-3. Choose **Package for stores**, then **Android**.
-4. Fill in the options:
-   - **Package ID:** `io.github.predatorwoah.tickfit` (choose once, never change it)
-   - **App name:** `TickFit`
-   - **App version:** `1.0.0` and **version code** `1` (raise the code by 1 for every later release)
-   - **Signing key:** choose **Create new**, and fill in your name and a strong password
-   - leave the rest as the defaults
-5. Press **Generate** and download the zip.
+Android only accepts an update if it is signed by the **same key** as the installed version, so you create the key once and keep it forever. **Never commit it to the repo.**
 
-The zip contains your `.apk` (and an `.aab`), a **signing key file** (`signing.keystore`), a text file with its **passwords and SHA-256 fingerprint**, and an `assetlinks.json`.
+1. Make the key. On a computer with Java (or in a free GitHub Codespace, which has it), run:
 
-> **Keep `signing.keystore` and its passwords safe and private** (a password manager, plus an offline copy). Never put them in the repo. Every future update must be signed with the same key, and if it is lost, people have to uninstall and reinstall to get updates.
+   ```
+   keytool -genkeypair -v -keystore tickfit-release.jks -alias tickfit -keyalg RSA -keysize 2048 -validity 10000
+   ```
 
-## 2. Remove the address bar (Digital Asset Links)
+   It asks for a password (use a strong one) and your name. Press Enter to reuse the same password for the key.
+2. Turn the key file into text:
+   - Linux / Codespaces: `base64 -w0 tickfit-release.jks`
+   - Mac: `base64 -i tickfit-release.jks`
+3. In the repo go to **Settings, Secrets and variables, Actions, New repository secret** and add four secrets:
 
-Android only goes fully full screen if the website proves it belongs to the app. The proof is a small file served at the **root of the domain**:
+   | Secret name | Value |
+   | --- | --- |
+   | `ANDROID_KEYSTORE_BASE64` | the long text from step 2 |
+   | `ANDROID_KEYSTORE_PASSWORD` | the password you chose |
+   | `ANDROID_KEY_ALIAS` | `tickfit` |
+   | `ANDROID_KEY_PASSWORD` | the key password (the same one if you pressed Enter) |
 
-`https://predatorwoah.github.io/.well-known/assetlinks.json`
+4. **Keep `tickfit-release.jks` and the passwords safe** (a password manager plus an offline copy). If you lose them, nobody can update the app without uninstalling it first (which deletes their data).
 
-Because TickFit lives in a project folder (`/TickFit/`), that file has to come from a separate repository named exactly `predatorwoah.github.io`. It only needs:
+## Publishing a version
 
-- a `.nojekyll` file (so the hidden `.well-known` folder is published)
-- `.well-known/assetlinks.json`, using `docs/assetlinks.example.json` as the template. Put your package ID and your **SHA-256 fingerprint** (from the text file in the zip) into it, or just use the `assetlinks.json` from the zip
+1. On GitHub: **Releases, Draft a new release**. Tag `v1.0.0` (create it), title `TickFit 1.0.0`, add a short description, and **Publish release**.
+2. The **Build Android app** workflow starts by itself (about 10 minutes). It runs the tests, builds the app, signs it with your key and attaches `TickFit-1.0.0.apk` and `SHA256SUMS.txt` to the release.
+3. For the next version use a higher number (`v1.1.0`) and publish another release. The version code goes up by itself.
 
-Turn on GitHub Pages for that repo (Settings, Pages, deploy from the main branch).
+The **Get the app** card in TickFit's More screen links to the latest release.
 
-Without this step the app still works, it just shows a small address bar at the top.
+## Trying a build first
 
-## 3. Publish it on GitHub Releases
+**Actions, Build Android app, Run workflow** makes a **test** APK (signed with a throwaway debug key) and keeps it as a download on the run page for 30 days. It is for your own phone only. It cannot be updated by a real release, so uninstall it before installing the real one.
 
-1. In the TickFit repo: **Releases, Draft a new release**.
-2. **Tag:** `v1.0.0`. **Title:** `TickFit for Android 1.0.0`.
-3. Drag the `.apk` into the release. Rename it to `TickFit-1.0.0.apk` first.
-4. In the description, say how to install it (below), and paste the file's SHA-256 so people can check it (`sha256sum TickFit-1.0.0.apk`).
-5. **Publish release.** The **Get the app** card in TickFit's More screen links to the latest release.
+## Installing (for people)
 
-### Install steps for people
 1. Download `TickFit-….apk` from the latest release on your phone.
-2. Open it. Android asks to allow installs from your browser or Files app, turn that on for this once.
+2. Open it. Android asks you to allow installs from your browser or Files app, turn that on once.
 3. If Play Protect warns about an unknown developer, choose **Install anyway**.
+4. To update, download the newer APK and install it over the old one. Your data stays.
 
-## Updating later
+## How it is built (for developers)
 
-- **Changes to TickFit itself:** nothing to do. The app loads the website, and the website updates itself.
-- **Changes to the app shell** (name, icon, package settings): run PWABuilder again with the **same package ID and the same signing key**, raise the version code, and publish a new release.
+- `android-app/capacitor.config.json` holds the app id (`io.github.predatorwoah.tickfit`) and settings.
+- `android-app/scripts/prepare.mjs` copies the web app into `android-app/www`.
+- `npx cap add android` generates the Android project (not stored in the repo).
+- `android-app/scripts/customize.mjs` sets the version, the permissions, the icons and the launch screen.
+- The workflow runs Gradle, then signs the APK with `apksigner`.
+- `js/platform.js` is how the web code knows it is inside the app.
+
+To try it locally you need Node 22, Java 21 and the Android SDK:
+
+```
+cd android-app && npm ci
+VERSION_NAME=1.0.0 node scripts/prepare.mjs
+npx cap add android
+VERSION_NAME=1.0.0 VERSION_CODE=1 node scripts/customize.mjs
+npx cap sync android
+cd android && ./gradlew assembleDebug
+```
 
 ## Later: Google Play
 
-The same APK/AAB can go to Google Play (a one-time $25 developer account). It needs the privacy policy page (PRIVACY.md published on the site) and the Data safety form (TickFit collects nothing). Check Google's current rules for new accounts, which have required a period of closed testing first.
+The same project can produce an `.aab` for Google Play (a one-time $25 developer account). Play needs the privacy policy page and the Data safety form (TickFit collects nothing), and has its own testing rules for new accounts. Ask if you want this set up.
