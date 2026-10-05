@@ -164,6 +164,7 @@ export function ring(size = 72) {
     set(value, label) {
       fill.style.strokeDashoffset = String(len * (1 - value / 100));
       fill.classList.toggle('complete', value >= 100);
+      el.classList.toggle('complete', value >= 100); // the ring's glow is styled from this
       pct.textContent = `${value}%`;
       sub.textContent = label || '';
     },
