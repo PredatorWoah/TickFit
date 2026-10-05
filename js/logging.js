@@ -43,13 +43,6 @@ export function saveRows(record, w, rows) {
   else delete record.ticks[w.id];
 }
 
-/** The quick tick on the exercise row: mark every set done, or if already done, undo them all. */
-export function toggleExercise(record, w, last) {
-  const rows = rowsFor(record, w, last);
-  const allDone = rows.length > 0 && rows.every((s) => s.done);
-  saveRows(record, w, rows.map((s) => ({ ...s, done: !allDone })));
-}
-
 // ---------------------------------------------------------------------------
 // Workout sessions: Start workout, a running clock, Finish workout.
 // A session is just { start, end } in milliseconds on the day's record. Logging sets works with or

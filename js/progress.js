@@ -11,7 +11,6 @@ import { bodyWeightKg, burnFactor } from './burn.js';
 import { openEditDaysSheet } from './adjustui.js';
 import { weightCard, openWeightSheet } from './weightui.js';
 import { formatDelta } from './weight.js';
-import { formatDuration } from './logging.js';
 
 const LOCALE = 'en'; // Phase 3 swaps this for the chosen language
 

@@ -1,5 +1,5 @@
 // Tests for set logging. Run: node tests/logging.mjs
-import { workoutMs, rowsFor, saveRows, toggleExercise, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from '../js/logging.js';
+import { workoutMs, rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from '../js/logging.js';
 import { weightNumber, repsTarget, exerciseProgress, lastPerformance, formatSets, plannedSets } from '../js/stats.js';
 
 let failed = 0;
@@ -47,12 +47,6 @@ eq('all sets done ticks the exercise', rec.ticks.w1, true);
 rows[2].done = false; saveRows(rec, ex, rows);
 eq('un-ticking a set clears the exercise tick', rec.ticks.w1, undefined);
 
-// quick toggle
-const r2 = { ticks: {}, sets: {}, weights: {} };
-toggleExercise(r2, ex, null);
-eq('quick tick marks all sets done', [r2.ticks.w1, r2.sets.w1.every((s) => s.done), r2.sets.w1.length], [true, true, 3]);
-toggleExercise(r2, ex, null);
-eq('quick tick again undoes all, keeps values', [r2.ticks.w1, r2.sets.w1.some((s) => s.done), r2.sets.w1[0].w], [undefined, false, 20]);
 // exercise with 0/undefined sets still has one row
 eq('exercise with no sets has one row', rowsFor({}, { id: 'x', exercise: 'Walk' }, null).length, 1);
 // editing a value keeps it

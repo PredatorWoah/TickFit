@@ -4,7 +4,7 @@
 // Screens:  welcome (first time only) | today | workout | meals | progress | more
 // Under More: plans (your plans) | new (how to make one) | import | build | edit
 
-import { h, clear, toast } from './dom.js';
+import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { load, getState, getActivePlan, isPersistent, protectStorage, snoozeBackupNudge, setSetting } from './store.js';
 import { todayStr } from './dates.js';
@@ -13,9 +13,7 @@ import { renderWorkout, teardownWorkout } from './workout.js';
 import { renderMeals } from './meals.js';
 import { renderWelcome, renderPlans, renderNewPlan, renderImport } from './plans.js';
 import { renderProgress } from './progress.js';
-import { renderEditor } from './editor.js';
 import { renderMore } from './more.js';
-import { renderBuild } from './build.js';
 import { applyTheme } from './theme.js';
 import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
@@ -28,6 +26,34 @@ const root = document.getElementById('app');
 const nav = document.getElementById('nav');
 
 const view = { screen: 'today', date: todayStr(), planId: null };
+
+// The plan builder and the plan editor are big and only used now and then, so they are loaded the first time
+// they are opened instead of at startup (the rest of the app starts about a quarter smaller).
+const lazyScreens = {
+  build: () => import('./build.js').then((m) => m.renderBuild),
+  edit: () => import('./editor.js').then((m) => m.renderEditor),
+};
+let drawId = 0; // each draw() gets a number, so a slow screen that finishes loading late cannot overwrite a newer one
+
+/** Load a lazy screen, then show it unless the person has already moved on. */
+function showLazy(id, key, render) {
+  clear(root);
+  lazyScreens[key]()
+    .then((fn) => {
+      if (id !== drawId) return;
+      render(fn);
+      warnIfStorageBlocked();
+    })
+    .catch(() => {
+      if (id !== drawId) return;
+      clear(root);
+      root.append(h('p', { class: 'msg warn' }, 'Could not open this screen. Check your connection and try again.'));
+    });
+}
+
+function warnIfStorageBlocked() {
+  if (!isPersistent()) root.prepend(h('p', { class: 'msg warn' }, 'Your browser is blocking storage, so progress will be lost when you close this tab.'));
+}
 
 const TABS = [
   { id: 'today', label: 'Today', icon: 'today' },
@@ -96,6 +122,7 @@ function playEnter(dir) {
 }
 
 function draw() {
+  const id = ++drawId;
   teardownWorkout(); // stop the workout clock and floating bar unless the Workout screen redraws them
   const plan = getActivePlan();
   // Screens that need a plan: with none, send people to the welcome screen (first time) or Plans.
@@ -108,14 +135,14 @@ function draw() {
   else if (s === 'plans') renderPlans(root, actions);
   else if (s === 'new') renderNewPlan(root, actions);
   else if (s === 'import') renderImport(root, actions);
-  else if (s === 'build') renderBuild(root, actions);
+  else if (s === 'build') showLazy(id, 'build', (render) => render(root, actions));
   else if (s === 'more') renderMore(root, actions);
   else if (s === 'progress') renderProgress(root, plan, (date) => show('today', { date }));
   else if (s === 'workout') renderWorkout(root, plan, view.date, gotoDate);
   else if (s === 'meals') renderMeals(root, plan, view.date, gotoDate);
   else if (s === 'edit') {
     const target = getState().plans.find((p) => p.id === view.planId);
-    if (target) renderEditor(root, target, { close: () => show('plans') });
+    if (target) showLazy(id, 'edit', (render) => render(root, target, { close: () => show('plans') }));
     else return show('plans');
   } else {
     renderHome(root, plan, view.date, gotoDate, actions);
@@ -128,9 +155,7 @@ function draw() {
   lastScreenKey = screenKey;
   view.dir = null;
 
-  if (!isPersistent()) {
-    root.prepend(h('p', { class: 'msg warn' }, 'Your browser is blocking storage, so progress will be lost when you close this tab.'));
-  }
+  if (s !== 'build' && s !== 'edit') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn
 }
 
 /** A gentle, dismissible reminder to back up, shown on Today only when there is real progress to lose. */
