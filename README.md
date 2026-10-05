@@ -33,7 +33,8 @@
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
 - **Keeps your data safe:** asks the browser to protect your data, nudges you to back up once a day (one tap, also offered after a workout, with a red dot on More when it is overdue), and makes moving to a new phone easy (see below).
-- **Dark by default**, with light and match-my-phone themes. Works offline after the first load.
+- **Dark by default**, with light and match-my-phone themes. Smooth, quick animations (screens glide in, ticks pop, progress fills up, light haptics in the Android app) that switch off if your phone is set to reduce motion. Works offline after the first load.
+- **After a workout**, a pop-up offers to back up your progress (once a day, and you can turn it off in More).
 - A built in **4 week beginner plan with vegetarian Indian meals**, so it is useful on first open.
 
 ## Privacy

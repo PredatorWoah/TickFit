@@ -8,6 +8,8 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 - **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email.
 - **No service worker.** Every file is already on the phone. Updates come as a new APK (see below).
 - The status bar icons follow your light or dark theme.
+- **Back works inside the app.** The Back button or swipe-back closes a pop-up first, then goes up one screen (a sub-screen to its parent, another tab to Today), and only leaves the app from Today.
+- Ticking a set or a meal gives a light haptic tap.
 
 ## One-time setup: your signing key
 
@@ -60,7 +62,8 @@ The **Get the app** card in TickFit's More screen links to the latest release.
 - `npx cap add android` generates the Android project (not stored in the repo).
 - `android-app/scripts/customize.mjs` sets the version, the permissions, the icons and the launch screen.
 - The workflow runs Gradle, then signs the APK with `apksigner`.
-- `js/platform.js` is how the web code knows it is inside the app.
+- `js/platform.js` is how the web code knows it is inside the app (and handles Back, haptics and the share sheet there).
+- `android-app/scripts/make-icons.mjs` redraws the app icon (a barbell bent into a tick) and writes every size: `node scripts/make-icons.mjs` after `npm ci`.
 
 To try it locally you need Node 22, Java 21 and the Android SDK:
 

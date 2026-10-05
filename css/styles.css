@@ -518,3 +518,86 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .daydiet button { min-height: 44px; padding: 0 1px; white-space: nowrap; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font: inherit; font-weight: 700; font-size: 12px; }
 .daydiet button[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .diet-tag { margin-left: 8px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 700; }
+
+/* =====================================================================
+   Motion and polish. Calm and quick: everything is under half a second,
+   nothing loops, and it all switches off for people who ask for less motion
+   (see the prefers-reduced-motion rule near the top of this file).
+   ===================================================================== */
+:root {
+  --ease: cubic-bezier(0.22, 0.9, 0.3, 1); /* fast start, soft landing */
+  --spring: cubic-bezier(0.34, 1.5, 0.64, 1); /* a small overshoot, for ticks */
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.045) inset, 0 14px 30px -20px rgba(0, 0, 0, 0.75);
+}
+:root[data-theme='light'] { --lift: 0 1px 2px rgba(15, 23, 42, 0.06), 0 14px 26px -18px rgba(15, 23, 42, 0.22); }
+
+/* A soft glow at the top of every screen, so the page is not one flat colour. */
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(100% 42% at 50% -6%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%); }
+:root[data-theme='light'] body::before { background: radial-gradient(100% 38% at 50% -6%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 72%); }
+
+/* Depth: cards sit slightly above the page with a faint top light. */
+.card, .tile, .ex, .home-card, .notes-card, .stat, .sum-tile, .plan, .option, .callout { box-shadow: var(--lift); }
+:root:not([data-theme='light']) .card, :root:not([data-theme='light']) .tile, :root:not([data-theme='light']) .ex, :root:not([data-theme='light']) .home-card { background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.032), transparent 55%); }
+.btn.primary { background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, #fff), var(--accent)); box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 70%, transparent); }
+.ring-fill.complete { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 65%, transparent)); }
+
+/* ----- Press feedback: things give a little when you touch them ----- */
+.btn, .tile-hit, .chip, .icon-btn, .round, .option, .set-check, .ex-head, .chipbtn, .seg button, .jump-item, .notes-toggle, .daydiet button, .plan-chip, .notes-add, .tab, .day-title, .link-btn {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.16s var(--ease), background-color 0.22s var(--ease), border-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.22s var(--ease), opacity 0.2s;
+}
+.btn:active:not(:disabled), .chip:active, .icon-btn:active, .round:active, .option:active, .set-check:active, .chipbtn:active, .seg button:active, .jump-item:active, .daydiet button:active, .plan-chip:active, .notes-add:active { transform: scale(0.96); }
+.tile-hit:active, .ex-head:active, .notes-toggle:active { transform: scale(0.985); }
+.tab:active { transform: scale(0.92); }
+
+/* ----- Screens glide in. The first few items rise one after another. ----- */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes slide-next { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+@keyframes slide-prev { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+#app.enter > * { animation: rise 0.42s var(--ease) both; }
+#app.enter[data-dir='next'] > * { animation-name: slide-next; }
+#app.enter[data-dir='prev'] > * { animation-name: slide-prev; }
+#app.enter > *:nth-child(2) { animation-delay: 0.035s; }
+#app.enter > *:nth-child(3) { animation-delay: 0.07s; }
+#app.enter > *:nth-child(4) { animation-delay: 0.105s; }
+#app.enter > *:nth-child(5) { animation-delay: 0.14s; }
+#app.enter > *:nth-child(6) { animation-delay: 0.175s; }
+#app.enter > *:nth-child(7) { animation-delay: 0.21s; }
+#app.enter > *:nth-child(n + 8) { animation-delay: 0.24s; }
+
+/* ----- Things that fill up do it smoothly ----- */
+.ring-fill { transition: stroke-dashoffset 0.8s var(--ease), filter 0.4s; }
+.bar-fill, .meter-fill { transition: width 0.6s var(--ease), background-color 0.3s; }
+
+/* ----- Ticks: the check mark pops in; the set you just ticked bounces once ----- */
+.check svg, .ex-badge svg { transition: transform 0.38s var(--spring), opacity 0.2s; }
+.tile:not(.done) .check svg { transform: scale(0.3); opacity: 0; }
+.tile.done .check svg { transform: none; opacity: 1; }
+.check { transition: background-color 0.22s var(--ease), border-color 0.22s var(--ease), transform 0.3s var(--spring); }
+.tile.done .check { transform: scale(1.04); }
+@keyframes pop { 0% { transform: scale(0.6); } 55% { transform: scale(1.18); } 100% { transform: none; } }
+.set-check.pop { animation: pop 0.4s var(--spring); }
+.ex.done .ex-badge { transition: background-color 0.3s var(--ease), transform 0.3s var(--spring); }
+
+/* ----- An exercise unfolds when it opens ----- */
+@keyframes unfold { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.ex.open .ex-body { animation: unfold 0.32s var(--ease) both; }
+.notes-body:not([hidden]) { animation: unfold 0.28s var(--ease) both; }
+.ex { transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.ex.open { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), var(--lift); }
+
+/* ----- Sheets and toasts ----- */
+.sheet { transition: transform 0.45s var(--ease); }
+.sheet-backdrop { transition: opacity 0.3s var(--ease); }
+.toast { transition: opacity 0.3s var(--ease), transform 0.4s var(--spring); }
+
+/* ----- Tab bar: a soft pill slides in behind the active tab ----- */
+.tab::before { content: ''; position: absolute; top: 11px; left: 50%; width: 58px; height: 32px; border-radius: 16px; background: color-mix(in srgb, var(--accent) 16%, transparent); transform: translateX(-50%) scale(0.4); opacity: 0; transition: transform 0.35s var(--spring), opacity 0.25s var(--ease); }
+.tab.active::before { transform: translateX(-50%) scale(1); opacity: 1; }
+.tab > svg, .tab > span { position: relative; }
+.tab > svg { transition: transform 0.35s var(--spring); }
+.tab.active > svg { transform: translateY(-1px) scale(1.06); }
+.tab-dot { z-index: 2; }
+
+/* ----- Week strip: the selected day eases in ----- */
+.chip { transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.16s var(--ease); }

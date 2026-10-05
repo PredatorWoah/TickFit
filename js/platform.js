@@ -33,3 +33,21 @@ export function exitApp() {
   const app = nativePlugin('App');
   if (isNative() && app && typeof app.exitApp === 'function') app.exitApp();
 }
+
+/**
+ * A tiny physical tap when you tick something, so the app feels alive. Uses the phone's haptic motor in the
+ * Android app and the vibration API in a browser that has it. Never throws, does nothing where unsupported.
+ * kind: 'tick' (light tap) or 'success' (a bit more, for finishing a workout)
+ */
+export function haptic(kind = 'tick') {
+  try {
+    const h = nativePlugin('Haptics');
+    if (isNative() && h) {
+      if (kind === 'success' && h.notification) return void h.notification({ type: 'SUCCESS' });
+      if (h.impact) return void h.impact({ style: kind === 'success' ? 'MEDIUM' : 'LIGHT' });
+    }
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(kind === 'success' ? [12, 40, 18] : 8);
+  } catch {
+    // haptics are a nicety, never a problem
+  }
+}

@@ -18,6 +18,7 @@ import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets 
 import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from './logging.js';
 import { parseRestSeconds, startRest } from './timer.js';
 import { fromStr, todayStr } from './dates.js';
+import { haptic } from './platform.js';
 import { createCtx, dateBar, LOCALE } from './dayview.js';
 
 let clockTimer = null; // the 1 second tick for the running clock
@@ -141,6 +142,7 @@ export function renderWorkout(root, plan, date, goto) {
           class: 'btn primary',
           type: 'button',
           onclick: () => {
+            haptic('success');
             ctx.change((r) => finishSession(r));
             openSummary();
           },
@@ -198,6 +200,7 @@ export function renderWorkout(root, plan, date, goto) {
     const li = h('li', { class: 'ex' }, head, body);
 
     let rows = null;
+    let popIndex = -1; // which set was just ticked (it gets a little pop animation)
 
     const save = () => ctx.change((r) => saveRows(r, w, rows));
 
@@ -225,16 +228,19 @@ export function renderWorkout(root, plan, date, goto) {
 
       list.append(h('div', { class: 'set-head' + (timed ? ' timed' : '') }, h('span', {}, 'Set'), timed ? h('span', {}, 'Target') : [h('span', {}, 'Kg'), h('span', {}, 'Reps')], h('span', {}, '')));
       rows.forEach((s, i) => {
+        const justTicked = i === popIndex; // only the set you just ticked gets the little pop
         const chk = h(
           'button',
           {
-            class: 'set-check' + (s.done ? ' on' : ''),
+            class: 'set-check' + (s.done ? ' on' : '') + (justTicked ? ' pop' : ''),
             type: 'button',
             role: 'checkbox',
             'aria-checked': String(s.done),
             'aria-label': `Set ${i + 1} done`,
             onclick: () => {
               s.done = !s.done;
+              popIndex = s.done ? i : -1;
+              if (s.done) haptic();
               // The first ticked set starts the workout clock, so you never have to press Start.
               if (s.done && sessionState(ctx.rec()) === 'idle') ctx.change((r) => startSession(r));
               save();
@@ -259,6 +265,7 @@ export function renderWorkout(root, plan, date, goto) {
           )
         );
       });
+      popIndex = -1;
 
       const lastTime = last();
       const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(w.exercise + ' proper form')}`;
