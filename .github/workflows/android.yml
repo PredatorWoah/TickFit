@@ -17,10 +17,16 @@ on:
   release:
     types: [published]
   push:
-    paths:
+    paths: # everything that goes into the app, so a change to any of it makes a fresh test APK
       - 'android-app/**'
       - '.github/workflows/android.yml'
-      - 'js/platform.js'
+      - 'index.html'
+      - 'manifest.webmanifest'
+      - 'js/**'
+      - 'css/**'
+      - 'data/**'
+      - 'icons/**'
+      - 'vendor/**'
 
 permissions:
   contents: write # attach the APK to a release
