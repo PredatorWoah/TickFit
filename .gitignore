@@ -1,0 +1,13 @@
+# Never commit signing keys or their text copies (see docs/ANDROID.md)
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.b64
+*.b64.txt
+key-base64.txt
+signing-key-info.txt
+
+# Local junk
+node_modules/
+.DS_Store
