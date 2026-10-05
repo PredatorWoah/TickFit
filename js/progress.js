@@ -7,7 +7,8 @@ import { getState } from './store.js';
 import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
 import { todayStr, fromStr, toStr, addDays } from './dates.js';
 import { periodRange, shiftAnchor, summarize } from './summary.js';
-import { bodyWeightKg } from './burn.js';
+import { bodyWeightKg, burnFactor } from './burn.js';
+import { openEditDaysSheet } from './adjustui.js';
 import { weightCard, openWeightSheet } from './weightui.js';
 import { formatDelta } from './weight.js';
 import { formatDuration } from './logging.js';
@@ -145,7 +146,7 @@ function summaryCard(root, plan, records, today, goto) {
   const range = periodRange(sum.kind, sum.anchor);
   const st = getState().settings;
   const bodyKg = bodyWeightKg(st, getState().bodyLog, today);
-  const s = summarize(plan, records, range, bodyKg, today, getState().bodyLog);
+  const s = summarize(plan, records, range, bodyKg, today, getState().bodyLog, burnFactor(st));
   const redraw = () => {
     const y = window.scrollY;
     renderProgress(root, plan, goto);
@@ -249,11 +250,12 @@ function summaryCard(root, plan, records, today, goto) {
   }
 
   card.append(
+    h('button', { class: 'btn wide', type: 'button', onclick: () => openEditDaysSheet({ plan, start: range.start, end: range.end, onDone: redraw }) }, icon('edit', 18), 'Edit time and calories for a day'),
     h(
       'p',
       { class: 'hint' },
-      `Calories burnt are a rough guess: each exercise has an effort level (lifting about 5 to 6 METs, a run about 9), used with your ${bodyKg} kg and the time you trained. Real numbers can be 30% off either way. `,
-      h('button', { class: 'link-btn', type: 'button', onclick: () => openWeightSheet(today, redraw) }, 'Log today\'s weight')
+      `Calories burnt are a rough guess: each exercise has an effort level (lifting about 5 to 6 METs, a run about 9), used with your ${bodyKg} kg and the time you trained. Real numbers can be 30% off either way, so correct any day above with your watch's numbers, or change all estimates at once in More. `,
+      h('button', { class: 'link-btn', type: 'button', onclick: () => openWeightSheet(today, redraw) }, "Log today's weight")
     )
   );
   return card;

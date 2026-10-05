@@ -54,12 +54,41 @@ export function bodyWeightKg(settings, bodyLog, today = '9999-99-99') {
   return (logged && logged.kg) || Number(s.bodyWeightKg) || Number((s.profile || {}).weightKg) || DEFAULT_BODY_KG;
 }
 
+/** A number between lo and hi, or null. Used for the values people type in themselves. */
+export function validManual(v, lo = -Infinity, hi = Infinity) {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(',', '.'));
+  return isFinite(n) && n >= lo && n <= hi ? Math.round(n * 10) / 10 : null;
+}
+export const MANUAL_MINUTES = [1, 600];
+export const MANUAL_KCAL = [1, 6000];
+
+/** The numbers a person typed in for a day: { minutes, kcal }, each null when not set or not sane. */
+export function manualOf(record) {
+  const m = (record && record.manual) || {};
+  return { minutes: validManual(m.minutes, ...MANUAL_MINUTES), kcal: validManual(m.kcal, ...MANUAL_KCAL) };
+}
+
+/** Did the person type in time or calories for this day? */
+export const hasManual = (record) => {
+  const m = manualOf(record);
+  return m.minutes !== null || m.kcal !== null;
+};
+
+/** The "my estimates run high or low" setting (a percent, default 100) as a multiplier between 0.5 and 1.5. */
+export function burnFactor(settings) {
+  const pct = Number((settings || {}).burnCalibration);
+  return isFinite(pct) && pct > 0 ? Math.min(1.5, Math.max(0.5, pct / 100)) : 1;
+}
+
 /**
  * Estimated burn for one day's workout.
- * Returns { items: [{ id, name, kind, minutes, kcal }], minutes, kcal, cardioMinutes, cardioKcal }.
+ * Returns { items: [{ id, name, kind, minutes, kcal }], minutes, kcal, cardioMinutes, cardioKcal, adjustedMinutes, adjustedKcal }.
  * Only exercises you actually did (ticked sets) count.
+ *
+ * Numbers the person typed in for the day (record.manual) win over the estimate, and the exercises are scaled to
+ * match so everything adds up. `factor` is the person's own calibration (see burnFactor).
  */
-export function exerciseBurn(day, record, bodyKg) {
+export function exerciseBurn(day, record, bodyKg, factor = 1) {
   const kg = bodyKg || DEFAULT_BODY_KG;
   const items = [];
   for (const w of day.workout) {
@@ -81,12 +110,23 @@ export function exerciseBurn(day, record, bodyKg) {
     }
   }
 
+  // A time the person typed in replaces the clock.
+  const manual = manualOf(record);
+  const sumMin = items.reduce((t, i) => t + i.minutes, 0);
+  if (manual.minutes !== null && sumMin > 0) items.forEach((i) => (i.minutes *= manual.minutes / sumMin));
+
+  const f = factor || 1;
+  items.forEach((i) => (i.kcal = i.met * kg * (i.minutes / 60) * f));
+  // Calories the person typed in replace the estimate, shared out by each exercise's share.
+  const sumKcal = items.reduce((t, i) => t + i.kcal, 0);
+  if (manual.kcal !== null && sumKcal > 0) items.forEach((i) => (i.kcal *= manual.kcal / sumKcal));
+
   let minutes = 0;
   let kcal = 0;
   let cardioMinutes = 0;
   let cardioKcal = 0;
   for (const i of items) {
-    i.kcal = Math.round(i.met * kg * (i.minutes / 60));
+    i.kcal = Math.round(i.kcal);
     i.minutes = Math.round(i.minutes * 10) / 10;
     minutes += i.minutes;
     kcal += i.kcal;
@@ -95,7 +135,17 @@ export function exerciseBurn(day, record, bodyKg) {
       cardioKcal += i.kcal;
     }
   }
-  return { items, minutes: Math.round(minutes), kcal, cardioMinutes: Math.round(cardioMinutes), cardioKcal };
+
+  // Trained without logging any sets? A time and/or calories typed in still count as a workout.
+  if (!items.length && (manual.minutes !== null || manual.kcal !== null)) {
+    minutes = manual.minutes ?? 0;
+    kcal = manual.kcal !== null ? manual.kcal : Math.round(LIFTING_MET * kg * (minutes / 60) * f);
+    items.push({ id: 'manual', name: 'Workout you added', kind: 'strength', met: LIFTING_MET, minutes, kcal: Math.round(kcal) });
+  } else {
+    if (manual.minutes !== null) minutes = manual.minutes;
+    if (manual.kcal !== null) kcal = manual.kcal;
+  }
+  return { items, minutes: Math.round(minutes), kcal: Math.round(kcal), cardioMinutes: Math.round(cardioMinutes), cardioKcal, adjustedMinutes: manual.minutes !== null, adjustedKcal: manual.kcal !== null };
 }
 
 /**
@@ -103,7 +153,7 @@ export function exerciseBurn(day, record, bodyKg) {
  * shared between exercises) and then the one exercise is picked out. Do not work out one exercise alone: the
  * clock would be stretched over just that exercise and give a huge number.
  */
-export function singleBurn(day, record, w, bodyKg) {
-  const item = exerciseBurn(day, record, bodyKg).items.find((i) => i.id === w.id);
+export function singleBurn(day, record, w, bodyKg, factor = 1) {
+  const item = exerciseBurn(day, record, bodyKg, factor).items.find((i) => i.id === w.id);
   return item ? item.kcal : 0;
 }

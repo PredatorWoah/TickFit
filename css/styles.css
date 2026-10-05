@@ -601,3 +601,21 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 
 /* ----- Week strip: the selected day eases in ----- */
 .chip { transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.16s var(--ease); }
+
+/* ----- Edit time and calories ----- */
+.adjust-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.adjust-field { display: flex; flex-direction: column; gap: 6px; }
+.adjust-label { font-size: 13px; color: var(--muted); font-weight: 700; }
+.adjust-box { display: flex; align-items: baseline; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 0 12px; min-height: 64px; }
+.adjust-box:focus-within { border-color: var(--accent); }
+.adjust-box input { flex: 1; min-width: 0; width: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; padding: 10px 0; }
+.adjust-box input::placeholder { color: var(--muted); opacity: 0.55; font-weight: 700; }
+.adjust-unit { color: var(--muted); font-weight: 700; }
+.done-actions { display: flex; gap: 4px; flex: none; }
+.edit-days { list-style: none; margin: 0; padding: 0; }
+.edit-day { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 10px; padding: 8px 4px; background: none; border: 0; border-top: 1px solid var(--line); color: var(--text); font: inherit; text-align: left; }
+.edit-days li:first-child .edit-day { border-top: 0; }
+.edit-day-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.edit-day-main small { color: var(--muted); overflow-wrap: anywhere; }
+.edit-day-val { color: var(--muted); font-size: 14px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-variant-numeric: tabular-nums; }
+.edited-tag { font-style: normal; font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); }

@@ -13,6 +13,7 @@ import { openBackupSheet } from './backupui.js';
 import { runningVersion, forceUpdate } from './update.js';
 import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
 import { isNative, appVersion } from './platform.js';
+import { burnFactor } from './burn.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -149,6 +150,19 @@ export function renderMore(root, actions) {
     planCard,
     dataCard,
     h('section', { class: 'card' }, h('h2', {}, 'Appearance'), h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)),
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Calorie estimates'),
+      h('p', { class: 'hint' }, 'TickFit estimates the calories you burn. If your watch or gym machine usually shows more or less, nudge all the estimates here. You can also correct a single day on the Progress tab. Calories you type in yourself are never changed.'),
+      h(
+        'div',
+        { class: 'seg', role: 'group', 'aria-label': 'Calorie estimate adjustment' },
+        [80, 90, 100, 110, 120].map((pct) =>
+          h('button', { type: 'button', 'aria-pressed': String(Math.round(burnFactor(settings) * 100) === pct), onclick: () => { setSetting('burnCalibration', pct); again(); } }, `${pct}%`)
+        )
+      )
+    ),
     h(
       'section',
       { class: 'card' },

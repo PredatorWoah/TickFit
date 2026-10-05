@@ -27,6 +27,7 @@ const APP_FILES = [
   'js/lookup.js',
   'js/install.js',
   'js/backnav.js',
+  'js/adjustui.js',
   'js/platform.js',
   'js/weight.js',
   'js/weightui.js',

@@ -13,9 +13,10 @@ import { notesCard } from './notesui.js';
 import { openBackupSheet } from './backupui.js';
 import { loggedDayCount } from './safety.js';
 import { getState } from './store.js';
-import { exerciseBurn, singleBurn, bodyWeightKg } from './burn.js';
+import { exerciseBurn, singleBurn, bodyWeightKg, burnFactor } from './burn.js';
+import { openAdjustSheet } from './adjustui.js';
 import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets } from './stats.js';
-import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from './logging.js';
+import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from './logging.js';
 import { parseRestSeconds, startRest } from './timer.js';
 import { fromStr, todayStr } from './dates.js';
 import { haptic } from './platform.js';
@@ -66,7 +67,9 @@ export function renderWorkout(root, plan, date, goto) {
   const tick = () => clockEls.forEach((el) => (el.textContent = formatDuration(sessionMs(ctx.rec()))));
 
   /** After a workout: ask to save a backup, unless one was already made today or the person turned this off in More. */
+  let skipPrompt = false; // set when the person goes on to edit the numbers instead
   function askToSaveProgress() {
+    if (skipPrompt) { skipPrompt = false; return; }
     const { settings, progress } = getState();
     if (settings.askBackupAfterWorkout === false) return;
     if (settings.lastBackup === todayStr() || loggedDayCount(progress) < 1) return;
@@ -76,7 +79,7 @@ export function renderWorkout(root, plan, date, goto) {
 
   function openSummary() {
     const s = workoutSummary(day, ctx.rec());
-    const burn = exerciseBurn(day, ctx.rec(), bodyWeightKg(getState().settings, getState().bodyLog, todayStr()));
+    const burn = exerciseBurn(day, ctx.rec(), bodyWeightKg(getState().settings, getState().bodyLog, todayStr()), burnFactor(getState().settings));
     openSheet({
       title: 'Workout complete',
       onClose: askToSaveProgress,
@@ -85,10 +88,11 @@ export function renderWorkout(root, plan, date, goto) {
         body.append(
           ...[
             h('p', { class: 'sheet-target' }, `${day.label} · ${fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' })}`),
-            h('div', { class: 'stats' }, stat(formatDuration(sessionMs(ctx.rec())), 'time'), stat(`${s.setsDone}/${s.setsTotal}`, 'sets'), stat(s.volumeKg ? s.volumeKg.toLocaleString() : '–', s.volumeKg ? 'kg lifted' : 'lifted')),
-            burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `~${burn.kcal} kcal`), ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
+            h('div', { class: 'stats' }, stat(burn.adjustedMinutes ? `${burn.minutes} min` : formatDuration(workoutMs(ctx.rec())), 'time'), stat(`${s.setsDone}/${s.setsTotal}`, 'sets'), stat(s.volumeKg ? s.volumeKg.toLocaleString() : '–', s.volumeKg ? 'kg lifted' : 'lifted')),
+            burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `${burn.adjustedKcal ? '' : '~'}${burn.kcal} kcal`), burn.adjustedKcal ? ' burnt (your number)' : ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
             burn.items.length > 0 && h('ul', { class: 'burn-list' }, burn.items.map((i) => h('li', {}, h('span', {}, i.name), h('span', {}, `~${i.kcal} kcal`)))),
             s.exercisesDone < s.exercisesTotal && h('p', { class: 'hint' }, `${s.exercisesTotal - s.exercisesDone} exercise${s.exercisesTotal - s.exercisesDone === 1 ? '' : 's'} not finished. You can still tick them off later.`),
+            h('button', { class: 'btn small wide', type: 'button', onclick: () => { skipPrompt = true; close(); setTimeout(() => openAdjustSheet({ plan, date, onDone: () => ctx.goto(date) }), 380); } }, icon('edit', 18), 'Edit time and calories'),
             h('button', { class: 'btn primary wide big', type: 'button', onclick: close }, 'Done'),
           ].filter(Boolean)
         );
@@ -107,14 +111,14 @@ export function renderWorkout(root, plan, date, goto) {
       // Nothing here: the floating bar at the bottom shows the clock and the Finish button.
     } else {
       const s = workoutSummary(day, ctx.rec());
-      const clock = h('b', {}, formatDuration(sessionMs(ctx.rec())));
+      const clock = h('b', {}, formatDuration(workoutMs(ctx.rec())));
       stateArea.append(
         h(
           'div',
           { class: 'done-card' },
           h('span', { class: 'done-badge' }, icon('check', 22)),
           h('div', { class: 'done-text' }, h('b', {}, 'Workout complete'), h('span', {}, clock, ` · ${s.setsDone}/${s.setsTotal} sets${s.volumeKg ? ` · ${s.volumeKg.toLocaleString()}\u00a0kg` : ''}`)),
-          h('button', { class: 'btn ghost small', type: 'button', onclick: () => ctx.change((r) => reopenSession(r)) }, 'Reopen')
+          h('div', { class: 'done-actions' }, h('button', { class: 'btn ghost small', type: 'button', onclick: () => openAdjustSheet({ plan, date, onDone: () => ctx.goto(date) }) }, 'Edit'), h('button', { class: 'btn ghost small', type: 'button', onclick: () => ctx.change((r) => reopenSession(r)) }, 'Reopen'))
         )
       );
     }
@@ -351,7 +355,7 @@ export function renderWorkout(root, plan, date, goto) {
       li.classList.toggle('done', ticked);
       badge.replaceChildren(ticked ? icon('check', 18) : String(number));
       const logged = (r.sets && r.sets[w.id] || []).filter((s) => s.done && (s.w != null || s.r != null));
-      const kcal = p.done > 0 ? singleBurn(day, r, w, bodyWeightKg(getState().settings, getState().bodyLog, todayStr())) : 0;
+      const kcal = p.done > 0 ? singleBurn(day, r, w, bodyWeightKg(getState().settings, getState().bodyLog, todayStr()), burnFactor(getState().settings)) : 0;
       const burnTxt = kcal ? ` · ~${kcal} kcal` : '';
       sub.textContent = (ticked ? (logged.length ? formatSets(logged) : 'Done') : p.done > 0 ? `${p.done} of ${p.total} sets done` : facts.join(' · ')) + burnTxt;
     });

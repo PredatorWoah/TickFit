@@ -9,7 +9,7 @@ import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { updateRecord } from './store.js';
 import { dayStats, mealTotals, currentStreak } from './stats.js';
-import { sessionState, sessionMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
+import { sessionState, sessionMs, workoutMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
 import { weightTile } from './weightui.js';
 import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump } from './dayview.js';
 
@@ -70,7 +70,7 @@ export function renderHome(root, plan, date, goto, actions) {
       sub = `In progress · ${formatDuration(sessionMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`;
       label = 'Continue workout';
     } else if (state === 'finished') {
-      sub = `Done in ${formatDuration(sessionMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`;
+      sub = `Done in ${formatDuration(workoutMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`;
       label = 'View workout';
       cls = 'btn wide big';
     } else if (s.setsDone > 0) {
