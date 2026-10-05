@@ -21,6 +21,7 @@ import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
 import { showUpdateBanner } from './update.js';
 import './install.js'; // starts listening for the browser's install offer
+import { isNative } from './platform.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -137,7 +138,7 @@ function showBackupNudge() {
 
 /** Offline support. The service worker caches the app after the first visit and keeps it up to date. */
 function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
+  if (!('serviceWorker' in navigator) || isNative()) return; // the Android app already has every file inside it
   // When a newer version takes over from one that was already running, offer a reload (never reloads on its own).
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange', () => hadController && showUpdateBanner());

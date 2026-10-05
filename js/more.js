@@ -12,6 +12,7 @@ import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
 import { runningVersion, forceUpdate } from './update.js';
 import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
+import { isNative, appVersion } from './platform.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -166,14 +167,23 @@ export function renderMore(root, actions) {
       )
     ),
     getAppCard() || '',
-    h(
-      'section',
-      { class: 'card' },
-      h('h2', {}, 'App version'),
-      h('p', { class: 'hint' }, 'TickFit updates itself when you are online. If a new feature does not show up after reloading, tap this. It reloads the newest files. Your plans and progress are not touched.'),
-      versionRow,
-      h('button', { class: 'btn wide', type: 'button', onclick: () => forceUpdate() }, 'Update TickFit now')
-    ),
+    isNative()
+      ? h(
+          'section',
+          { class: 'card' },
+          h('h2', {}, 'App version'),
+          h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'TickFit for Android'), h('span', { class: 'kv-value' }, appVersion())),
+          h('p', { class: 'hint' }, 'This app has everything inside it, so it works with no internet. New versions come as a new download on the Releases page. Your data stays on this phone when you update (install the new file over the old one).'),
+          h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'See the latest version')
+        )
+      : h(
+          'section',
+          { class: 'card' },
+          h('h2', {}, 'App version'),
+          h('p', { class: 'hint' }, 'TickFit updates itself when you are online. If a new feature does not show up after reloading, tap this. It reloads the newest files. Your plans and progress are not touched.'),
+          versionRow,
+          h('button', { class: 'btn wide', type: 'button', onclick: () => forceUpdate() }, 'Update TickFit now')
+        ),
     h(
       'section',
       { class: 'card' },

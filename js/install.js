@@ -3,6 +3,8 @@
 // installed; we keep it so a button can open the install dialog later. Safari (iPhone) has no such
 // event, so there the person uses Share > Add to Home Screen.
 
+import { isNative } from './platform.js';
+
 let saved = null; // the install prompt event, once the browser offers it
 
 window.addEventListener('beforeinstallprompt', (event) => {
@@ -29,4 +31,4 @@ export async function promptInstall() {
 }
 
 /** Running as an installed app (home screen icon, or the Android app)? Then we do not need to offer install. */
-export const isInstalledApp = () => navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+export const isInstalledApp = () => isNative() || navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);

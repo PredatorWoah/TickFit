@@ -1,0 +1,16 @@
+{
+  "appId": "io.github.predatorwoah.tickfit",
+  "appName": "TickFit",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0a0d12",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}
