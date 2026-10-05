@@ -11,6 +11,7 @@ import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
 import { runningVersion, forceUpdate } from './update.js';
+import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -100,6 +101,23 @@ export function renderMore(root, actions) {
     )
   );
 
+  // ----- get the app (only shown in a browser tab, not once it is installed) -----
+  function getAppCard() {
+    if (isInstalledApp()) return null;
+    const install = canPromptInstall()
+      ? h('button', { class: 'btn primary wide', type: 'button', onclick: async () => ((await promptInstall()) ? toast('Installing TickFit…') : again()) }, icon('upload', 20), 'Install TickFit on this device')
+      : null;
+    return h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Get the app'),
+      h('p', { class: 'hint' }, 'TickFit works as an app too: its own icon, full screen, and it works offline. Your data is the same as on the website.'),
+      install,
+      h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'Android app (APK download)'),
+      h('p', { class: 'hint' }, 'iPhone: tap Share, then Add to Home Screen. Android APK: open the downloaded file and allow "install unknown apps" for your browser when asked.')
+    );
+  }
+
   // ----- app version (the deploy stamp on the running code) -----
   const versionRow = h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'Running version'), h('span', { class: 'kv-value' }, runningVersion()));
 
@@ -147,6 +165,7 @@ export function renderMore(root, actions) {
         'Beep and vibrate when rest ends'
       )
     ),
+    getAppCard() || '',
     h(
       'section',
       { class: 'card' },

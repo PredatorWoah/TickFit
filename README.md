@@ -49,6 +49,7 @@ Everything stays on your device. There is no server to send anything to. See [PR
 
 ### Install it on your phone
 
+- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). It is the same app as the website, in its own icon. How the APK is made: [docs/ANDROID.md](docs/ANDROID.md).
 - **iPhone (Safari):** Share button, then **Add to Home Screen**.
 - **Android (Chrome):** menu, then **Install app** (or **Add to Home screen**).
 

@@ -20,6 +20,7 @@ import { applyTheme } from './theme.js';
 import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
 import { showUpdateBanner } from './update.js';
+import './install.js'; // starts listening for the browser's install offer
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');

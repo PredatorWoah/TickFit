@@ -39,7 +39,7 @@ check('lookup.js sends only the food name in the URL', /search_terms=\$\{encodeU
 check('sw.js only handles same-origin GET requests', /req\.method !== 'GET' \|\| url\.origin !== self\.location\.origin/.test(read('sw.js')));
 
 // 3. Every website named in the code is on the allow list.
-const HOSTS = new Set(['generativelanguage.googleapis.com', 'world.openfoodfacts.org', 'www.youtube.com', 'www.w3.org', 'aistudio.google.com']);
+const HOSTS = new Set(['generativelanguage.googleapis.com', 'world.openfoodfacts.org', 'github.com', 'www.youtube.com', 'www.w3.org', 'aistudio.google.com']);
 for (const f of files) {
   const urls = [...read(f).matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase());
   const extra = [...new Set(urls)].filter((h) => !HOSTS.has(h));

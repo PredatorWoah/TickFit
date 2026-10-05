@@ -25,6 +25,7 @@ const APP_FILES = [
   'js/burn.js',
   'js/estimate.js',
   'js/lookup.js',
+  'js/install.js',
   'js/weight.js',
   'js/weightui.js',
   'js/build.js',
