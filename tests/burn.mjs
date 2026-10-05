@@ -33,6 +33,15 @@ b = exerciseBurn(day, rec, 70);
 ok(b.items.length === 2 && b.cardioMinutes === 30 && b.cardioKcal === Math.round(9 * 70 * 0.5), 'a 30 min run adds cardio: 315 kcal');
 ok(b.kcal === b.items.reduce((t, i) => t + i.kcal, 0), 'total = sum of exercises');
 ok(singleBurn(day, rec, day.workout[1], 70) === 315, 'singleBurn matches');
+{ // A long workout clock must be SHARED between exercises, not stretched over one of them.
+  const d6 = { workout: [1, 2, 3, 4, 5, 6].map((n) => ({ id: 'e' + n, exercise: 'Dumbbell Press ' + n, sets: 3, reps: '10' })) };
+  const r6 = { ticks: {}, sets: {}, session: { start: 0, end: 101 * 60000 } };
+  for (const w of d6.workout) r6.sets[w.id] = [1, 2, 3].map(() => ({ w: 10, r: 10, done: true }));
+  const total = exerciseBurn(d6, r6, 78).kcal;
+  const each = d6.workout.map((w) => singleBurn(d6, r6, w, 78));
+  ok(each.reduce((t, k) => t + k, 0) <= total + 6, 'the per-exercise numbers add up to the total: ' + each.join('+') + ' vs ' + total);
+  ok(Math.max(...each) < total / 4, 'no single exercise gets the whole workout: biggest ' + Math.max(...each) + ' of ' + total);
+}
 rec.session = { start: 0, end: 70 * 60000 };
 b = exerciseBurn(day, rec, 70);
 ok(b.minutes === 70, 'finished clock rescales to the real 70 minutes');

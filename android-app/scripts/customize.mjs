@@ -38,6 +38,26 @@ edit(gradle, /versionName\s+"[^"]*"/, `versionName "${versionName}"`, 'set versi
 // ----- permissions
 edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />', 'add the vibrate permission');
 
+// ----- the web view: no stretchy overscroll (it drags the tab bar around) and no scroll bars
+const mainActivity = resolve(here, '..', 'android', 'app', 'src', 'main', 'java', 'io', 'github', 'predatorwoah', 'tickfit', 'MainActivity.java');
+edit(
+  mainActivity,
+  'public class MainActivity extends BridgeActivity {}',
+  `public class MainActivity extends BridgeActivity {
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            android.webkit.WebView web = getBridge().getWebView();
+            web.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
+            web.setVerticalScrollBarEnabled(false);
+            web.setHorizontalScrollBarEnabled(false);
+        }
+    }
+}`,
+  'turn off overscroll and scroll bars'
+);
+
 // ----- launcher icons: sizes in pixels for mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi
 const BG = '#0a0d12';
 const DENSITIES = { mdpi: [48, 108], hdpi: [72, 162], xhdpi: [96, 216], xxhdpi: [144, 324], xxxhdpi: [192, 432] };

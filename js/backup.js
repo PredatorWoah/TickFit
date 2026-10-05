@@ -69,7 +69,7 @@ export async function shareBackupFile(name) {
 }
 
 /** Desktop Chrome and Edge can save to a place you pick, and replace a file that is already there. Phones cannot. */
-export const canOverwrite = () => typeof window.showSaveFilePicker === 'function';
+export const canOverwrite = () => !isNative() && typeof window.showSaveFilePicker === 'function'; // a WebView has the function but it does nothing
 
 /** Opens the "save as" picker (it asks before replacing an existing file). Returns false if cancelled. */
 export async function saveOverExisting(name) {

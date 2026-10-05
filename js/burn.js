@@ -98,8 +98,12 @@ export function exerciseBurn(day, record, bodyKg) {
   return { items, minutes: Math.round(minutes), kcal, cardioMinutes: Math.round(cardioMinutes), cardioKcal };
 }
 
-/** Burn for a single exercise on its own (used on the exercise row). */
+/**
+ * Burn for one exercise within the day's workout. It is worked out from the WHOLE day (so the workout clock is
+ * shared between exercises) and then the one exercise is picked out. Do not work out one exercise alone: the
+ * clock would be stretched over just that exercise and give a huge number.
+ */
 export function singleBurn(day, record, w, bodyKg) {
-  const one = exerciseBurn({ workout: [w] }, record, bodyKg);
-  return one.items[0] ? one.items[0].kcal : 0;
+  const item = exerciseBurn(day, record, bodyKg).items.find((i) => i.id === w.id);
+  return item ? item.kcal : 0;
 }

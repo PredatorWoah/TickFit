@@ -16,7 +16,6 @@ import { isNative, appVersion } from './platform.js';
 import { describeBackupAge } from './safety.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const isInstalled = () => navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
 /** @param actions { refresh() } redraw the app after a restore */
 export function renderMore(root, actions) {
@@ -49,7 +48,8 @@ export function renderMore(root, actions) {
   });
 
   const persisted = isStoragePersisted();
-  const installed = isInstalled();
+  const installed = isInstalledApp(); // true in the Android app and for an installed web app
+  const inApp = isNative();
   const row = (label, value, tone) => h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, label), h('span', { class: 'kv-value' + (tone ? ' ' + tone : '') }, value));
 
   const backupButtons = [
@@ -65,7 +65,7 @@ export function renderMore(root, actions) {
     h('p', { class: 'hint' }, 'Everything lives on this phone only. Nothing is sent anywhere, which also means nobody else can recover it for you. A backup file is your safety net.'),
     row('Last backup', describeBackupAge(settings.lastBackup, todayStr()), settings.lastBackup ? '' : 'warn-text'),
     row('Saved on this phone', `${dataSizeKb()} KB`),
-    row('Protected from auto clean up', persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', persisted === true ? 'good-text' : ''),
+    row('Protected from auto clean up', inApp || persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', inApp || persisted === true ? 'good-text' : ''),
     row('Installed as an app', installed ? 'Yes' : 'No', installed ? 'good-text' : ''),
     !installed && isIos() && h('div', { class: 'msg warn' }, h('b', {}, 'Install it on your iPhone. '), 'Safari can erase a website\'s data after about a week of not opening it. Tap Share, then "Add to Home Screen", and open TickFit from there. That removes the risk.'),
     !installed && !isIos() && h('p', { class: 'hint' }, 'Tip: install TickFit from your browser menu ("Install app" or "Add to Home screen"). Installed apps are far less likely to have their data cleared.'),
@@ -77,7 +77,7 @@ export function renderMore(root, actions) {
       h(
         'ol',
         { class: 'steps' },
-        h('li', {}, 'On the OLD phone: tap "Share backup" (or "Save backup file") and send the file to yourself, for example through email, Drive or WhatsApp.'),
+        h('li', {}, 'On the OLD phone: tap "Back up now" and send the file to yourself, for example through Drive, email or WhatsApp.'),
         h('li', {}, 'On the NEW phone: open the same TickFit link and install it.'),
         h('li', {}, 'Open this More screen, tap "Restore from a backup file" and pick the file.'),
         h('li', {}, 'Check your plans and history, then you are done. Your Gemini key (if you set one) is never in the file, so add it again.')

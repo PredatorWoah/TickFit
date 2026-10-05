@@ -26,7 +26,7 @@ const mem = {};
 globalThis.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => (mem[k] = String(v)) };
 
 const { isNative, nativePlugin, appVersion } = await import('../js/platform.js');
-const { canShareFiles, shareBackupFile, saveBackupFile } = await import('../js/backup.js');
+const { canShareFiles, shareBackupFile, saveBackupFile, canOverwrite } = await import('../js/backup.js');
 const { getState, load } = await import('../js/store.js');
 const { applyTheme } = await import('../js/theme.js');
 const { isInstalledApp } = await import('../js/install.js');
@@ -37,6 +37,8 @@ eq('plugins are found by name', [!!nativePlugin('Share'), nativePlugin('Nope')],
 eq('app version falls back to dev when not stamped', appVersion(), 'dev');
 eq('the app counts as installed (no "Get the app" card)', isInstalledApp(), true);
 eq('sharing files is available in the app', canShareFiles(), true);
+globalThis.window.showSaveFilePicker = () => {}; // a WebView has this function but it does nothing
+eq('"Save over an existing file" is not offered in the app', canOverwrite(), false);
 
 let ok = await shareBackupFile('my backup');
 eq('share returns true', ok, true);
@@ -68,6 +70,8 @@ eq('without the Share plugin sharing fails cleanly', threw, true);
 // a normal browser
 globalThis.window = { matchMedia: () => ({ matches: false }), addEventListener() {} };
 eq('in a browser: not native', [isNative(), appVersion(), nativePlugin('Share')], [false, null, null]);
+globalThis.window.showSaveFilePicker = () => {};
+eq('in a browser that can do it, Save over is offered', canOverwrite(), true);
 
 console.log(fail ? `\n${fail} failed` : '\nAll platform tests passed');
 process.exit(fail ? 1 : 0);
