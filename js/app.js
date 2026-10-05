@@ -21,7 +21,8 @@ import { nudgeDue, backupStale, loggedDayCount, snoozeDate } from './safety.js';
 import { openBackupSheet } from './backupui.js';
 import { showUpdateBanner } from './update.js';
 import './install.js'; // starts listening for the browser's install offer
-import { isNative } from './platform.js';
+import { isNative, onBackButton, exitApp } from './platform.js';
+import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -156,6 +157,14 @@ function registerServiceWorker() {
   else window.addEventListener('load', register);
 }
 
+/** Android Back button / swipe-back: close a sheet, else go up one screen, and only leave the app from Today. */
+function handleBack(canGoBack) {
+  if (canGoBack || (history.state && history.state.tickfitSheet)) return history.back(); // an open sheet closes itself
+  const target = backTarget(view.screen, view.date, todayStr());
+  if (!target) return exitApp();
+  show(target.screen, target.date ? { date: target.date } : {});
+}
+
 function start() {
   load();
   applyTheme(getState().settings.theme);
@@ -165,6 +174,7 @@ function start() {
   view.screen = getActivePlan() ? 'today' : getState().settings.welcomed ? 'plans' : 'welcome';
   draw();
   registerServiceWorker();
+  onBackButton(handleBack);
 }
 
 start();

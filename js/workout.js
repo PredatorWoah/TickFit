@@ -11,7 +11,7 @@ import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { notesCard } from './notesui.js';
 import { openBackupSheet } from './backupui.js';
-import { nudgeDue, loggedDayCount } from './safety.js';
+import { loggedDayCount } from './safety.js';
 import { getState } from './store.js';
 import { exerciseBurn, singleBurn, bodyWeightKg } from './burn.js';
 import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets } from './stats.js';
@@ -64,14 +64,21 @@ export function renderWorkout(root, plan, date, goto) {
   const clockEls = []; // every element that shows the running clock
   const tick = () => clockEls.forEach((el) => (el.textContent = formatDuration(sessionMs(ctx.rec()))));
 
-  /** Offer a backup on the summary when today's backup is missing. */
-  const backupDue = () => nudgeDue({ loggedDays: loggedDayCount(getState().progress), lastBackup: getState().settings.lastBackup, snoozeUntil: null }, todayStr());
+  /** After a workout: ask to save a backup, unless one was already made today or the person turned this off in More. */
+  function askToSaveProgress() {
+    const { settings, progress } = getState();
+    if (settings.askBackupAfterWorkout === false) return;
+    if (settings.lastBackup === todayStr() || loggedDayCount(progress) < 1) return;
+    // wait for the summary sheet to finish closing, two sheets cannot share the phone's Back history at once
+    setTimeout(() => openBackupSheet(() => {}, { title: 'Save your progress', intro: 'Nice work. Your workout is saved on this phone. A quick backup keeps it safe if you lose the phone or switch to a new one.', notNow: true }), 380);
+  }
 
   function openSummary() {
     const s = workoutSummary(day, ctx.rec());
     const burn = exerciseBurn(day, ctx.rec(), bodyWeightKg(getState().settings, getState().bodyLog, todayStr()));
     openSheet({
       title: 'Workout complete',
+      onClose: askToSaveProgress,
       build(body, close) {
         const stat = (value, label) => h('div', { class: 'stat' }, h('div', { class: 'stat-value' }, String(value)), h('div', { class: 'stat-label' }, label));
         body.append(
@@ -81,7 +88,6 @@ export function renderWorkout(root, plan, date, goto) {
             burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `~${burn.kcal} kcal`), ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
             burn.items.length > 0 && h('ul', { class: 'burn-list' }, burn.items.map((i) => h('li', {}, h('span', {}, i.name), h('span', {}, `~${i.kcal} kcal`)))),
             s.exercisesDone < s.exercisesTotal && h('p', { class: 'hint' }, `${s.exercisesTotal - s.exercisesDone} exercise${s.exercisesTotal - s.exercisesDone === 1 ? '' : 's'} not finished. You can still tick them off later.`),
-            backupDue() && h('button', { class: 'btn wide', type: 'button', onclick: () => { close(); openBackupSheet(); } }, icon('upload', 20), 'Back up my progress'),
             h('button', { class: 'btn primary wide big', type: 'button', onclick: close }, 'Done'),
           ].filter(Boolean)
         );

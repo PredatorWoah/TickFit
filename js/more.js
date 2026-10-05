@@ -152,6 +152,17 @@ export function renderMore(root, actions) {
     h(
       'section',
       { class: 'card' },
+      h('h2', {}, 'After a workout'),
+      h(
+        'label',
+        { class: 'check-line' },
+        h('input', { type: 'checkbox', checked: settings.askBackupAfterWorkout !== false, onchange: (e) => setSetting('askBackupAfterWorkout', e.target.checked) }),
+        'Ask me to back up my progress'
+      )
+    ),
+    h(
+      'section',
+      { class: 'card' },
       h('h2', {}, 'Rest timer'),
       h(
         'label',

@@ -16,3 +16,20 @@ export const nativePlugin = (name) => (window.Capacitor && window.Capacitor.Plug
 
 /** Version of the Android app, like "1.0.0", or null in a browser. */
 export const appVersion = () => (isNative() ? NATIVE_VERSION || 'dev' : null);
+
+/**
+ * Android app: run `handler(canGoBack)` when the Back button or swipe-back gesture is used.
+ * `canGoBack` is true when the web view has history to go back to (an open sheet, for example).
+ * Once a handler is set, the app no longer closes by itself on Back, the handler decides. No-op in a browser.
+ */
+export function onBackButton(handler) {
+  const app = nativePlugin('App');
+  if (!isNative() || !app || typeof app.addListener !== 'function') return;
+  app.addListener('backButton', (event) => handler(!!(event && event.canGoBack)));
+}
+
+/** Android app: close the app. */
+export function exitApp() {
+  const app = nativePlugin('App');
+  if (isNative() && app && typeof app.exitApp === 'function') app.exitApp();
+}
