@@ -539,7 +539,9 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .card, .tile, .ex, .home-card, .notes-card, .stat, .sum-tile, .plan, .option, .callout { box-shadow: var(--lift); }
 :root:not([data-theme='light']) .card, :root:not([data-theme='light']) .tile, :root:not([data-theme='light']) .ex, :root:not([data-theme='light']) .home-card { background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.032), transparent 55%); }
 .btn.primary { background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, #fff), var(--accent)); box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 70%, transparent); }
-.ring-fill.complete { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 65%, transparent)); }
+/* The glow goes on the whole ring element, not on the circle inside the SVG: a filter on an SVG shape is clipped to the SVG's square box. */
+.ring-svg { overflow: visible; transition: filter 0.5s var(--ease); }
+.ring.complete .ring-svg { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 60%, transparent)); }
 
 /* ----- Press feedback: things give a little when you touch them ----- */
 .btn, .tile-hit, .chip, .icon-btn, .round, .option, .set-check, .ex-head, .chipbtn, .seg button, .jump-item, .notes-toggle, .daydiet button, .plan-chip, .notes-add, .tab, .day-title, .link-btn {
