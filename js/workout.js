@@ -20,7 +20,7 @@ import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionS
 import { parseRestSeconds, startRest } from './timer.js';
 import { fromStr, todayStr } from './dates.js';
 import { haptic } from './platform.js';
-import { createCtx, dateBar, LOCALE } from './dayview.js';
+import { createCtx, dateBar, pickButton, LOCALE } from './dayview.js';
 
 let clockTimer = null; // the 1 second tick for the running clock
 
@@ -43,7 +43,7 @@ export function renderWorkout(root, plan, date, goto) {
 
   // ----- a rest day -----
   if (!day.workout.length) {
-    root.append(h('div', { class: 'empty-card' }, h('div', { class: 'empty-icon' }, icon('flame', 32)), h('h1', { class: 'wk-title' }, 'Rest day'), h('p', {}, 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.')));
+    root.append(h('div', { class: 'empty-card' }, h('div', { class: 'empty-icon' }, icon('flame', 32)), h('h1', { class: 'wk-title' }, 'Rest day'), h('p', {}, 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.'), pickButton(ctx, 'workout')));
     root.append(notesCard(ctx));
     return;
   }
@@ -57,6 +57,7 @@ export function renderWorkout(root, plan, date, goto) {
   root.append(
     h('h1', { class: 'wk-title' }, day.label),
     h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
+    pickButton(ctx, 'workout'),
     h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
     stateArea
   );

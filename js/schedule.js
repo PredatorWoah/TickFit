@@ -49,8 +49,26 @@ export function dayIndexFor(plan, date) {
   return planDayIndex(plan.startDate, date, plan.days.length);
 }
 
-/** The day to show for a date. Unlisted weekdays of a weekly plan become an empty rest day. */
+/**
+ * The day to show for a date. Unlisted weekdays of a weekly plan become an empty rest day.
+ * If you picked your own exercises or meals for that date (plan.picks), those replace the list.
+ */
 export function dayFor(plan, date) {
+  const base = plannedDay(plan, date);
+  const pick = plan.picks && plan.picks[date];
+  if (!pick) return base;
+  const lib = plan.library || {};
+  const resolve = (ids, own, more) => ids.map((id) => own.find((x) => x.id === id) || (more || []).find((x) => x.id === id)).filter(Boolean);
+  return {
+    ...base,
+    workout: Array.isArray(pick.workout) ? resolve(pick.workout, base.workout, lib.exercises) : base.workout,
+    meals: Array.isArray(pick.meals) ? resolve(pick.meals, base.meals, lib.meals) : base.meals,
+    picked: true,
+  };
+}
+
+/** The day exactly as the plan has it, before any picks. */
+export function plannedDay(plan, date) {
   const i = dayIndexFor(plan, date);
   if (i >= 0) return plan.days[i];
   return {

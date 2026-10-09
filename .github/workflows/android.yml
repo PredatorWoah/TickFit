@@ -1,5 +1,7 @@
 # Builds the TickFit Android app (an APK with the whole web app packed inside, using Capacitor).
 #
+#   * Merge to main with a NEW version in android-app/VERSION -> builds a SIGNED APK and publishes the
+#     release "vX.Y.Z" with it, all by itself. Merges that keep the same version only make a test build.
 #   * Publish a GitHub Release (tag like v1.0.0)  -> builds a SIGNED APK and attaches it to that release.
 #   * Run it by hand (Actions tab) or push changes under android-app/ -> builds a TEST APK
 #     (signed with a throwaway debug key, not for sharing) and keeps it as a workflow artifact.
@@ -62,9 +64,16 @@ jobs:
 
       - name: Work out the version
         id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          AUTO=false
           if [ "${{ github.event_name }}" = "release" ]; then
             V="${{ github.event.release.tag_name }}"
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ] && [ -s android-app/VERSION ]; then
+            V="$(tr -d ' \r\n' < android-app/VERSION)"
+            # Publish only when this version has no release yet and the signing key is set up.
+            if [ -n "$KEYSTORE_B64" ] && ! gh release view "v${V#v}" --repo "${{ github.repository }}" >/dev/null 2>&1; then AUTO=true; else V="${V#v}-main"; fi
           elif [ -n "${{ github.event.inputs.version }}" ]; then
             V="${{ github.event.inputs.version }}"
           else
@@ -73,6 +82,7 @@ jobs:
           V="${V#v}"
           case "$V" in (*[!0-9A-Za-z.+-]*|"") echo "Odd version: $V"; exit 1;; esac
           echo "name=$V" >> "$GITHUB_OUTPUT"
+          echo "auto=$AUTO" >> "$GITHUB_OUTPUT"
           echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
           if [ -n "$KEYSTORE_B64" ]; then echo "signed=true" >> "$GITHUB_OUTPUT"; else echo "signed=false" >> "$GITHUB_OUTPUT"; fi
 
@@ -144,3 +154,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" dist/*.apk dist/SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
+
+      - name: Publish the release
+        if: steps.ver.outputs.auto == 'true' && steps.ver.outputs.signed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${{ steps.ver.outputs.name }}"
+          gh release create "v$V" dist/*.apk dist/SHA256SUMS.txt --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "TickFit $V" --generate-notes \
+            --notes "Download TickFit-$V.apk below and open it on your Android phone. It installs over the previous version and keeps your data. Android asks once to allow installs from your browser or files app."

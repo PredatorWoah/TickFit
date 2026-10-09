@@ -7,17 +7,17 @@ import { mealTotals, mealNumbers } from './stats.js';
 import { savePlans } from './store.js';
 import { estimateMeal } from './estimate.js';
 import { toast } from './dom.js';
-import { createCtx, dateBar, tickTile, waterTile, section, meter } from './dayview.js';
+import { createCtx, dateBar, tickTile, waterTile, section, meter, pickButton } from './dayview.js';
 
 export function renderMeals(root, plan, date, goto) {
   clear(root);
   const ctx = createCtx(plan, date, goto);
   const { day } = ctx;
 
-  root.append(dateBar(ctx), h('h1', { class: 'wk-title' }, 'Meals'));
+  root.append(dateBar(ctx), h('h1', { class: 'wk-title' }, 'Meals'), pickButton(ctx, 'meals'));
 
   if (!day.meals.length && !day.extras.supplements.length && !day.extras.waterLiters) {
-    root.append(h('div', { class: 'empty-card' }, h('p', {}, 'Nothing planned to eat on this day.')));
+    root.append(h('div', { class: 'empty-card' }, h('p', {}, 'Nothing planned to eat on this day. Tap Choose meals to add some.')));
     return;
   }
 
@@ -58,7 +58,8 @@ export function renderMeals(root, plan, date, goto) {
   }
 
   // A pasted plan often has no calories or protein. Offer to write the estimates into the plan so they can be edited.
-  const missing = plan.days.some((d) => d.meals.some((m) => typeof m.calories !== 'number' || typeof m.protein !== 'number'));
+  const allMeals = () => [...plan.days.flatMap((d) => d.meals), ...((plan.library && plan.library.meals) || [])];
+  const missing = allMeals().some((m) => typeof m.calories !== 'number' || typeof m.protein !== 'number');
   if (missing) {
     root.append(
       h(
@@ -72,13 +73,12 @@ export function renderMeals(root, plan, date, goto) {
             type: 'button',
             onclick: () => {
               let count = 0;
-              for (const d of plan.days)
-                for (const m of d.meals) {
-                  const est = estimateMeal(m.items);
-                  if (!est.found.length) continue;
-                  if (typeof m.calories !== 'number') { m.calories = est.calories; count++; }
-                  if (typeof m.protein !== 'number') m.protein = est.protein;
-                }
+              for (const m of allMeals()) {
+                const est = estimateMeal(m.items);
+                if (!est.found.length) continue;
+                if (typeof m.calories !== 'number') { m.calories = est.calories; count++; }
+                if (typeof m.protein !== 'number') m.protein = est.protein;
+              }
               savePlans();
               toast(count ? `Saved estimates for ${count} meals` : 'Nothing to estimate');
               renderMeals(root, plan, date, goto);
