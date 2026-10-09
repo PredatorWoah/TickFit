@@ -28,11 +28,12 @@
 - **Form videos:** each exercise can carry a video link. If it doesn't, the **Form video** button opens a YouTube search for that exercise.
 - **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries). The diet can be the same every day, **Mixed** (your main diet with non-veg on a few evenly spread days), or **picked per day** (for example vegan Monday, egg Wednesday, non-veg Sunday) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
 - **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
+- **Mix and match each day:** tap **Choose exercises** or **Choose meals** on Today, Workout or Meals to pick what you do on that date. Filter by category (it starts on the day's focus, so "Friday Back Biceps" opens on back and biceps), search, tick in the order you want, or add your own. Pick from your plan's library, its other days, or TickFit's built-in exercise list. Only that date changes; **Use the plan's list** puts it back.
 - **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
 - **Daily weight tracker:** tap the Weight tile on Today to log your weight (big number, +/- 0.1 buttons). Progress shows a chart (30 or 90 days), your 7 day average and how much you gained or lost versus last week. The average matters more than any one day, because weight swings a kilo or two with water and food.
 - **Calories per exercise:** every exercise has an effort level (lifting about 5 to 6 METs, a run about 9, a walk about 4, stretching 2.5). TickFit estimates what each exercise burnt from that, your body weight and the time it took (timed work like "30 min" uses its real time; the workout clock is used when you finish). The finish summary shows the total and each exercise, and cardio gets its own line.
 - **Correct the numbers yourself:** the calorie and time estimates are only a guess, so you can fix them. Tap **Edit** on a finished workout, or **Edit time and calories for a day** on the Progress tab (it lists the week or month, and also lets you add a workout you did without logging sets). Typed numbers win over the estimate and everything adds up to them. **More > Calorie estimates** nudges all estimates up or down 10 or 20 percent if your watch usually disagrees.
-- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, your heaviest lift per exercise (with new bests), and daily averages for calories, protein and water. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
+- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, and daily averages for calories, protein and water. Total lifted comes with a fun comparison ("about 2.5 small cars", all the way up to an aircraft carrier at 100 million kg) and your next milestone. Each exercise shows its share of the calories and kcal per minute; the strength list shows your best set against your previous best, more reps at the same weight as a new best, an estimated 1 rep max and the weight moved. **Sets per muscle group** shows your balance and which big groups you skipped. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
 - **Keeps your data safe:** asks the browser to protect your data, nudges you to back up once a day (one tap, also offered after a workout, with a red dot on More when it is overdue), and makes moving to a new phone easy (see below).
@@ -126,13 +127,39 @@ Plans are plain JSON. Rest days have an empty `workout` list.
 | --- | --- | --- |
 | `name` | no | Defaults to "Imported plan" |
 | `days[].label` | no | Defaults to "Day N" |
-| `days[].workout` | **yes** | `[]` for a rest day |
-| `days[].meals` | **yes** | Can be `[]` |
+| `days[].workout` | **yes** (unless there is a `library`) | `[]` for a rest day |
+| `days[].meals` | **yes** (unless there is a `library`) | Can be `[]` |
 | `workout[].exercise` | **yes** | `sets`, `reps`, `rest`, `weight`, `notes`, `video` are optional |
 | `workout[].weight` | no | A target like `"20 kg"` or `"bodyweight"`. Pre-fills the weight in the set sheet |
 | `workout[].video` | no | A web link (`https://...`). Anything else is ignored with a warning |
 | `meals[].name`, `meals[].items` | **yes** | `time`, `calories`, `protein` are optional |
 | `extras` | no | `waterLiters`, `supplements` (list), `notes` |
+| `days[].focus` | no | Library categories the day is about, like `["Back", "Biceps"]`. The day picker starts filtered on them. Without it, categories named in the label count |
+| `library` | no | Exercises and meals to choose from on any day, grouped by category (see below) |
+
+### A library to mix and match from
+
+List everything you might do by category, and choose each day in the app. With a library, days may leave out `workout` and `meals`, and `days` itself is optional (you get one open day to fill).
+
+```json
+{
+  "name": "My gym list",
+  "days": [{ "label": "Friday Back Biceps" }, { "label": "Monday Chest Triceps" }],
+  "library": {
+    "exercises": {
+      "Back": ["Lat Pulldown", { "exercise": "Seated Cable Row", "sets": 4, "reps": "10" }],
+      "Biceps": ["Hammer Curl", "Barbell Curl"],
+      "Chest": ["Bench Press"]
+    },
+    "meals": {
+      "Breakfast": [{ "name": "Oats bowl", "items": ["60 g oats", "1 scoop whey"] }, "Poha"],
+      "Dinner": [{ "name": "Dal rice", "items": ["Dal", "Rice"], "calories": 550, "protein": 20 }]
+    }
+  }
+}
+```
+
+An item can be just a name or a full exercise or meal. A plain list where each item has a `"category"` works too, and so do top-level `"exercises"` and `"meals"` instead of `"library"`. What you pick is saved per date in the plan (and in backups).
 
 There are two kinds of plan:
 

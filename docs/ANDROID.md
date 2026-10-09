@@ -38,6 +38,10 @@ Android only accepts an update if it is signed by the **same key** as the instal
 
 ## Publishing a version
 
+**The easy way (automatic):** put the new version number in `android-app/VERSION` (for example `1.2.0`) in the same pull request as the change. When it is merged into `main`, the workflow sees there is no `v1.2.0` release yet, builds and signs the APK, and publishes the release **TickFit 1.2.0** with the APK, a checksum and notes listing the merged pull requests. Merges that keep the same version just make a test build, so nothing is published twice.
+
+**By hand (still works):**
+
 1. On GitHub: **Releases, Draft a new release**. Tag `v1.0.0` (create it), title `TickFit 1.0.0`, add a short description, and **Publish release**.
 2. The **Build Android app** workflow starts by itself (about 10 minutes). It runs the tests, builds the app, signs it with your key and attaches `TickFit-1.0.0.apk` and `SHA256SUMS.txt` to the release.
 3. For the next version use a higher number (`v1.1.0`) and publish another release. The version code goes up by itself.

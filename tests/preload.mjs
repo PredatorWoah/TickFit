@@ -22,7 +22,7 @@ check('every startup module is preloaded', missing.length === 0, 'missing: ' + m
 check('nothing extra is preloaded', extra.length === 0, 'extra: ' + extra.join(', '));
 check('every preloaded file exists', listed.every((f) => existsSync(`js/${f}`)));
 check('no file is listed twice', new Set(listed).size === listed.length);
-for (const lazy of ['build.js', 'editor.js', 'builder.js', 'exercises.js', 'foods.js']) check(`${lazy} is loaded on demand, not at startup`, !startup.has(lazy) && !listed.includes(lazy));
+for (const lazy of ['build.js', 'editor.js', 'builder.js', 'exercises.js', 'foods.js', 'pickui.js', 'library.js']) check(`${lazy} is loaded on demand, not at startup`, !startup.has(lazy) && !listed.includes(lazy));
 check('app.js loads the builder and editor with import()', /import\('\.\/build\.js'\)/.test(readFileSync('js/app.js', 'utf8')) && /import\('\.\/editor\.js'\)/.test(readFileSync('js/app.js', 'utf8')));
 console.log(fail ? `\n${fail} failed` : `\nAll preload tests passed (${listed.length} modules preloaded)`);
 process.exit(fail ? 1 : 0);

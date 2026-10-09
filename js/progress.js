@@ -11,13 +11,14 @@ import { bodyWeightKg, burnFactor } from './burn.js';
 import { openEditDaysSheet } from './adjustui.js';
 import { weightCard, openWeightSheet } from './weightui.js';
 import { formatDelta } from './weight.js';
+import { liftFact } from './lift.js';
 
 const LOCALE = 'en'; // Phase 3 swaps this for the chosen language
 
 // Which month the calendar shows ("YYYY-MM-01"). Kept here so it survives re-draws.
 let monthStart = null;
 // Which summary is showing: a week or a month, and a date inside it.
-const sum = { kind: 'week', anchor: null };
+const sum = { kind: 'week', anchor: null, allBurn: false, allLifts: false };
 
 /** 0 = nothing, 1 = a little, 2 = some, 3 = most, 4 = everything. Drives the cell colour. */
 function level(pct) {
@@ -128,6 +129,8 @@ function stat(iconName, value, label) {
 // ----- weekly / monthly summary -----
 
 const fmt = (n) => Math.round(n).toLocaleString();
+/** Native append prints false and null as text, so drop them first. */
+const add = (el, ...kids) => el.append(...kids.filter((k) => k !== null && k !== undefined && k !== false));
 
 /** "+12%" / "-8%" chip, or nothing when there is no earlier period to compare with. */
 function delta(pct, hasPrev) {
@@ -201,32 +204,106 @@ function summaryCard(root, plan, records, today, goto) {
     );
   }
 
-  // Where the calories came from.
-  if (s.topBurn.length) {
+  // What all that lifting adds up to, in things you can picture.
+  const fact = liftFact(s.volumeKg);
+  const allFact = s.allTimeKg > s.volumeKg ? liftFact(s.allTimeKg) : null;
+  if (fact || allFact) {
+    const f = fact || allFact;
     card.append(
-      h('h3', { class: 'sum-sub' }, 'Calories by exercise', s.cardioMinutes ? h('span', { class: 'delta' }, `cardio ${s.cardioMinutes} min · ~${fmt(s.cardioKcal)} kcal`) : null),
-      h('ul', { class: 'lift-list' }, s.topBurn.map((e) => h('li', { class: 'lift' }, h('span', { class: 'lift-name' }, e.name), h('span', { class: 'lift-now' }, `${e.minutes} min`), h('span', { class: 'delta' }, `~${fmt(e.kcal)} kcal`))))
+      h(
+        'div',
+        { class: 'fact' },
+        h('span', { class: 'fact-icon', 'aria-hidden': 'true' }, icon('trophy', 22)),
+        h(
+          'div',
+          { class: 'fact-text' },
+          h('b', {}, fact ? `${fmt(s.volumeKg)} kg lifted. ${fact.text}` : `${fmt(s.allTimeKg)} kg lifted so far. ${allFact.text}`),
+          f.next && h('span', {}, `Next up: ${f.next.name}, ${fmt(f.next.toGo)} kg to go`),
+          f.next && h('div', { class: 'bar' }, h('div', { class: 'bar-fill', style: `width:${Math.max(3, f.next.pct)}%` })),
+          fact && allFact && h('span', {}, `All time on this plan: ${fmt(s.allTimeKg)} kg. ${allFact.text}`)
+        )
+      )
     );
   }
 
-  // Strength: heaviest weight per exercise against everything before this period.
+  // Where the calories came from: share of the total, sessions and how hard each one was.
+  if (s.topBurn.length) {
+    const shown = sum.allBurn ? s.topBurn : s.topBurn.slice(0, 5);
+    add(
+      card,
+      h('h3', { class: 'sum-sub' }, 'Calories by exercise', s.cardioMinutes ? h('span', { class: 'delta' }, `cardio ${s.cardioMinutes} min · ~${fmt(s.cardioKcal)} kcal`) : null),
+      h(
+        'ul',
+        { class: 'lift-list' },
+        shown.map((e) =>
+          h(
+            'li',
+            { class: 'lift rich' },
+            h('span', { class: 'lift-name' }, e.name),
+            h('span', { class: 'lift-now' }, `~${fmt(e.kcal)}`, h('small', {}, ' kcal')),
+            h('span', { class: 'share', title: `${e.share}% of the calories` }, h('span', { style: `width:${Math.max(2, e.share)}%` }), h('em', {}, `${e.share}%`)),
+            h('small', { class: 'lift-sub' }, [`${e.minutes} min`, e.sessions > 1 ? `${e.sessions} sessions` : null, e.perMin ? `${e.perMin} kcal/min` : null].filter(Boolean).join(' · '))
+          )
+        )
+      ),
+      s.topBurn.length > 5 && h('button', { class: 'link-btn', type: 'button', onclick: () => { sum.allBurn = !sum.allBurn; redraw(); } }, sum.allBurn ? 'Show fewer' : `Show all ${s.topBurn.length}`)
+    );
+  }
+
+  // Strength: best set against everything before this period, with the numbers that show progress.
   if (s.lifts.length) {
-    card.append(
+    const shown = sum.allLifts ? s.lifts : s.lifts.slice(0, sum.kind === 'month' ? 8 : 5);
+    const chip = (l) => {
+      if (l.gain === null) return h('span', { class: 'delta' }, 'first time');
+      if (l.gain > 0) return h('span', { class: 'delta up' }, `+${l.gain} kg`);
+      if (l.gain === 0 && l.repGain > 0) return h('span', { class: 'delta up' }, `+${l.repGain} rep${l.repGain === 1 ? '' : 's'}`);
+      if (l.gain === 0) return h('span', { class: 'delta' }, 'held');
+      return h('span', { class: 'delta down' }, `${l.gain} kg`);
+    };
+    const subLine = (l) =>
+      [
+        l.before !== null ? `was ${l.before} kg${l.beforeReps ? ` × ${l.beforeReps}` : ''}` : null,
+        l.e1rm ? `1 rep max ~${l.e1rm} kg` : null,
+        `${l.sets} set${l.sets === 1 ? '' : 's'}${l.sessions > 1 ? ` in ${l.sessions} sessions` : ''}`,
+        l.volume ? `${fmt(l.volume)} kg moved${l.volumeChange !== null ? ` (${l.volumeChange > 0 ? '+' : ''}${l.volumeChange}%)` : ''}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+    add(
+      card,
       h('h3', { class: 'sum-sub' }, 'Strength', s.prs ? h('span', { class: 'delta up' }, `${s.prs} new best${s.prs === 1 ? '' : 's'}`) : null),
       h(
         'ul',
         { class: 'lift-list' },
-        s.lifts.slice(0, sum.kind === 'month' ? 8 : 5).map((l) =>
+        shown.map((l) =>
           h(
             'li',
-            { class: 'lift' },
+            { class: 'lift rich' },
             h('span', { class: 'lift-name' }, l.name),
             h('span', { class: 'lift-now' }, `${l.now} kg`, l.reps ? h('small', {}, ` × ${l.reps}`) : null),
-            h('span', { class: 'delta ' + (l.gain > 0 ? 'up' : l.gain < 0 ? 'down' : '') }, l.gain === null ? 'new' : l.gain === 0 ? 'same' : `${l.gain > 0 ? '+' : ''}${Math.round(l.gain * 10) / 10} kg`)
+            chip(l),
+            h('small', { class: 'lift-sub' }, subLine(l))
           )
         )
       ),
-      h('p', { class: 'hint' }, 'Heaviest set of each exercise, compared with your best before this ' + sum.kind + '.')
+      s.lifts.length > shown.length || sum.allLifts ? h('button', { class: 'link-btn', type: 'button', onclick: () => { sum.allLifts = !sum.allLifts; redraw(); } }, sum.allLifts ? 'Show fewer' : `Show all ${s.lifts.length}`) : null,
+      h('p', { class: 'hint' }, `Your heaviest set of each exercise against your best before this ${sum.kind}. More reps at the same weight counts as a new best too. "1 rep max" is an estimate of what you could lift once.`)
+    );
+  }
+
+  // Balance: sets per muscle group, and the big ones you skipped.
+  if (s.muscles.length) {
+    const top = Math.max(...s.muscles.map((m) => m.sets));
+    const missing = ['Chest', 'Back', 'Legs', 'Shoulders'].filter((g) => !s.muscles.some((m) => m.group === g));
+    add(
+      card,
+      h('h3', { class: 'sum-sub' }, 'Sets per muscle group'),
+      h(
+        'ul',
+        { class: 'muscles' },
+        s.muscles.map((m) => h('li', {}, h('span', { class: 'm-name' }, m.group), h('span', { class: 'm-bar' }, h('span', { style: `width:${Math.max(4, (m.sets / top) * 100)}%` })), h('b', {}, String(m.sets))))
+      ),
+      missing.length > 0 && h('p', { class: 'hint' }, `No ${missing.join(', ').replace(/, ([^,]*)$/, ' or $1').toLowerCase()} sets this ${sum.kind}.${sum.kind === 'week' ? ' Fine if that is planned for another day.' : ''}`)
     );
   }
 

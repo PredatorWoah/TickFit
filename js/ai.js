@@ -72,9 +72,14 @@ SCHEMA
         "waterLiters": number,
         "supplements": [string],
         "notes": string
-      }
+      },
+      "focus": [string]                 // optional, library categories this day is about, e.g. ["Back", "Biceps"]
     }
-  ]
+  ],
+  "library": {                          // optional: extra exercises and meals to swap in on any day
+    "exercises": { "Back": [ exercise, ... ], "Chest": [ ... ] },   // same fields as in "workout", grouped by category
+    "meals": { "Breakfast": [ meal, ... ], "Dinner": [ ... ] }       // same fields as in "meals", grouped by category
+  }
 }
 
 EXAMPLE
@@ -83,7 +88,7 @@ ${JSON.stringify(EXAMPLE, null, 2)}
 RULES
 1. Return ONLY valid JSON. No explanation, no greeting, no markdown, no code fences.
 2. Use double quotes for all keys and strings. No trailing commas. No comments.
-3. Every day must have both "workout" and "meals". Use [] for a rest day workout.
+3. Every day must have both "workout" and "meals" (unless rule 11 applies). Use [] for a rest day workout.
 ${rule4}
 5. If the document describes one week that repeats and has no weekday names, return 7 days for that week. If it spans several weeks, return every day. (Weekday named plans: see rule 9.)
 6. Use numbers for sets, calories, protein and waterLiters. Use text for reps, rest and time.
@@ -91,6 +96,7 @@ ${rule4}
 8. Keep the JSON compact (no extra whitespace) so the whole plan fits in one reply.
 9. If the plan is a weekly schedule (Monday, Tuesday and so on), start every "label" with the weekday name, for example "Monday Chest + Triceps", and list each weekday once. Weekdays you leave out become rest days. Do not use weekday names in labels for plans that are not tied to real weekdays.
 10. Put the same long advice paragraph in only ONE place (the first day's "notes"), not repeated in every day.
+11. If the document lists exercise or meal OPTIONS (alternatives, "choose any 4", a list by muscle group or by meal), put those options in "library", grouped by category, and give each day a "focus". A day may then leave "workout" or "meals" out; the person picks from the library each day.
 
 ${create ? 'MY DETAILS' : 'MY PLAN DOCUMENT'}:
 ${docText ? docText.trim() : '(paste it here)'}

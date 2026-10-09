@@ -55,5 +55,19 @@ ok(future.workouts === 1, 'days up to today count');
 const beforeToday = summarize(plan, records, periodRange('week', '2026-10-07'), 70, '2026-10-04');
 ok(beforeToday.workouts === 0, 'future days are ignored');
 
+// richer strength numbers
+const l0 = s.lifts[0];
+ok(l0.before === 20 && l0.sessions === 1 && l0.sets === 2 && l0.volume === 450, 'lift carries previous best, sessions, sets and volume');
+ok(l0.e1rm === 33.3 && l0.e1rmGain === 6.6, 'estimated 1 rep max and its change: ' + l0.e1rm + ' ' + l0.e1rmGain);
+ok(l0.volumeChange === Math.round(((450 - 360) / 360) * 100), 'volume compared with last week');
+ok(l0.group === 'Chest', 'bench press is a chest exercise');
+ok(s.muscles.length === 1 && s.muscles[0].group === 'Chest' && s.muscles[0].sets === 2, 'sets per muscle group');
+ok(s.allTimeKg === 360 + 450, 'all time kg lifted: ' + s.allTimeKg);
+ok(s.topBurn[0].share === 100 && s.topBurn[0].sessions === 1 && s.topBurn[0].perMin > 0, 'calories by exercise has share, sessions and kcal per minute');
+// same weight, more reps is a best too
+const repRecords = { '2026-09-28': { ticks: { w1: true }, sets: { w1: [{ w: 20, r: 8, done: true }] } }, '2026-10-05': { ticks: { w1: true }, sets: { w1: [{ w: 20, r: 11, done: true }] } } };
+const rp = summarize(plan, repRecords, periodRange('week', '2026-10-07'), 80, '2026-10-07');
+ok(rp.lifts[0].gain === 0 && rp.lifts[0].repGain === 3 && rp.prs === 1, 'same weight with 3 more reps counts as a new best');
+
 console.log(fail ? `\n${fail} failed` : '\nAll summary tests passed');
 process.exit(fail ? 1 : 0);

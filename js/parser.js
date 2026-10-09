@@ -11,6 +11,8 @@
 //   result.warnings are non fatal notes ("Day 2 had no label, called it Day 2").
 
 const MAX_DAYS = 366;
+const MAX_LIBRARY = 500; // exercises (and separately meals) in a plan's library
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // ---------- small helpers ----------
 
@@ -156,30 +158,40 @@ export function validatePlan(raw) {
     warnings.push('The plan had no "name", so I called it "Imported plan".');
   }
 
-  // Days
-  if (!Array.isArray(raw.days)) {
+  // A library of exercises and meals to pick from, sorted by category (optional).
+  const library = validateLibrary(raw, warnings);
+
+  // Days. With a library they are optional: one open day where you pick what to do.
+  let rawDays = raw.days;
+  if ((rawDays === undefined || rawDays === null || (Array.isArray(rawDays) && rawDays.length === 0)) && library) {
+    rawDays = [{ label: 'Pick your day', workout: [], meals: [] }];
+  }
+  if (!Array.isArray(rawDays)) {
     errors.push('The plan needs a "days" list, for example "days": [ { "label": "Day 1", ... } ].');
     return { ok: false, errors, warnings };
   }
-  if (raw.days.length === 0) {
+  if (rawDays.length === 0) {
     errors.push('The "days" list is empty. Add at least one day.');
     return { ok: false, errors, warnings };
   }
-  if (raw.days.length > MAX_DAYS) {
-    errors.push(`The plan has ${raw.days.length} days. The maximum is ${MAX_DAYS}.`);
+  if (rawDays.length > MAX_DAYS) {
+    errors.push(`The plan has ${rawDays.length} days. The maximum is ${MAX_DAYS}.`);
     return { ok: false, errors, warnings };
   }
 
-  const days = raw.days.map((d, i) => validateDay(d, i, errors, warnings));
+  const days = rawDays.map((d, i) => validateDay(d, i, errors, warnings, library));
 
   const plan = { name, days };
+  if (library) plan.library = library;
+  const picks = validatePicks(raw.picks);
+  if (picks) plan.picks = picks;
   if (typeof raw.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.startDate.trim())) {
     plan.startDate = raw.startDate.trim();
   }
   return { ok: errors.length === 0, plan: errors.length ? undefined : plan, errors, warnings };
 }
 
-function validateDay(d, i, errors, warnings) {
+function validateDay(d, i, errors, warnings, library = null) {
   const where = `Day ${i + 1}`;
   if (!isObj(d)) {
     errors.push(`${where} is not an object. Each day looks like { "label": "...", "workout": [], "meals": [] }.`);
@@ -194,7 +206,9 @@ function validateDay(d, i, errors, warnings) {
 
   // Workout (empty list = rest day)
   let workout = [];
-  if (d.workout === undefined || d.workout === null) {
+  if ((d.workout === undefined || d.workout === null) && library) {
+    // Fine with a library: the exercises are picked each day.
+  } else if (d.workout === undefined || d.workout === null) {
     errors.push(`${where} is missing "workout". Use an empty list [] for a rest day.`);
   } else if (!Array.isArray(d.workout)) {
     errors.push(`${where}: "workout" must be a list. Use [] for a rest day.`);
@@ -205,7 +219,9 @@ function validateDay(d, i, errors, warnings) {
 
   // Meals
   let meals = [];
-  if (d.meals === undefined || d.meals === null) {
+  if ((d.meals === undefined || d.meals === null) && library) {
+    // Fine with a library: the meals are picked each day.
+  } else if (d.meals === undefined || d.meals === null) {
     errors.push(`${where} is missing meals. Add a "meals" list.`);
   } else if (!Array.isArray(d.meals)) {
     errors.push(`${where}: "meals" must be a list.`);
@@ -217,7 +233,82 @@ function validateDay(d, i, errors, warnings) {
   // Extras are optional
   const extras = validateExtras(d.extras, where, warnings);
 
-  return { label, workout, meals, extras };
+  const out = { label, workout, meals, extras };
+  // Which library categories this day is about, like ["Back", "Biceps"]. Used as the picker's starting filter.
+  const focus = strList(d.focus ?? d.categories);
+  if (focus.length) out.focus = focus.slice(0, 20);
+  return out;
+}
+
+// ---------- the library: exercises and meals to pick from, by category ----------
+
+/** "Lat Pulldown (Close Grip)" -> "lat-pulldown-close-grip" */
+export function slug(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'item';
+}
+
+/**
+ * Accepts { "Back": [ ... ], "Chest": [ ... ] } or a plain list where each item has a "category".
+ * Items can be full objects or just a name. Returns [[category, item], ...].
+ */
+function byCategory(v) {
+  const out = [];
+  if (isObj(v)) {
+    for (const [cat, list] of Object.entries(v)) for (const item of Array.isArray(list) ? list : [list]) out.push([str(cat) || 'Other', item]);
+  } else if (Array.isArray(v)) {
+    for (const item of v) out.push([(isObj(item) && (str(item.category) || str(item.group) || str(item.muscle))) || 'Other', item]);
+  }
+  return out;
+}
+
+/**
+ * The plan's library: { exercises: [...], meals: [...] }, each item with a "category" and a stable id
+ * (lx-name for exercises, lm-name for meals). Bad items are skipped with a warning, never an error,
+ * so one typo doesn't block a whole plan. Returns null when there is no library.
+ */
+function validateLibrary(raw, warnings) {
+  const src = isObj(raw.library) ? raw.library : { exercises: isObj(raw.exercises) || Array.isArray(raw.exercises) ? raw.exercises : null, meals: isObj(raw.meals) || Array.isArray(raw.meals) ? raw.meals : null };
+  const exercises = [];
+  const meals = [];
+  const used = new Set();
+  const idFor = (given, prefix, name) => {
+    let id = str(given) || `${prefix}-${slug(name)}`;
+    for (let n = 2; used.has(id); n++) id = `${prefix}-${slug(name)}-${n}`;
+    used.add(id);
+    return id;
+  };
+
+  byCategory(src.exercises).slice(0, MAX_LIBRARY).forEach(([category, item], j) => {
+    const obj = typeof item === 'string' ? { exercise: item } : item;
+    const errs = [];
+    const w = validateExercise(obj, `Library exercise ${j + 1}`, j, new Set(), errs, warnings);
+    if (!w || errs.length) return warnings.push(`${errs[0] || `Library exercise ${j + 1} is not valid`}. I skipped it.`);
+    exercises.push({ ...w, id: idFor(obj.id, 'lx', w.exercise), category });
+  });
+
+  byCategory(src.meals).slice(0, MAX_LIBRARY).forEach(([category, item], j) => {
+    let obj = typeof item === 'string' ? { name: item, items: [item] } : item;
+    if (isObj(obj) && !obj.items && !obj.foods && str(obj.name)) obj = { ...obj, items: [str(obj.name)] };
+    const errs = [];
+    const m = validateMeal(obj, `Library meal ${j + 1}`, j, new Set(), errs, warnings);
+    if (!m || errs.length) return warnings.push(`${errs[0] || `Library meal ${j + 1} is not valid`}. I skipped it.`);
+    meals.push({ ...m, id: idFor(obj.id, 'lm', m.name), category });
+  });
+
+  return exercises.length || meals.length ? { exercises, meals } : null;
+}
+
+/** What was picked on each date: { "2026-10-09": { workout: [ids], meals: [ids] } }. Null when there is nothing. */
+function validatePicks(v) {
+  if (!isObj(v)) return null;
+  const out = {};
+  for (const [date, p] of Object.entries(v)) {
+    if (!DATE_RE.test(date) || !isObj(p)) continue;
+    const day = {};
+    for (const kind of ['workout', 'meals']) if (Array.isArray(p[kind])) day[kind] = p[kind].map(str).filter(Boolean).slice(0, 100);
+    if (Object.keys(day).length) out[date] = day;
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 /** Use the given id if it is unique in the day, otherwise make one like w1, m2. */

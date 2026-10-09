@@ -11,7 +11,7 @@ import { updateRecord } from './store.js';
 import { dayStats, mealTotals, currentStreak } from './stats.js';
 import { sessionState, sessionMs, workoutMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
 import { weightTile } from './weightui.js';
-import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump } from './dayview.js';
+import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump, pickButton } from './dayview.js';
 
 /**
  * @param root     element to fill
@@ -56,7 +56,7 @@ export function renderHome(root, plan, date, goto, actions) {
   const drawWorkoutCard = () => {
     clear(wkCard);
     if (!day.workout.length) {
-      wkCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon('flame', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Rest day'), h('span', {}, 'Recovery is part of the plan.'))));
+      wkCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon('flame', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Rest day'), h('span', {}, 'Recovery is part of the plan.'))), pickButton(ctx, 'workout'));
       return;
     }
     const rec = ctx.rec();
@@ -90,7 +90,8 @@ export function renderHome(root, plan, date, goto, actions) {
           },
         },
         label
-      )
+      ),
+      pickButton(ctx, 'workout')
     );
   };
   drawWorkoutCard();
@@ -101,7 +102,7 @@ export function renderHome(root, plan, date, goto, actions) {
   const drawMealCard = () => {
     clear(mealCard);
     if (!day.meals.length) {
-      mealCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon('drop', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Meals'), h('span', {}, 'No meals planned for this day.'))));
+      mealCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon('drop', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Meals'), h('span', {}, 'No meals planned for this day.'))), pickButton(ctx, 'meals'));
       return;
     }
     const rec = ctx.rec();
@@ -115,7 +116,8 @@ export function renderHome(root, plan, date, goto, actions) {
       h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon meal' }, icon('today', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Meals'), h('span', {}, kcalLine))),
       h('div', { class: 'bar' }, fill),
       next ? h('p', { class: 'hc-next' }, h('b', {}, 'Next: '), `${next.time ? next.time + ' ' : ''}${next.name}, ${next.items[0]}${next.items.length > 1 ? ' and more' : ''}`) : h('p', { class: 'hc-next' }, 'All meals eaten. Nice.'),
-      h('button', { class: 'btn wide', type: 'button', onclick: () => actions.show('meals') }, 'Open meals')
+      h('button', { class: 'btn wide', type: 'button', onclick: () => actions.show('meals') }, 'Open meals'),
+      pickButton(ctx, 'meals')
     );
   };
   drawMealCard();

@@ -79,6 +79,29 @@ export function openJump(ctx) {
   });
 }
 
+/**
+ * "Choose exercises" / "Choose meals": opens the mix-and-match sheet for this date. The sheet's code
+ * only loads when tapped. Shows "changed" when this date no longer follows the plan's list.
+ */
+export function pickButton(ctx, kind) {
+  const changed = !!(ctx.plan.picks && ctx.plan.picks[ctx.date] && ctx.plan.picks[ctx.date][kind]);
+  return h(
+    'button',
+    {
+      class: 'pick-btn',
+      type: 'button',
+      'aria-haspopup': 'dialog',
+      onclick: async () => {
+        const { openPicker } = await import('./pickui.js');
+        openPicker({ plan: ctx.plan, date: ctx.date, kind, onDone: () => ctx.goto(ctx.date) });
+      },
+    },
+    icon('edit', 16),
+    kind === 'workout' ? 'Choose exercises' : 'Choose meals',
+    changed && h('span', { class: 'pill' }, 'changed for this day')
+  );
+}
+
 /** A small bar for the Workout and Meals screens: previous day, the date (tap to jump), next day. */
 export function dateBar(ctx) {
   return h(
