@@ -41,7 +41,10 @@ ok(f.state === 'finished' && f.title === 'Workout done' && f.timeText === '50 mi
 const rest = widgetSnapshot({ plans: [plan], activePlanId: 'p', progress: { p: {} } }, '2026-10-11');
 ok(rest.workout.state === 'rest' && rest.workout.title === 'Rest day', 'rest day');
 ok(rest.lifted.kgText === '0' && /atta/.test(rest.lifted.nextText), 'nothing lifted yet points at the first milestone');
-ok(JSON.stringify(s).length < 5000, 'snapshot stays small: ' + JSON.stringify(s).length + ' chars');
+ok(JSON.stringify(s).length < 10000, 'snapshot stays small: ' + JSON.stringify(s).length + ' chars');
+// Tomorrow rides along, so the widgets switch at midnight without the app.
+ok(s.next && s.next.date === '2026-10-11' && s.next.workout.state === 'rest' && s.next.week[6].today && !s.next.next, 'tomorrow is in the snapshot (Sunday, a rest day), one level deep');
+ok(s.next.streak >= 0 && s.next.ring.done === 0, 'tomorrow starts with nothing ticked');
 
 // Water from the widget's + button lands on the right day of the active plan; junk is ignored.
 const { importBackup, getState } = await import('../js/store.js');

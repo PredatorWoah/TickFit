@@ -1,5 +1,5 @@
 // Tests for which plan day lands on which date. Run: node tests/schedule.mjs
-import { weekdayOfLabel, weeklyWeekdays, isWeeklyPlan, dayIndexFor, dayFor, jumpDelta } from '../js/schedule.js';
+import { weekdayOfLabel, weeklyWeekdays, dayIndexFor, dayFor, jumpDelta } from '../js/schedule.js';
 import { pctFor, currentStreak, longestStreak, weekPercent } from '../js/stats.js';
 
 let failed = 0;
@@ -25,10 +25,10 @@ eq('label: Day 1', weekdayOfLabel('Day 1 Push'), -1);
 eq('label: Tues and Thurs short forms', [weekdayOfLabel('Tues Back'), weekdayOfLabel('Thurs Arms')], [1, 3]);
 eq('label: Monster workout is not Monday', weekdayOfLabel('Monster workout'), -1);
 
-eq('weekly plan detected', isWeeklyPlan(weekly), true);
-eq('cyclic plan is not weekly', isWeeklyPlan(cyclic), false);
-eq('repeated weekday is not weekly', isWeeklyPlan({ days: [day('Monday A'), day('Monday B')] }), false);
-eq('mixed labels are not weekly', isWeeklyPlan({ days: [day('Monday A'), day('Day 2')] }), false);
+eq('weekly plan detected', (weeklyWeekdays(weekly) !== null), true);
+eq('cyclic plan is not weekly', (weeklyWeekdays(cyclic) !== null), false);
+eq('repeated weekday is not weekly', weeklyWeekdays({ days: [day('Monday A'), day('Monday B')] }) !== null, false);
+eq('mixed labels are not weekly', weeklyWeekdays({ days: [day('Monday A'), day('Day 2')] }) !== null, false);
 
 eq('Sunday of a Mon-Sat plan is a rest day', dayIndexFor(weekly, '2026-10-04'), -1);
 eq('Monday is entry 0', dayIndexFor(weekly, '2026-10-05'), 0);

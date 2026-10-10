@@ -1,5 +1,6 @@
 package io.github.predatorwoah.tickfit;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -34,6 +35,7 @@ import org.json.JSONObject;
 public final class TickFitWidgets {
     static final String EXTRA_SCREEN = "tickfit_screen";
     static final String ACTION_ADD_WATER = "io.github.predatorwoah.tickfit.ADD_WATER";
+    static final String ACTION_REFRESH = "io.github.predatorwoah.tickfit.REFRESH_WIDGETS";
     static final int WATER_STEP_ML = 250;
 
     private static final Class<?>[] ALL = { Ring.class, Today.class, NextUp.class, Water.class, Week.class, Lifted.class };
@@ -48,7 +50,7 @@ public final class TickFitWidgets {
             try {
                 JSONObject s = WidgetStore.snapshot(c);
                 if (s == null) return message(c, "Open TickFit once to set up this widget");
-                if (!WidgetStore.today().equals(s.optString("date"))) return message(c, "A new day. Tap to open TickFit");
+                if (!WidgetStore.today().equals(s.optString("date"))) return message(c, "Tap to load today in TickFit");
                 return build(c, s);
             } catch (Exception e) {
                 return message(c, "Tap to open TickFit");
@@ -58,13 +60,51 @@ public final class TickFitWidgets {
         @Override
         public void onUpdate(Context c, AppWidgetManager manager, int[] ids) {
             RemoteViews views = safeBuild(c);
-            for (int id : ids) manager.updateAppWidget(id, views);
+            for (int id : ids) {
+                try {
+                    manager.updateAppWidget(id, views);
+                } catch (RuntimeException ignored) {
+                    // a launcher refusing one update must not stop the rest
+                }
+            }
+            scheduleMidnight(c);
         }
 
         @Override
         public void onAppWidgetOptionsChanged(Context c, AppWidgetManager manager, int id, android.os.Bundle options) {
-            manager.updateAppWidget(id, safeBuild(c));
+            try {
+                manager.updateAppWidget(id, safeBuild(c));
+            } catch (RuntimeException ignored) {
+                // same as above
+            }
         }
+
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent != null && ACTION_REFRESH.equals(intent.getAction())) {
+                updateAll(c);
+                return;
+            }
+            super.onReceive(c, intent);
+        }
+    }
+
+    /**
+     * Redraw every widget just after midnight, so they switch to the new day (the snapshot already holds it)
+     * without waiting for Android's half-hourly update. Inexact on purpose: no special permission, battery friendly.
+     */
+    static void scheduleMidnight(Context c) {
+        AlarmManager alarms = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) return;
+        java.util.Calendar at = java.util.Calendar.getInstance();
+        at.add(java.util.Calendar.DAY_OF_YEAR, 1);
+        at.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        at.set(java.util.Calendar.MINUTE, 0);
+        at.set(java.util.Calendar.SECOND, 30);
+        Intent i = new Intent(c, Ring.class);
+        i.setAction(ACTION_REFRESH);
+        PendingIntent pi = PendingIntent.getBroadcast(c, 1, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        alarms.setAndAllowWhileIdle(AlarmManager.RTC, at.getTimeInMillis(), pi);
     }
 
     public static class Ring extends Base {

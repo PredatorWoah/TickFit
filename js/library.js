@@ -15,10 +15,10 @@ const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 const nameOf = (kind, item) => (kind === 'workout' ? item.exercise : item.name);
 const listKey = (kind) => (kind === 'workout' ? 'exercises' : 'meals');
 
-export const libraryOf = (plan) => plan.library || { exercises: [], meals: [] };
+const libraryOf = (plan) => plan.library || { exercises: [], meals: [] };
 
 /** Category for something that has none: the muscle group for an exercise, the meal's own name for a meal. */
-export const guessCategory = (kind, item) => (kind === 'workout' ? muscleGroup(item.exercise) : item.name || 'Meals');
+const guessCategory = (kind, item) => (kind === 'workout' ? muscleGroup(item.exercise) : item.name || 'Meals');
 
 /**
  * Everything you could pick for this date, without duplicates (same name counts once):
