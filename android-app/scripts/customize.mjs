@@ -2,13 +2,15 @@
 //   * version number and version code
 //   * the vibrate permission (the rest timer buzzes)
 //   * TickFit's launcher icon (normal, round and adaptive) and a dark launch screen
+//   * the six home screen widgets: their Java code and resources from android-app/native, the manifest
+//     entries, and the TickFitWidget plugin that lets the app send them fresh numbers
 //
 //   VERSION_NAME=1.0.0 VERSION_CODE=1 node scripts/customize.mjs
 //
 // Every edit checks that the text it wants to change is really there, so if a newer Capacitor changes its template
 // the build fails loudly instead of quietly shipping an unconfigured app.
 
-import { readFileSync, writeFileSync, rmSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync, mkdirSync, readdirSync, statSync, cpSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
@@ -45,6 +47,12 @@ edit(
   'public class MainActivity extends BridgeActivity {}',
   `public class MainActivity extends BridgeActivity {
     @Override
+    protected void onCreate(android.os.Bundle savedInstanceState) {
+        registerPlugin(TickFitWidgetPlugin.class); // the home screen widgets' bridge (android-app/native)
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         if (getBridge() != null && getBridge().getWebView() != null) {
@@ -57,6 +65,46 @@ edit(
 }`,
   'turn off overscroll and scroll bars'
 );
+
+// ----- home screen widgets: copy the native code and resources in, then list each widget in the manifest
+const native = resolve(here, '..', 'native');
+const javaDir = dirname(mainActivity);
+for (const f of readdirSync(join(native, 'java'))) {
+  const target = join(javaDir, f);
+  if (existsSync(target)) throw new Error(`${f} already exists in the generated project`);
+  cpSync(join(native, 'java', f), target);
+}
+for (const folder of readdirSync(join(native, 'res'))) {
+  for (const f of readdirSync(join(native, 'res', folder))) {
+    const target = join(res, folder, f);
+    if (existsSync(target)) throw new Error(`res/${folder}/${f} already exists in the generated project`);
+    mkdirSync(join(res, folder), { recursive: true });
+    cpSync(join(native, 'res', folder, f), target);
+  }
+}
+const WIDGETS = [
+  ['Ring', 'ring'],
+  ['Today', 'today'],
+  ['NextUp', 'nextup'],
+  ['Water', 'water'],
+  ['Week', 'week'],
+  ['Lifted', 'lifted'],
+];
+const receivers = WIDGETS.map(
+  ([cls, key]) => `
+        <receiver
+            android:name=".TickFitWidgets$${cls}"
+            android:exported="false"
+            android:label="@string/tf_w_${key}">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_${key}_info" />
+        </receiver>`
+).join('');
+edit(manifest, /\n(\s*)<\/application>/, `${receivers}\n$1</application>`, 'add the home screen widgets to the manifest');
 
 // ----- launcher icons: sizes in pixels for mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi
 const BG = '#0a0d12';

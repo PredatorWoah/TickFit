@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home screen widget colours, light theme (TickFit's light palette). values-night has the dark ones. -->
+<resources>
+    <color name="tf_surface">#FFFFFF</color>
+    <color name="tf_surface2">#EEF1F5</color>
+    <color name="tf_track">#E2E7EE</color>
+    <color name="tf_text">#10161F</color>
+    <color name="tf_muted">#566274</color>
+    <color name="tf_accent">#4D7C0F</color>
+    <color name="tf_accent_ink">#FFFFFF</color>
+    <color name="tf_accent_soft">#8C4D7C0F</color>
+    <color name="tf_chip">#EAF3D9</color>
+    <color name="tf_chip_text">#3F6A0A</color>
+    <color name="tf_water">#0E7490</color>
+    <color name="tf_water_ink">#FFFFFF</color>
+    <color name="tf_lime">#C6F432</color>
+    <color name="tf_lime_ink">#121A00</color>
+    <color name="tf_lime_track">#2E121A00</color>
+</resources>
