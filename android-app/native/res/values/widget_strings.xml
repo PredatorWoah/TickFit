@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tf_w_ring">Day ring</string>
+    <string name="tf_w_ring_desc">How much of today is ticked off, your streak and the day\'s plan.</string>
+    <string name="tf_w_today">Today</string>
+    <string name="tf_w_today_desc">Your day at a glance: ring, workout, calories, protein and water.</string>
+    <string name="tf_w_nextup">Next up</string>
+    <string name="tf_w_nextup_desc">The next exercise of today\'s workout, with a live clock.</string>
+    <string name="tf_w_water">Water</string>
+    <string name="tf_w_water_desc">Water so far today. Tap + to add a glass (250 ml).</string>
+    <string name="tf_w_week">Streak and week</string>
+    <string name="tf_w_week_desc">Your streak and how each day of this week went.</string>
+    <string name="tf_w_lifted">Weight lifted</string>
+    <string name="tf_w_lifted_desc">Kilos lifted this week, compared with something you know.</string>
+    <string name="tf_w_add_water">Add a glass of water, 250 millilitres</string>
+</resources>

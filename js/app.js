@@ -20,6 +20,7 @@ import { openBackupSheet } from './backupui.js';
 import { showUpdateBanner } from './update.js';
 import './install.js'; // starts listening for the browser's install offer
 import { isNative, onBackButton, exitApp } from './platform.js';
+import { startWidgets } from './widgets.js';
 import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
@@ -229,6 +230,15 @@ function start() {
   draw();
   registerServiceWorker();
   onBackButton(handleBack);
+  // Android home screen widgets: keep them up to date, and open the right screen when one is tapped.
+  startWidgets({
+    onOpen: (screen) => {
+      if (!getActivePlan()) return;
+      view.date = todayStr();
+      show(screen, { date: view.date });
+    },
+    onChanged: draw,
+  });
 }
 
 start();

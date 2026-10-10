@@ -44,6 +44,13 @@ export function load() {
   return state;
 }
 
+const saveListeners = [];
+
+/** Run `fn()` after every save (the Android widgets use this to stay up to date). */
+export function onSaved(fn) {
+  saveListeners.push(fn);
+}
+
 /** Write everything. If storage is blocked (private mode, full), the app keeps working in memory. */
 export function save() {
   try {
@@ -51,6 +58,13 @@ export function save() {
     storageWorks = true;
   } catch {
     storageWorks = false;
+  }
+  for (const fn of saveListeners) {
+    try {
+      fn();
+    } catch {
+      // a listener must never break saving
+    }
   }
 }
 

@@ -5,18 +5,21 @@ let fail = 0;
 const ok = (c, m) => { if (!c) { fail++; console.log('FAIL', m); } else console.log('ok  ', m); };
 
 ok(liftFact(0) === null && liftFact(9) === null && liftFact(NaN) === null, 'nothing under 10 kg');
-ok(liftFact(100).text === "That's about 1.4 grown adults, or 10 bags of rice.", '100 kg: ' + liftFact(100).text);
-ok(liftFact(25).text === "That's about 2.5 bags of rice.", '25 kg: ' + liftFact(25).text);
-ok(liftFact(10).text.includes('bag of rice'), '10 kg is a bag of rice');
-ok(liftFact(3000).text.includes('SUV'), '3000 kg is about a big SUV');
-ok(liftFact(12053).text === "That's about the weight of a city bus, or 2 African elephants.", '12,053 kg: ' + liftFact(12053).text);
+ok(liftFact(10).text === "That's about the weight of a 10 kg bag of atta.", '10 kg: ' + liftFact(10).text);
+ok(liftFact(25).text === "That's about 2.5 bags of atta.", '25 kg: ' + liftFact(25).text);
+ok(liftFact(100).text === "That's about 1.5 grown men, or 10 bags of atta.", '100 kg: ' + liftFact(100).text);
+ok(liftFact(200).text.includes('Royal Enfield Bullet'), '200 kg is a Bullet: ' + liftFact(200).text);
+ok(liftFact(3000).text === "That's about 1.7 Mahindra Thars, or 4.6 Maruti 800s.", '3000 kg: ' + liftFact(3000).text);
+ok(liftFact(12053).text === "That's about 1.6 JCB diggers, or 3 Indian elephants.", '12,053 kg: ' + liftFact(12053).text);
+ok(liftFact(330000).short === 'About a PSLV rocket' && liftFact(330000).text.includes('Mangalyaan'), 'short version drops the extra clause: ' + liftFact(330000).short);
 const top = liftFact(100000000);
-ok(top.text.includes('aircraft carrier') && top.next === null, '100 million kg is an aircraft carrier, the top of the scale');
-ok(liftFact(250000000).text === "That's about 2.5 aircraft carriers.", 'past the top it keeps counting carriers');
+ok(top.text === "That's about 2.2 INS Vikrants." && top.next === null, '100 million kg is 2.2 INS Vikrants, the top of the scale: ' + top.text);
+ok(liftFact(45000000).short === 'About INS Vikrant', 'INS Vikrant short form');
 const n = liftFact(1500).next;
-ok(n.name === 'a big SUV' && n.toGo === 1000 && n.pct === 33, 'next milestone and progress: ' + JSON.stringify(n));
+ok(n.name === 'a Mahindra Thar' && n.toGo === 250 && n.pct === 77, 'next milestone and progress: ' + JSON.stringify(n));
+ok(liftFact(400000).next.name === 'an LVM3 rocket', 'next milestone name is the short form');
 ok(BENCHMARKS.every((b, i) => i === 0 || b[0] > BENCHMARKS[i - 1][0]), 'benchmarks go up in order');
-ok(BENCHMARKS[BENCHMARKS.length - 1][0] === 100000000, 'the scale goes up to 100 million kg');
+ok(BENCHMARKS[BENCHMARKS.length - 1][0] * 2 < 100000000 && BENCHMARKS[BENCHMARKS.length - 1][0] * 3 > 100000000, 'the scale reaches 100 million kg as about 2 INS Vikrants');
 
 const groups = {
   'Incline Walk': 'Cardio', 'Dumbbell Bench Press (Flat)': 'Chest', 'Chest Supported Dumbbell Row': 'Back',

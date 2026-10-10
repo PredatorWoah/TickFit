@@ -10,6 +10,14 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 - The status bar icons follow your light or dark theme.
 - **Back works inside the app.** The Back button or swipe-back closes a pop-up first, then goes up one screen (a sub-screen to its parent, another tab to Today), and only leaves the app from Today.
 - Ticking a set or a meal gives a light haptic tap.
+- **Home screen widgets.** Long press the home screen, **Widgets**, **TickFit**. Six of them: **Day ring** (2×2), **Today** (4×2: ring, workout, calories, protein, water), **Next up** (4×1: the next exercise with a live workout clock), **Water** (2×1, with a + button that adds 250 ml), **Streak and week** (4×1) and **Weight lifted** (2×2, compared with something Indian). They follow the phone's light or dark mode. Tapping one opens the right screen.
+
+## How the widgets work (for developers)
+
+- The app works out everything a widget shows in `js/widgetdata.js` (tested in `tests/widgetdata.mjs`) and sends it, as one small JSON snapshot, to a tiny native plugin (`TickFitWidget`) after every save, when the app comes back, and after midnight. The native side (`android-app/native/java`) only places that text and those numbers; it never reads or changes your data.
+- The Water widget's + button can't run the app, so it adds the water to the widget straight away and keeps a note of it. The next time the app runs it takes that note and adds the water to that day itself. Your data in the app stays the one source of truth.
+- If the snapshot is from an earlier day (the app hasn't run since midnight), a widget says so and opens the app when tapped. Widgets also refresh about every 30 minutes.
+- `android-app/scripts/customize.mjs` copies `android-app/native` into the generated project, adds the six widgets to the manifest and registers the plugin. `tests/widgets-native.mjs` checks the resources match the Java code, since this repo builds without the Android SDK locally.
 
 ## One-time setup: your signing key
 

@@ -31,6 +31,8 @@ const APP_FILES = [
   'js/platform.js',
   'js/weight.js',
   'js/weightui.js',
+  'js/widgetdata.js',
+  'js/widgets.js',
   'js/build.js',
   'js/builder.js',
   'js/ai.js',

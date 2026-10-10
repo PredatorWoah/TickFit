@@ -2,31 +2,32 @@
 // Fun comparisons for "total lifted" and a simple muscle-group guess for exercise names.
 // Pure functions (no DOM), easy to test.
 //
-// The weights are round, typical figures (a bag of rice in an Indian shop is 10 kg, a city bus is
-// about 12 tonnes). They are for fun and motivation, not a physics exam.
+// Every benchmark is a thing you see around India, with a round, typical weight: a 10 kg bag of atta, a
+// full LPG cylinder (about 30 kg with the steel), a Royal Enfield Bullet (about 195 kg), a WAP-7 electric
+// engine (123 tonnes), the PSLV that launched Mangalyaan (about 320 tonnes), the steel in Howrah Bridge
+// (about 26,500 tonnes) and INS Vikrant (about 45,000 tonnes). For fun and motivation, not a physics exam.
 
-// [kg, one, many]. Smallest first. The last one is the top of the scale (100 million kg).
+// [kg, one, many]. Smallest first. Past the last one it keeps counting INS Vikrants (100 million kg is about 2.2).
 export const BENCHMARKS = [
-  [10, 'a 10 kg bag of rice', 'bags of rice'],
+  [10, 'a 10 kg bag of atta', 'bags of atta'],
+  [30, 'a full LPG cylinder', 'full LPG cylinders'],
   [50, 'a cement bag', 'cement bags'],
-  [70, 'a grown adult', 'grown adults'],
-  [110, 'a scooter', 'scooters'],
-  [200, 'a motorbike', 'motorbikes'],
-  [400, 'a grand piano', 'grand pianos'],
-  [600, 'a dairy cow', 'dairy cows'],
-  [1000, 'a small car', 'small cars'],
-  [2500, 'a big SUV', 'big SUVs'],
-  [6000, 'an African elephant', 'African elephants'],
-  [12000, 'a city bus', 'city buses'],
-  [30000, 'a humpback whale', 'humpback whales'],
-  [41000, 'an empty Boeing 737', 'Boeing 737s'],
-  [150000, 'a blue whale', 'blue whales'],
-  [204000, 'the Statue of Liberty', 'Statues of Liberty'],
-  [420000, 'the International Space Station', 'space stations'],
-  [2900000, 'a Saturn V moon rocket', 'Saturn V rockets'],
-  [7300000, 'the Eiffel Tower', 'Eiffel Towers'],
-  [52000000, 'the Titanic', 'Titanics'],
-  [100000000, 'an aircraft carrier', 'aircraft carriers'],
+  [65, 'a grown man', 'grown men'],
+  [110, 'a Honda Activa', 'Activas'],
+  [195, 'a Royal Enfield Bullet', 'Royal Enfield Bullets'],
+  [375, 'an auto rickshaw', 'auto rickshaws'],
+  [550, 'a Murrah buffalo', 'Murrah buffaloes'],
+  [650, 'a Maruti 800', 'Maruti 800s'],
+  [1750, 'a Mahindra Thar', 'Mahindra Thars'],
+  [4000, 'an Indian elephant', 'Indian elephants'],
+  [7500, 'a JCB digger', 'JCB diggers'],
+  [25000, 'a fully loaded Tata truck', 'loaded Tata trucks'],
+  [123000, 'an Indian Railways WAP-7 engine', 'WAP-7 engines'],
+  [320000, 'a PSLV rocket, the kind that sent Mangalyaan to Mars', 'PSLV rockets'],
+  [640000, 'an LVM3 rocket, the kind that flew Chandrayaan-3', 'LVM3 rockets'],
+  [1000000, 'a full Rajdhani Express train', 'Rajdhani Express trains'],
+  [26500000, 'all the steel in Howrah Bridge', 'Howrah Bridges'],
+  [45000000, "INS Vikrant, India's aircraft carrier", 'INS Vikrants'],
 ];
 
 const nice = (n) => (n >= 10 ? Math.round(n).toLocaleString('en') : String(Math.round(n * 10) / 10));
@@ -49,9 +50,12 @@ export function liftFact(kg) {
     text += `, or ${nice(kg / w2)} ${many2}`;
   }
   text += '.';
+  // A short version for small spaces like a home screen widget: "About a Royal Enfield Bullet".
+  const plain = (s) => s.split(',')[0];
+  const short = times < 1.15 ? `About ${plain(one)}` : `About ${nice(times)} ${many}`;
   const up = BENCHMARKS[i + 1];
-  const next = up ? { name: up[1], kg: up[0], toGo: Math.round(up[0] - kg), pct: Math.round(((kg - w) / (up[0] - w)) * 100) } : null;
-  return { text, next };
+  const next = up ? { name: plain(up[1]), kg: up[0], toGo: Math.round(up[0] - kg), pct: Math.round(((kg - w) / (up[0] - w)) * 100) } : null;
+  return { text, short, next };
 }
 
 // Muscle groups, first match wins, so specific ones sit above general ones.

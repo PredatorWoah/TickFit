@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home screen widget colours, dark theme (TickFit's default look). -->
+<resources>
+    <color name="tf_surface">#121720</color>
+    <color name="tf_surface2">#1A212C</color>
+    <color name="tf_track">#242D3B</color>
+    <color name="tf_text">#F4F7FB</color>
+    <color name="tf_muted">#9AA7B8</color>
+    <color name="tf_accent">#C6F432</color>
+    <color name="tf_accent_ink">#121A00</color>
+    <color name="tf_accent_soft">#73C6F432</color>
+    <color name="tf_chip">#29C6F432</color>
+    <color name="tf_chip_text">#C6F432</color>
+    <color name="tf_water">#4CC9F0</color>
+    <color name="tf_water_ink">#06212B</color>
+    <color name="tf_lime">#C6F432</color>
+    <color name="tf_lime_ink">#121A00</color>
+    <color name="tf_lime_track">#2E121A00</color>
+</resources>
