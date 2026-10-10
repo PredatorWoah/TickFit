@@ -10,6 +10,7 @@ import { validatePlan } from './parser.js';
 import { buildPlan, validateProfile, describeProfile, dayDiets, GOALS, DIET_NAMES } from './builder.js';
 import { buildPrompt } from './ai.js';
 import { todayStr } from './dates.js';
+import { offerMerge } from './mergeui.js';
 
 const DEFAULTS = { sex: 'male', age: '', heightCm: '', weightKg: '', goal: 'muscle', experience: 'beginner', days: 3, equip: 'gym', minutes: 60, cardio: 'some', life: 'moving', diet: 'veg', dietMode: 'one', nonvegDays: 2, dayDiets: ['veg', 'veg', 'veg', 'veg', 'veg', 'veg', 'veg'], avoid: [] };
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -166,10 +167,12 @@ export function renderBuild(root, actions) {
               onclick: () => {
                 const result = validatePlan(plan);
                 if (!result.ok) return toast('Something went wrong building that plan. Please tell the developer.');
-                addPlan(result.plan, todayStr());
+                const prev = getState().activePlanId;
+                const added = addPlan(result.plan, todayStr());
                 close();
                 toast('Plan created');
                 actions.show('today');
+                offerMerge(prev, added.id, actions.refresh);
               },
             },
             'Create this plan'

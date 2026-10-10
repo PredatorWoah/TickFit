@@ -659,3 +659,11 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .pick-add input { width: 100%; min-height: 46px; margin: 0 0 8px; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font-size: 16px; }
 .pick-actions { position: sticky; bottom: 0; display: flex; gap: 10px; padding: 12px 0 4px; background: linear-gradient(transparent, var(--surface) 30%); }
 .pick-actions .btn { flex: 1; }
+
+/* ----- bring in progress from another plan ----- */
+.merge-list { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 8px; }
+.merge-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.merge-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.merge-text b { overflow-wrap: anywhere; }
+.merge-text small { color: var(--muted); font-size: 13px; }
+.merge-row .btn { flex: none; }

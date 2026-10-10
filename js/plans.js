@@ -10,6 +10,7 @@ import { extractText } from './extract.js';
 import { convertWithGemini, hasGeminiKey } from './gemini.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
 import { weeklyWeekdays, weekdayName } from './schedule.js';
+import { openMergeSheet, offerMerge, canMergeInto } from './mergeui.js';
 
 /** Fetch the built in sample plan and add it. Returns true on success. */
 export async function addSamplePlan() {
@@ -78,12 +79,17 @@ export function renderPlans(root, actions) {
                 class: 'btn primary',
                 type: 'button',
                 onclick: () => {
+                  const prev = getState().activePlanId;
                   setActivePlan(p.id);
                   actions.show('today');
+                  offerMerge(prev, p.id, actions.refresh);
                 },
               },
               'Use this plan'
             ),
+          active &&
+            canMergeInto(p.id) &&
+            h('button', { class: 'btn', type: 'button', onclick: () => openMergeSheet({ toId: p.id, onDone: actions.refresh }) }, icon('plus', 18), 'Bring in progress'),
           h('button', { class: 'btn', type: 'button', onclick: () => actions.show('edit', { planId: p.id }) }, 'Edit'),
           h(
             'button',
@@ -91,7 +97,8 @@ export function renderPlans(root, actions) {
               class: 'btn danger',
               type: 'button',
               onclick: () => {
-                if (confirm(`Delete "${p.name}" and all its progress? This cannot be undone.`)) {
+                const tip = !active && canMergeInto(getState().activePlanId) ? ' Tip: to keep its days, use "Bring in progress" on your active plan first.' : '';
+                if (confirm(`Delete "${p.name}" and all its progress? This cannot be undone.${tip}`)) {
                   removePlan(p.id);
                   actions.refresh();
                 }
@@ -258,9 +265,11 @@ export function renderImport(root, actions) {
     showResult(result);
     if (!result.ok) return;
     const date = isValidStr(startDate.value) ? startDate.value : todayStr();
-    addPlan(result.plan, date);
+    const prev = getState().activePlanId;
+    const added = addPlan(result.plan, date);
     toast(`Imported "${result.plan.name}"`);
     actions.show('today');
+    offerMerge(prev, added.id, actions.refresh);
   }
 
   root.append(
