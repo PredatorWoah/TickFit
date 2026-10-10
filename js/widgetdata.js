@@ -11,7 +11,7 @@ import { dayStats, mealTotals, currentStreak, pctFor, lastPerformance, plannedSe
 import { workoutSummary, sessionState, workoutMs, estimateMinutes, nextExercise } from './logging.js';
 import { liftFact } from './lift.js';
 
-export const SNAPSHOT_VERSION = 1;
+const SNAPSHOT_VERSION = 1;
 const LOCALE = 'en';
 const fmt = (n) => Math.round(n).toLocaleString(LOCALE);
 const pctOf = (a, b) => (b > 0 ? Math.max(0, Math.min(100, Math.round((a / b) * 100))) : 0);
@@ -90,13 +90,18 @@ function liftedPart(plan, records, today) {
 }
 
 /**
- * Everything the widgets show for `today`, or null without a plan.
+ * Everything the widgets show for `today`, or null without a plan. It also carries `next`, the same for
+ * tomorrow, so at midnight the widgets switch to the new day by themselves, even if the app isn't opened.
  * @param state  the whole app state (store.js getState())
  */
 export function widgetSnapshot(state, today) {
   const plan = (state.plans || []).find((p) => p.id === state.activePlanId) || (state.plans || [])[0];
   if (!plan) return null;
   const records = (state.progress && state.progress[plan.id]) || {};
+  return { ...dayPart(plan, records, today), next: dayPart(plan, records, addDays(today, 1)) };
+}
+
+function dayPart(plan, records, today) {
   const rec = records[today] || { ticks: {}, sets: {}, waterMl: 0 };
   const day = dayFor(plan, today);
   const stats = dayStats(day, rec);

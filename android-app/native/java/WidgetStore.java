@@ -41,12 +41,22 @@ final class WidgetStore {
         prefs(c).edit().putString(SNAPSHOT, json).apply();
     }
 
-    /** The latest snapshot, or null if the app has not sent one (or it is damaged). */
+    /**
+     * The latest snapshot, or null if the app has not sent one (or it is damaged). After midnight the app's
+     * snapshot is yesterday's, so its "next" part (tomorrow, worked out by the app) takes over here.
+     */
     static synchronized JSONObject snapshot(Context c) {
         String s = prefs(c).getString(SNAPSHOT, null);
         if (s == null) return null;
         try {
-            return new JSONObject(s);
+            JSONObject snap = new JSONObject(s);
+            String day = today();
+            JSONObject next = snap.optJSONObject("next");
+            if (!day.equals(snap.optString("date")) && next != null && day.equals(next.optString("date"))) {
+                prefs(c).edit().putString(SNAPSHOT, next.toString()).apply();
+                return next;
+            }
+            return snap;
         } catch (JSONException e) {
             return null;
         }

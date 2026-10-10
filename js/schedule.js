@@ -31,7 +31,6 @@ export function weeklyWeekdays(plan) {
   return wds;
 }
 
-export const isWeeklyPlan = (plan) => weeklyWeekdays(plan) !== null;
 
 /** 0 = Monday ... 6 = Sunday for a "YYYY-MM-DD" date. */
 export function weekdayOfDate(date) {
