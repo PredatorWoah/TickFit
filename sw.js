@@ -50,6 +50,8 @@ const APP_FILES = [
   'js/lift.js',
   'js/logging.js',
   'js/meals.js',
+  'js/merge.js',
+  'js/mergeui.js',
   'js/more.js',
   'js/notes.js',
   'js/notesui.js',

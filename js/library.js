@@ -85,6 +85,20 @@ export function savePick(plan, date, kind, chosen) {
   return ids;
 }
 
+/**
+ * Make a date show exactly `items` (exercises or meals from another plan, in order). Items with the same name
+ * as one on this plan's own day reuse that one; the rest are copied into the library. Returns the ids, in the
+ * same order as `items`, so ticks and logged sets can be moved over to them (see merge.js).
+ */
+export function pickItems(plan, date, kind, items) {
+  const own = plannedDay(plan, date)[kind];
+  const chosen = items.map((it) => {
+    const same = own.find((o) => norm(nameOf(kind, o)) === norm(nameOf(kind, it)));
+    return same ? { id: same.id, item: same, source: 'day' } : { id: it.id, item: it, category: it.category || guessCategory(kind, it), source: 'plan' };
+  });
+  return savePick(plan, date, kind, chosen);
+}
+
 /** Go back to the plan's own list for this date. */
 export function resetPick(plan, date, kind) {
   savePick(plan, date, kind, plannedDay(plan, date)[kind].map((it) => ({ id: it.id, item: it, source: 'day' })));

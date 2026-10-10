@@ -13,6 +13,7 @@
 
 import { todayStr } from './dates.js';
 import { validWeight, cleanLog } from './weight.js';
+import { mergeProgress } from './merge.js';
 
 const KEY = 'tickfit:v1';
 
@@ -100,6 +101,16 @@ export function removePlan(id) {
   delete state.progress[id];
   if (state.activePlanId === id) state.activePlanId = state.plans[0] ? state.plans[0].id : null;
   save();
+}
+
+/** Copy the progress of plan `fromId` into plan `toId` (see merge.js). Returns { copied, skipped } or null. */
+export function mergeProgressInto(fromId, toId) {
+  const from = state.plans.find((p) => p.id === fromId);
+  const to = state.plans.find((p) => p.id === toId);
+  if (!from || !to || from === to) return null;
+  const result = mergeProgress(from, state.progress[fromId] || {}, to, (state.progress[toId] ||= {}));
+  save();
+  return result;
 }
 
 export function setStartDate(id, startDate) {
