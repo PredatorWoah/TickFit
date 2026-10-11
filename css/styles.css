@@ -728,20 +728,63 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 :root:not([data-style='bento']) .page-title { font-size: 40px; }
 :root:not([data-style='bento']) .date-main { font-size: 50px; line-height: 0.95; }
 :root:not([data-style='bento']) .wk-title { font-size: 38px; line-height: 1; }
-:root:not([data-style='bento']) h2 { letter-spacing: 0.14em; font-weight: 800; }
+:root:not([data-style='bento']) h2:not(.sec-title):not(.sheet-title):not(.cal-title) { letter-spacing: 0.14em; font-weight: 800; }
 :root:not([data-style='bento']) .ring-pct { font-size: 38px; font-weight: 800; letter-spacing: 0; }
 :root:not([data-style='bento']) .stat-value, :root:not([data-style='bento']) .meter-val, :root:not([data-style='bento']) .water-val { font-size: 36px; letter-spacing: 0; }
 :root:not([data-style='bento']) .set-in { font-size: 32px; letter-spacing: 0; }
 :root:not([data-style='bento']) .sum-hero-num { font-size: 66px; letter-spacing: 0; }
 :root:not([data-style='bento']) .clock.big, :root:not([data-style='bento']) .rest-clock { font-size: 38px; letter-spacing: 0; }
-:root:not([data-style='bento']) .hero-card { border-color: color-mix(in srgb, var(--accent) 30%, var(--line)); background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 24%, var(--surface)), var(--surface) 62%); }
+:root:not([data-style='bento']) .hero-card { border-color: var(--line); background: var(--surface); }
 :root:not([data-style='bento']) .ring-fill { stroke-width: 8; }
 :root:not([data-style='bento']) .ring-track { stroke-width: 8; }
-:root:not([data-style='bento']) .streak { background: var(--accent); color: var(--accent-ink); }
+:root:not([data-style='bento']) .streak { background: color-mix(in srgb, var(--accent) 16%, var(--bg)); color: var(--accent-text); }
 :root:not([data-style='bento']) .streak span { color: inherit; }
 :root:not([data-style='bento']) .chip.sel { box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--accent) 80%, transparent); }
-:root:not([data-style='bento']) .tab.active { color: var(--accent-text); }
-:root:not([data-style='bento']) .tab.active::before { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+:root:not([data-style='bento']) #nav { justify-content: space-between; align-items: center; padding: 8px; border-radius: 28px; }
+:root:not([data-style='bento']) .tab { flex: 0 0 48px; height: 48px; border-radius: 22px; }
+:root:not([data-style='bento']) .tab::before { display: none; }
+/* only the open tab shows its name, in an orange pill; the others are icons (their names stay readable to screen readers) */
+:root:not([data-style='bento']) .tab:not(.active) > span:not(.tab-dot) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:root:not([data-style='bento']) .tab.active { flex: 0 0 auto; flex-direction: row; gap: 6px; padding: 0 16px; background: var(--accent); color: var(--accent-ink); font-size: 14px; font-weight: 800; }
+:root:not([data-style='bento']) .tab.active > svg { transform: none; }
+:root:not([data-style='bento']) .tab-dot { top: 4px; left: 30px; }
+
+/* Pulse colour code: orange = Move (workout), cyan = Eat (meals), violet = Water */
+.tri-card { flex-wrap: wrap; gap: 4px 16px; }
+.tri-head { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tri-head .hero-status { margin: 0 0 6px; font-size: 14px; }
+.tri-track, .tri-fill { fill: none; stroke-width: 10; }
+.tri-fill { stroke-linecap: round; transition: stroke-dashoffset 0.8s var(--ease); }
+.tri-fill.none { stroke-linecap: butt; }
+.tri-track.tri-0 { stroke: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.tri-track.tri-1 { stroke: color-mix(in srgb, var(--eat) 18%, var(--surface)); }
+.tri-track.tri-2 { stroke: color-mix(in srgb, var(--water) 20%, var(--surface)); }
+.tri-fill.tri-0 { stroke: var(--accent); }
+.tri-fill.tri-1 { stroke: var(--eat); }
+.tri-fill.tri-2 { stroke: var(--water); }
+.ring.tri.complete .ring-svg { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 55%, transparent)); }
+.tri-legend { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 10px; }
+.tri-row small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; }
+.tri-move small { color: var(--accent-text); }
+.tri-eat small { color: var(--eat); }
+.tri-water small { color: var(--water); }
+.tri-num { font-family: var(--font-num); font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.tri-num span { color: var(--muted); }
+.btn.split { justify-content: space-between; padding: 0 10px 0 22px; }
+.cta-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: rgba(0, 0, 0, 0.14); font-family: var(--font-num); font-size: 22px; font-variant-numeric: tabular-nums; }
+:root[data-style='bento'] .cta-chip { background: transparent; border: 2px solid currentColor; font-size: 18px; padding: 6px 10px; border-radius: 10px; }
+:root:not([data-style='bento']) .meal-card .bar-fill { background: var(--eat); }
+:root:not([data-style='bento']) .meal-card .hc-next b { color: var(--eat); }
+:root:not([data-style='bento']) .wk-card .hc-icon { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+:root:not([data-style='bento']) .tile.done .check { background: var(--eat); border-color: var(--eat); color: #00141c; }
+:root:not([data-style='bento']) .tile .time, :root:not([data-style='bento']) .tile-prog { color: var(--eat); }
+:root:not([data-style='bento']) .meter-fill { background: var(--eat); }
+:root:not([data-style='bento']) .tile.water .round.primary { background: var(--water); border-color: var(--water); color: #12082a; }
+:root:not([data-style='bento']) .tile.water .bar-fill.complete { background: var(--water); }
+:root:not([data-style='bento']) .stat:nth-child(3n + 2) .stat-icon { color: var(--eat); }
+:root:not([data-style='bento']) .stat:nth-child(3n) .stat-icon { color: var(--water); }
+:root[data-theme='light']:not([data-style='bento']) .tile.done .check { color: #ffffff; }
+:root[data-theme='light']:not([data-style='bento']) .tile.water .round.primary { color: #ffffff; }
 
 /* The Look picker in More */
 .style-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 14px; }
@@ -817,7 +860,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 :root[data-style='bento'] body::before { background: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1.2px, transparent 1.4px) 0 0 / 22px 22px; }
 :root[data-style='bento'] .page-title, :root[data-style='bento'] .date-main, :root[data-style='bento'] .wk-title { font-weight: 700; letter-spacing: -0.03em; }
 :root[data-style='bento'] .date-main { font-size: 44px; }
-:root[data-style='bento'] h2 { color: var(--text); font-weight: 700; letter-spacing: 0.08em; }
+:root[data-style='bento'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { color: var(--text); font-weight: 700; letter-spacing: 0.08em; }
 :root[data-style='bento'] .ring-pct, :root[data-style='bento'] .stat-value, :root[data-style='bento'] .meter-val, :root[data-style='bento'] .water-val, :root[data-style='bento'] .sum-num, :root[data-style='bento'] .sum-hero-num, :root[data-style='bento'] .set-in, :root[data-style='bento'] .clock { font-weight: 700; letter-spacing: -0.04em; }
 
 /* blocks: thick outline + hard shadow, no soft gradients */
