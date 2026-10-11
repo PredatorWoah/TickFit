@@ -68,20 +68,22 @@
         android:orientation="vertical">
 
         <Chronometer
-            android:id="@+id/w_clock"
+            android:textStyle="bold"
+        android:id="@+id/w_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/tf_accent"
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="@color/tf_accent_text"
             android:textSize="18sp" />
 
         <TextView
-            android:id="@+id/w_time"
+            android:textStyle="bold"
+        android:id="@+id/w_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="sans-serif-condensed"
             android:text="Start"
-            android:textColor="@color/tf_accent"
+            android:textColor="@color/tf_accent_text"
             android:textSize="16sp"
             android:visibility="gone" />
 
