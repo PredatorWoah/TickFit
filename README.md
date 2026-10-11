@@ -1,25 +1,26 @@
 # TickFit
 
-**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, track calories burnt and your weight, and build a plan from your own details. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
+**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, track calories burnt and your weight, and build a plan from your own details. Two looks to choose from, **Pulse** and **Bento**, plus a website, an Android app and home screen widgets. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
 
 **[Open the web app](https://predatorwoah.github.io/TickFit/)** · **[Download the Android app](https://github.com/PredatorWoah/TickFit/releases/latest)** · [Privacy](PRIVACY.md) · [Contribute](CONTRIBUTING.md)
 
 > Built to share with friends so nobody has to pay for a fitness app. Plain HTML, CSS and JavaScript with no build step, so anyone can read it, fork it and change it.
 
 <p>
-  <img src="docs/screenshots/today.png" alt="Today: progress ring, streak, and cards to start your workout and open your meals" width="240">
-  <img src="docs/screenshots/workout.png" alt="Workout mode with big weight and reps boxes and a running clock" width="240">
-  <img src="docs/screenshots/meals.png" alt="Meals with calorie and protein meters" width="240">
+  <img src="docs/screenshots/today.png" alt="Pulse look, Today: three rings for Move, Eat and Water, and an orange Continue workout button with the live time" width="240">
+  <img src="docs/screenshots/workout.png" alt="Pulse look, Workout: last time's numbers, big weight and reps boxes, a running clock" width="240">
+  <img src="docs/screenshots/meals.png" alt="Pulse look, Meals: calorie and protein meters and meal tick tiles in cyan" width="240">
 </p>
 <p>
-  <img src="docs/screenshots/builder-plan.png" alt="The plan builder showing daily targets and the week" width="240">
-  <img src="docs/screenshots/progress.png" alt="Progress screen with streak and calendar" width="240">
-  <img src="docs/screenshots/workout-light.png" alt="Light theme" width="240">
+  <img src="docs/screenshots/today-bento.png" alt="Bento look, Today: a yellow progress ring tile, a pink workout tile and thick black outlines" width="240">
+  <img src="docs/screenshots/progress-bento.png" alt="Bento look, Progress: streak tiles and the weekly summary" width="240">
+  <img src="docs/screenshots/look.png" alt="More, Look: switch between Pulse and Bento, and pick dark, light or match phone" width="240">
 </p>
+<p><em>Top: the Pulse look. Bottom: the Bento look, and the switch in More.</em></p>
 
 ## What it does
 
-- **Today:** a calm summary. A progress ring, your streak, a week strip with completion dots, one big **Start workout** button, your meals at a glance and water. Tap the day title to jump to any day of the plan.
+- **Today:** a calm summary. In Pulse, three rings show **Move** (sets, orange), **Eat** (calories, cyan) and **Water** (violet) at a glance; in Bento, one big ring on a yellow tile. Plus your streak, a week strip with completion dots, one big **Start workout** button (it shows the live time while you train), your meals at a glance and water. Tap the day title to jump to any day of the plan.
 - **Workout mode:** one screen, no pop-ups. Every exercise is listed, the one you are on is open with a row for each set and big weight and reps boxes. Tick a set and the next exercise opens by itself. A clock runs while you train (it even starts on your first ticked set), and **Finish workout** shows your time, sets and total weight lifted. Boxes are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10").
 - **Notes you can edit:** the day's notes on the Workout screen are laid out as a tidy list (labels in bold, safety warnings in their own box) and collapse when long. Tap the pencil to edit them, hit **Tidy up into points** to auto-arrange your own text, and choose to save for just that day or every day that has the same note.
 - **Meals:** calories and protein meters, each meal as a big tick tile, supplements and water.
@@ -30,9 +31,10 @@
 - **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
 - **Mix and match each day:** tap **Choose exercises** or **Choose meals** on Today, Workout or Meals to pick what you do on that date. Filter by category (it starts on the day's focus, so "Friday Back Biceps" opens on back and biceps), search, tick what you want and **move it up or down** into order, add your own, or ask Claude or Gemini for **suggestions** if you set a key. **More > Exercise and meal library** lists everything you can add, by category, with one tap to add it to today. Pick from your plan's library, its other days, or TickFit's built-in exercise list. Only that date changes; **Use the plan's list** puts it back.
 - **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
+- **Last backup you can trust:** on Android, some apps (like Drive's "Save to Drive" box) never tell TickFit whether they saved the file, so it asks you, and **Last backup** only changes when the file really was saved.
 - **Daily weight tracker:** tap the Weight tile on Today to log your weight (big number, +/- 0.1 buttons). Progress shows a chart (30 or 90 days), your 7 day average and how much you gained or lost versus last week. The average matters more than any one day, because weight swings a kilo or two with water and food.
 - **Calories per exercise:** every exercise has an effort level (lifting about 5 to 6 METs, a run about 9, a walk about 4, stretching 2.5). TickFit estimates what each exercise burnt from that, your body weight and the time it took (timed work like "30 min" uses its real time; the workout clock is used when you finish). The finish summary shows the total and each exercise, and cardio gets its own line.
-- **Correct the numbers yourself:** the calorie and time estimates are only a guess, so you can fix them. Tap **Edit** on a finished workout, or **Edit time and calories for a day** on the Progress tab (it lists the week or month, and also lets you add a workout you did without logging sets). Typed numbers win over the estimate and everything adds up to them. **More > Calorie estimates** nudges all estimates up or down 10 or 20 percent if your watch usually disagrees.
+- **Correct the numbers yourself:** the calorie and time estimates are only a guess, so you can fix them. Tap **Edit** on a finished workout, or **Edit time and calories for a day** on the Progress tab (it lists the week or month, and also lets you add a workout you did without logging sets). Typed numbers win over the estimate and everything adds up to them. **More > Calories burnt: fine tune** moves all estimates down or up (−20%, −10%, As is, +10%, +20%) if your watch usually disagrees, with an example of what it does.
 - **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, and daily averages for calories, protein and water. Total lifted comes with a desi fun comparison (a bag of atta, an LPG cylinder, a Royal Enfield Bullet, an auto rickshaw, a Maruti 800, an Indian elephant, a WAP-7 engine, the PSLV that sent Mangalyaan to Mars, all the steel in Howrah Bridge, up to INS Vikrant and past 100 million kg) and your next milestone. Each exercise shows its share of the calories and kcal per minute; the strength list shows your best set against your previous best, more reps at the same weight as a new best, an estimated 1 rep max and the weight moved. **Sets per muscle group** shows your balance and which big groups you skipped. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. Switching keeps your history: TickFit offers to **bring in the progress** of your old plan, so your streak, calendar, summaries and lifting history carry on. Each past day keeps the exercises and meals it really had, with every tick and logged set, and nothing already logged is overwritten. **Bring in progress** on the active plan does the same any time. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
