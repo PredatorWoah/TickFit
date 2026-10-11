@@ -11,7 +11,7 @@ import { updateRecord } from './store.js';
 import { dayStats, mealTotals, currentStreak } from './stats.js';
 import { sessionState, sessionMs, workoutMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
 import { weightTile } from './weightui.js';
-import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump, pickButton } from './dayview.js';
+import { createCtx, dayName, dateText, weekStrip, ring, tripleRing, waterTile, section, openJump, pickButton } from './dayview.js';
 
 /**
  * @param root     element to fill
@@ -26,8 +26,10 @@ export function renderHome(root, plan, date, goto, actions) {
   const { day } = ctx;
 
   const streak = currentStreak(plan, ctx.records(), ctx.today);
-  const hero = ring(118);
+  // Pulse shows three rings (Move, Eat, Water); Bento shows one big ring for the whole day
+  const pulse = document.documentElement.getAttribute('data-style') !== 'bento';
   const status = h('p', { class: 'hero-status' });
+  const dayButton = h('button', { class: 'day-title', type: 'button', 'aria-haspopup': 'dialog', onclick: () => openJump(ctx) }, h('span', {}, day.label), icon('chevron-down', 18));
 
   root.append(
     h(
@@ -41,15 +43,76 @@ export function renderHome(root, plan, date, goto, actions) {
       ),
       h('button', { class: 'plan-chip', type: 'button', onclick: () => actions.show('plans') }, h('span', {}, plan.name), icon('chevron-right', 16)),
       weekStrip(ctx)
-    ),
-    h('section', { class: 'hero-card' }, hero.el, h('div', { class: 'hero-text' }, h('button', { class: 'day-title', type: 'button', 'aria-haspopup': 'dialog', onclick: () => openJump(ctx) }, h('span', {}, day.label), icon('chevron-down', 18)), status))
+    )
   );
-  ctx.refreshers.push(() => {
-    const s = dayStats(day, ctx.rec());
-    hero.set(s.pct, s.total ? `${s.done}/${s.total}` : '');
-    status.textContent = s.total === 0 ? 'Rest day. Nothing to tick.' : s.done === s.total ? 'All done. Great work!' : `${s.total - s.done} left to tick`;
-    status.classList.toggle('good', s.total > 0 && s.done === s.total);
-  });
+
+  if (pulse) {
+    const tri = tripleRing(136);
+    const line = (cls, name) => {
+      const num = h('b', {});
+      const of = h('span', {});
+      return { el: h('div', { class: `tri-row ${cls}` }, h('small', {}, name), h('div', { class: 'tri-num' }, num, of)), num, of };
+    };
+    const move = line('tri-move', 'MOVE');
+    const eat = line('tri-eat', 'EAT');
+    const drink = line('tri-water', 'WATER');
+    root.append(h('section', { class: 'hero-card tri-card' }, h('div', { class: 'tri-head' }, dayButton, status), tri.el, h('div', { class: 'tri-legend' }, move.el, eat.el, drink.el)));
+    const set = (row, a, b) => {
+      row.num.textContent = a;
+      row.of.textContent = b;
+    };
+    ctx.refreshers.push(() => {
+      const rec = ctx.rec();
+      const s = dayStats(day, rec);
+      status.textContent = s.total === 0 ? 'Rest day. Nothing to tick.' : s.done === s.total ? 'All done. Great work!' : `${s.done} of ${s.total} ticked`;
+      status.classList.toggle('good', s.total > 0 && s.done === s.total);
+      // Move: sets done (or exercises ticked when a plan has no sets)
+      let pMove = null;
+      if (day.workout.length) {
+        const w = workoutSummary(day, rec);
+        if (w.setsTotal) {
+          pMove = (w.setsDone / w.setsTotal) * 100;
+          set(move, String(w.setsDone), `/${w.setsTotal} sets`);
+        } else {
+          const done = day.workout.filter((x) => rec.ticks[x.id]).length;
+          pMove = (done / day.workout.length) * 100;
+          set(move, String(done), `/${day.workout.length} done`);
+        }
+      } else set(move, 'Rest', ' day');
+      // Eat: calories eaten against the day's total, or meals ticked
+      let pEat = null;
+      if (day.meals.length) {
+        const t = mealTotals(day, rec);
+        if (t.calories) {
+          pEat = ((t.caloriesEaten ?? 0) / t.calories) * 100;
+          set(eat, (t.caloriesEaten ?? 0).toLocaleString(), `/${t.estimated ? '~' : ''}${t.calories.toLocaleString()}`);
+        } else {
+          const eaten = day.meals.filter((m) => rec.ticks[m.id]).length;
+          pEat = (eaten / day.meals.length) * 100;
+          set(eat, String(eaten), `/${day.meals.length} meals`);
+        }
+      } else set(eat, '–', ' no meals');
+      // Water: litres drunk against the day's target
+      let pWater = null;
+      const target = day.extras.waterLiters;
+      const ml = rec.waterMl || 0;
+      if (target) {
+        pWater = (ml / (target * 1000)) * 100;
+        set(drink, (ml / 1000).toFixed(2).replace(/\.?0+$/, '') || '0', `/${target} L`);
+      } else set(drink, (ml / 1000).toFixed(2).replace(/\.?0+$/, '') || '0', ' L');
+      tri.set([pMove, pEat, pWater]);
+      tri.el.classList.toggle('complete', s.total > 0 && s.done === s.total);
+    });
+  } else {
+    const hero = ring(118);
+    root.append(h('section', { class: 'hero-card' }, hero.el, h('div', { class: 'hero-text' }, dayButton, status)));
+    ctx.refreshers.push(() => {
+      const s = dayStats(day, ctx.rec());
+      hero.set(s.pct, s.total ? `${s.done}/${s.total}` : '');
+      status.textContent = s.total === 0 ? 'Rest day. Nothing to tick.' : s.done === s.total ? 'All done. Great work!' : `${s.total - s.done} left to tick`;
+      status.classList.toggle('good', s.total > 0 && s.done === s.total);
+    });
+  }
 
   // ----- workout card -----
   const wkCard = h('div', { class: 'home-card wk-card' });
@@ -65,10 +128,13 @@ export function renderHome(root, plan, date, goto, actions) {
     const go = () => actions.show('workout');
     let sub = `${day.workout.length} exercises · about ${estimateMinutes(day)} min`;
     let label = 'Start workout';
+    let chip = null; // the live time, shown inside the button while a workout runs
     let cls = 'btn primary wide big';
     if (state === 'active') {
       sub = `In progress · ${formatDuration(sessionMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`;
       label = 'Continue workout';
+      chip = h('span', { class: 'cta-chip', 'aria-hidden': 'true' }, formatDuration(sessionMs(rec)), icon('play', 16));
+      cls += ' split';
     } else if (state === 'finished') {
       sub = `Done in ${formatDuration(workoutMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`;
       label = 'View workout';
@@ -89,7 +155,8 @@ export function renderHome(root, plan, date, goto, actions) {
             go();
           },
         },
-        label
+        h('span', {}, label),
+        chip
       ),
       pickButton(ctx, 'workout')
     );
