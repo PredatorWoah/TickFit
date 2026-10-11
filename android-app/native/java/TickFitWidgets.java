@@ -31,6 +31,10 @@ import org.json.JSONObject;
  *
  * Tapping a widget opens the app on the right screen. Nothing here can crash the home screen: a problem
  * shows a small "Open TickFit" message instead.
+ *
+ * They follow the look picked in the app (the snapshot's "style"): Pulse uses the layouts as written, with
+ * three rings for Move, Eat and Water; Bento uses the "_bento" twin of each layout, drawable and colour, which
+ * android-app/scripts/bento.mjs makes when the app is built.
  */
 public final class TickFitWidgets {
     static final String EXTRA_SCREEN = "tickfit_screen";
@@ -202,6 +206,47 @@ public final class TickFitWidgets {
         return v;
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // the two looks
+
+    static boolean bento(JSONObject s) {
+        return s != null && "bento".equals(s.optString("style"));
+    }
+
+    /** The Bento twin of a layout or drawable ("widget_ring" -> "widget_ring_bento"), or the Pulse one if missing. */
+    private static int twin(Context c, JSONObject s, int id, String type) {
+        if (!bento(s)) return id;
+        try {
+            String name = c.getResources().getResourceEntryName(id) + "_bento";
+            int other = c.getResources().getIdentifier(name, type, c.getPackageName());
+            return other != 0 ? other : id;
+        } catch (RuntimeException e) {
+            return id;
+        }
+    }
+
+    private static RemoteViews views(Context c, JSONObject s, int layout) {
+        return new RemoteViews(c.getPackageName(), twin(c, s, layout, "layout"));
+    }
+
+    private static int drawable(Context c, JSONObject s, int id) {
+        return twin(c, s, id, "drawable");
+    }
+
+    /** A colour from the look's palette: tf_x for Pulse, tb_x for Bento (each with its own dark version). */
+    private static int color(Context c, JSONObject s, int id) {
+        if (bento(s)) {
+            try {
+                String name = "tb_" + c.getResources().getResourceEntryName(id).substring(3);
+                int other = c.getResources().getIdentifier(name, "color", c.getPackageName());
+                if (other != 0) return c.getColor(other);
+            } catch (RuntimeException ignored) {
+                // fall back to the Pulse colour
+            }
+        }
+        return c.getColor(id);
+    }
+
     /** The day's ring: done and total, with water counted once the widget's + button reaches the target. */
     private static int[] ringNumbers(JSONObject s) {
         JSONObject r = s.optJSONObject("ring");
@@ -214,31 +259,75 @@ public final class TickFitWidgets {
         return new int[] { done, total, pct };
     }
 
-    /** The progress ring as a picture, in the theme's colours (widgets can't draw arcs themselves). */
-    private static Bitmap ringBitmap(Context c, int sizeDp, int pct) {
+    /** Bento's ring as a picture (widgets can't draw arcs themselves): a black arc on a pale track. */
+    private static Bitmap ringBitmap(Context c, JSONObject s, int sizeDp, int pct) {
         float density = Math.min(3f, c.getResources().getDisplayMetrics().density);
         int px = Math.max(16, Math.round(sizeDp * density));
         Bitmap b = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(b);
-        float stroke = px * 7f / 64f;
+        float stroke = px * 8f / 64f;
         float r = px * 26f / 64f;
         float cx = px / 2f;
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         p.setStyle(Paint.Style.STROKE);
         p.setStrokeWidth(stroke);
-        p.setStrokeCap(Paint.Cap.ROUND);
-        p.setColor(c.getColor(R.color.tf_track));
+        p.setColor(color(c, s, R.color.tf_track));
         canvas.drawCircle(cx, cx, r, p);
         if (pct > 0) {
-            p.setColor(c.getColor(R.color.tf_accent));
+            p.setColor(color(c, s, R.color.tf_text));
             canvas.drawArc(new RectF(cx - r, cx - r, cx + r, cx + r), -90f, 360f * Math.min(100, pct) / 100f, false, p);
         }
         return b;
     }
 
+    /** Pulse's three rings as a picture, outside in: Move (orange), Eat (cyan), Water (violet). -1 = not today. */
+    private static Bitmap tripleRingBitmap(Context c, JSONObject s, int sizeDp, int[] pcts) {
+        float density = Math.min(3f, c.getResources().getDisplayMetrics().density);
+        int px = Math.max(16, Math.round(sizeDp * density));
+        Bitmap b = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(b);
+        float cx = px / 2f;
+        float stroke = px * 10f / 110f;
+        float[] radii = { px * 49f / 110f, px * 37f / 110f, px * 25f / 110f };
+        int[] fills = { R.color.tf_accent, R.color.tf_eat, R.color.tf_water };
+        int[] tracks = { R.color.tf_track_move, R.color.tf_track_eat, R.color.tf_track_water };
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(stroke);
+        for (int i = 0; i < 3; i++) {
+            float r = radii[i];
+            p.setStrokeCap(Paint.Cap.BUTT);
+            p.setColor(color(c, s, tracks[i]));
+            canvas.drawCircle(cx, cx, r, p);
+            if (pcts[i] > 0) {
+                p.setStrokeCap(Paint.Cap.ROUND);
+                p.setColor(color(c, s, fills[i]));
+                canvas.drawArc(new RectF(cx - r, cx - r, cx + r, cx + r), -90f, 360f * Math.min(100, pcts[i]) / 100f, false, p);
+            }
+        }
+        return b;
+    }
+
+    /** Move, Eat and Water from the snapshot, with the widget's own + water taps counted in. */
+    private static int[] ringPcts(JSONObject s) {
+        JSONObject r = s.optJSONObject("rings");
+        int move = r == null ? -1 : r.optInt("move", -1);
+        int eat = r == null ? -1 : r.optInt("eat", -1);
+        JSONObject w = s.optJSONObject("water");
+        int water = w != null && w.optInt("target", 0) > 0 ? pct(w.optInt("ml", 0), w.optInt("target", 0)) : -1;
+        return new int[] { move, eat, water };
+    }
+
     private static void ringInto(Context c, RemoteViews v, JSONObject s, int sizeDp, boolean longSub) {
         int[] n = ringNumbers(s);
-        v.setImageViewBitmap(R.id.w_ring, ringBitmap(c, sizeDp, n[2]));
+        if (bento(s)) {
+            v.setImageViewBitmap(R.id.w_ring, ringBitmap(c, s, sizeDp, n[2]));
+        } else {
+            // Pulse: the day's % sits small in the middle of the three rings, the rings say the rest
+            v.setImageViewBitmap(R.id.w_ring, tripleRingBitmap(c, s, sizeDp, ringPcts(s)));
+            v.setTextViewTextSize(R.id.w_pct, android.util.TypedValue.COMPLEX_UNIT_SP, sizeDp >= 110 ? 15 : 13);
+            v.setViewVisibility(R.id.w_sub, View.GONE);
+        }
         if (n[1] == 0) {
             v.setTextViewText(R.id.w_pct, "Rest");
             v.setTextViewText(R.id.w_sub, "day");
@@ -295,7 +384,7 @@ public final class TickFitWidgets {
     // the widgets
 
     static RemoteViews ring(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_ring);
+        RemoteViews v = views(c, s, R.layout.widget_ring);
         ringInto(c, v, s, 120, false);
         streakInto(v, R.id.w_streak, s.optInt("streak", 0), "");
         v.setTextViewText(R.id.w_label, s.optString("label"));
@@ -304,7 +393,7 @@ public final class TickFitWidgets {
     }
 
     static RemoteViews today(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_today);
+        RemoteViews v = views(c, s, R.layout.widget_today);
         ringInto(c, v, s, 104, true);
         streakInto(v, R.id.w_streak, s.optInt("streak", 0), " day streak");
         v.setTextViewText(R.id.w_label, s.optString("label"));
@@ -314,7 +403,7 @@ public final class TickFitWidgets {
             String state = wk.optString("state");
             v.setTextViewText(R.id.w_wk_title, wk.optString("title"));
             v.setTextViewText(R.id.w_wk_sub, wk.optString("sub"));
-            v.setImageViewResource(R.id.w_wk_icon, "finished".equals(state) || "rest".equals(state) ? R.drawable.ic_w_check : R.drawable.ic_w_play);
+            v.setImageViewResource(R.id.w_wk_icon, drawable(c, s, "finished".equals(state) || "rest".equals(state) ? R.drawable.ic_w_check : R.drawable.ic_w_play));
         }
         barInto(v, s.optJSONObject("kcal"), R.id.w_kcal_block, R.id.w_kcal_text, R.id.w_kcal_bar);
         barInto(v, s.optJSONObject("protein"), R.id.w_protein_block, R.id.w_protein_text, R.id.w_protein_bar);
@@ -326,7 +415,7 @@ public final class TickFitWidgets {
     }
 
     static RemoteViews nextUp(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_nextup);
+        RemoteViews v = views(c, s, R.layout.widget_nextup);
         JSONObject wk = s.optJSONObject("workout");
         if (wk == null) wk = new JSONObject();
         String state = wk.optString("state", "rest");
@@ -347,13 +436,13 @@ public final class TickFitWidgets {
             v.setViewVisibility(R.id.w_time, View.VISIBLE);
             v.setTextViewText(R.id.w_time, "finished".equals(state) ? wk.optString("timeText", "Done") : "rest".equals(state) ? "Rest" : "Start");
         }
-        v.setImageViewResource(R.id.w_icon, "finished".equals(state) || "rest".equals(state) ? R.drawable.ic_w_check : R.drawable.ic_w_play);
+        v.setImageViewResource(R.id.w_icon, drawable(c, s, "finished".equals(state) || "rest".equals(state) ? R.drawable.ic_w_check : R.drawable.ic_w_play));
         v.setOnClickPendingIntent(R.id.w_root, open(c, "workout"));
         return v;
     }
 
     static RemoteViews water(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_water);
+        RemoteViews v = views(c, s, R.layout.widget_water);
         JSONObject w = s.optJSONObject("water");
         int ml = w == null ? 0 : w.optInt("ml", 0);
         int target = w == null ? 0 : w.optInt("target", 0);
@@ -381,7 +470,7 @@ public final class TickFitWidgets {
     }
 
     static RemoteViews week(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_week);
+        RemoteViews v = views(c, s, R.layout.widget_week);
         v.setTextViewText(R.id.w_streak, String.valueOf(s.optInt("streak", 0)));
         JSONArray days = s.optJSONArray("week");
         for (int i = 0; i < 7; i++) {
@@ -389,15 +478,15 @@ public final class TickFitWidgets {
             String letter = d == null ? "" : d.optString("l");
             boolean isToday = d != null && d.optBoolean("today");
             v.setTextViewText(WEEK_LETTERS[i], letter);
-            v.setTextColor(WEEK_LETTERS[i], c.getColor(isToday ? R.color.tf_text : R.color.tf_muted));
-            v.setImageViewResource(WEEK_DOTS[i], dotFor(d == null ? "future" : d.optString("s", "future")));
+            v.setTextColor(WEEK_LETTERS[i], color(c, s, isToday ? R.color.tf_text : R.color.tf_muted));
+            v.setImageViewResource(WEEK_DOTS[i], drawable(c, s, dotFor(d == null ? "future" : d.optString("s", "future"))));
         }
         v.setOnClickPendingIntent(R.id.w_root, open(c, "today"));
         return v;
     }
 
     static RemoteViews lifted(Context c, JSONObject s) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_lifted);
+        RemoteViews v = views(c, s, R.layout.widget_lifted);
         JSONObject l = s.optJSONObject("lifted");
         if (l == null) l = new JSONObject();
         v.setTextViewText(R.id.w_kg, l.optString("kgText", "0"));

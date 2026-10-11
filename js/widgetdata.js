@@ -98,10 +98,23 @@ export function widgetSnapshot(state, today) {
   const plan = (state.plans || []).find((p) => p.id === state.activePlanId) || (state.plans || [])[0];
   if (!plan) return null;
   const records = (state.progress && state.progress[plan.id]) || {};
-  return { ...dayPart(plan, records, today), next: dayPart(plan, records, addDays(today, 1)) };
+  const style = (state.settings || {}).style === 'bento' ? 'bento' : 'pulse'; // the widgets follow the app's look
+  return { ...dayPart(plan, records, today, style), next: dayPart(plan, records, addDays(today, 1), style) };
 }
 
-function dayPart(plan, records, today) {
+/** Pulse's three rings as percentages (0 to 100), or -1 for one the day doesn't have. Same sums as Today. */
+function ringsPart(day, rec, meals, waterMl, waterTarget) {
+  let move = -1;
+  if (day.workout.length) {
+    const w = workoutSummary(day, rec);
+    move = w.setsTotal ? pctOf(w.setsDone, w.setsTotal) : pctOf(day.workout.filter((x) => rec.ticks && rec.ticks[x.id]).length, day.workout.length);
+  }
+  let eat = -1;
+  if (day.meals.length) eat = meals.calories ? pctOf(meals.caloriesEaten || 0, meals.calories) : pctOf(day.meals.filter((m) => rec.ticks && rec.ticks[m.id]).length, day.meals.length);
+  return { move, eat, water: waterTarget > 0 ? pctOf(waterMl, waterTarget) : -1 };
+}
+
+function dayPart(plan, records, today, style) {
   const rec = records[today] || { ticks: {}, sets: {}, waterMl: 0 };
   const day = dayFor(plan, today);
   const stats = dayStats(day, rec);
@@ -112,6 +125,7 @@ function dayPart(plan, records, today) {
 
   return {
     v: SNAPSHOT_VERSION,
+    style,
     date: today,
     dateText: dateText(today),
     label: shortLabel(day.label),
@@ -127,6 +141,7 @@ function dayPart(plan, records, today) {
     kcal: meals.calories !== null ? { text: `${fmt(meals.caloriesEaten || 0)} / ${tilde}${fmt(meals.calories)} kcal`, pct: pctOf(meals.caloriesEaten || 0, meals.calories) } : null,
     protein: meals.protein !== null ? { text: `${fmt(meals.proteinEaten || 0)} / ${tilde}${fmt(meals.protein)} g`, pct: pctOf(meals.proteinEaten || 0, meals.protein) } : null,
     water: { ml: waterMl, target: waterTarget, step: 250 },
+    rings: ringsPart(day, rec, meals, waterMl, waterTarget),
     workout: workoutPart(plan, records, day, rec, today),
     week: weekPart(plan, records, today),
     lifted: liftedPart(plan, records, today),

@@ -2,7 +2,8 @@
 //   * version number and version code
 //   * the vibrate permission (the rest timer buzzes)
 //   * TickFit's launcher icon (normal, round and adaptive) and a dark launch screen
-//   * the six home screen widgets: their Java code and resources from android-app/native, the manifest
+//   * the six home screen widgets: their Java code and resources from android-app/native (plus their Bento
+//     look, made by bento.mjs), the manifest
 //     entries, and the TickFitWidget plugin that lets the app send them fresh numbers
 //
 //   VERSION_NAME=1.0.0 VERSION_CODE=1 node scripts/customize.mjs
@@ -14,6 +15,7 @@ import { readFileSync, writeFileSync, rmSync, mkdirSync, readdirSync, statSync, 
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { bentoFiles } from './bento.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
@@ -81,6 +83,12 @@ for (const folder of readdirSync(join(native, 'res'))) {
     mkdirSync(join(res, folder), { recursive: true });
     cpSync(join(native, 'res', folder, f), target);
   }
+}
+// the Bento look's twin of every widget layout and drawable (see bento.mjs)
+for (const { path, text } of bentoFiles(join(native, 'res'))) {
+  const target = join(res, path);
+  if (existsSync(target)) throw new Error(`res/${path} already exists in the generated project`);
+  writeFileSync(target, text);
 }
 const WIDGETS = [
   ['Ring', 'ring'],

@@ -10,7 +10,7 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 - The status bar icons follow your light or dark theme.
 - **Back works inside the app.** The Back button or swipe-back closes a pop-up first, then goes up one screen (a sub-screen to its parent, another tab to Today), and only leaves the app from Today.
 - Ticking a set or a meal gives a light haptic tap.
-- **Home screen widgets.** Long press the home screen, **Widgets**, **TickFit**. Six of them: **Day ring** (2×2), **Today** (4×2: ring, workout, calories, protein, water), **Next up** (4×1: the next exercise with a live workout clock), **Water** (2×1, with a + button that adds 250 ml), **Streak and week** (4×1) and **Weight lifted** (2×2, compared with something Indian). They follow the phone's light or dark mode. Tapping one opens the right screen.
+- **Home screen widgets.** Long press the home screen, **Widgets**, **TickFit**. Six of them: **Day ring** (2×2), **Today** (4×2: ring, workout, calories, protein, water), **Next up** (4×1: the next exercise with a live workout clock), **Water** (2×1, with a + button that adds 250 ml), **Streak and week** (4×1) and **Weight lifted** (2×2, compared with something Indian). They follow the look you pick in TickFit (**Pulse**: dark cards with Move, Eat and Water rings in orange, cyan and violet; **Bento**: cream blocks with thick outlines, a yellow streak sticker and pink buttons) and the phone's light or dark mode. Switch the look in More and they change within a moment. Tapping one opens the right screen.
 
 ## How the widgets work (for developers)
 

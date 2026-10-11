@@ -32,10 +32,11 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/w_pct"
+                    android:textStyle="bold"
+        android:id="@+id/w_pct"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-black"
+                    android:fontFamily="sans-serif-condensed"
                     android:text="64%"
                     android:textColor="@color/tf_text"
                     android:textSize="22sp" />
@@ -196,7 +197,7 @@
                     android:indeterminate="false"
                     android:max="100"
                     android:progress="62"
-                    android:progressDrawable="@drawable/widget_bar" />
+                    android:progressDrawable="@drawable/widget_bar_eat" />
             </LinearLayout>
 
             <LinearLayout
@@ -246,7 +247,7 @@
                         android:indeterminate="false"
                         android:max="100"
                         android:progress="62"
-                        android:progressDrawable="@drawable/widget_bar" />
+                        android:progressDrawable="@drawable/widget_bar_eat" />
                 </LinearLayout>
 
                 <LinearLayout

@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Home screen widget colours, dark theme (TickFit's default look). -->
+<!-- Home screen widget colours for the Pulse look, dark theme (the default). -->
 <resources>
-    <color name="tf_surface">#121720</color>
-    <color name="tf_surface2">#1A212C</color>
-    <color name="tf_track">#242D3B</color>
-    <color name="tf_text">#F4F7FB</color>
-    <color name="tf_muted">#9AA7B8</color>
-    <color name="tf_accent">#C6F432</color>
-    <color name="tf_accent_ink">#121A00</color>
-    <color name="tf_accent_soft">#73C6F432</color>
-    <color name="tf_chip">#29C6F432</color>
-    <color name="tf_chip_text">#C6F432</color>
-    <color name="tf_water">#4CC9F0</color>
-    <color name="tf_water_ink">#06212B</color>
-    <color name="tf_lime">#C6F432</color>
-    <color name="tf_lime_ink">#121A00</color>
-    <color name="tf_lime_track">#2E121A00</color>
+    <color name="tf_surface">#12151C</color>
+    <color name="tf_surface2">#1B1F29</color>
+    <color name="tf_track">#232835</color>
+    <color name="tf_text">#F3F5F8</color>
+    <color name="tf_muted">#8B93A3</color>
+    <color name="tf_accent">#FF6A2B</color>
+    <color name="tf_accent_ink">#1A0A00</color>
+    <color name="tf_accent_text">#FF8A52</color>
+    <color name="tf_accent_soft">#73FF6A2B</color>
+    <color name="tf_chip">#2A1708</color>
+    <color name="tf_chip_text">#FF8A52</color>
+    <color name="tf_water">#A78BFA</color>
+    <color name="tf_water_ink">#12082A</color>
+    <color name="tf_eat">#2EC4FF</color>
+    <color name="tf_track_move">#3A2214</color>
+    <color name="tf_track_eat">#0F2B38</color>
+    <color name="tf_track_water">#2A2240</color>
+    <color name="tf_lime">#FF6A2B</color>
+    <color name="tf_lime_ink">#1A0A00</color>
+    <color name="tf_lime_track">#2E1A0A00</color>
+    <color name="tf_ink">#232835</color>
 </resources>

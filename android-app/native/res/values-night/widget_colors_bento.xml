@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home screen widget colours for the Bento look, dark theme. -->
+<resources>
+    <color name="tb_surface">#16140F</color>
+    <color name="tb_surface2">#221F18</color>
+    <color name="tb_track">#3B3527</color>
+    <color name="tb_text">#F5ECD6</color>
+    <color name="tb_muted">#C2B89F</color>
+    <color name="tb_accent">#FF4F8B</color>
+    <color name="tb_accent_ink">#111111</color>
+    <color name="tb_accent_text">#FF7AA8</color>
+    <color name="tb_accent_soft">#99FF4F8B</color>
+    <color name="tb_chip">#FFD23F</color>
+    <color name="tb_chip_text">#111111</color>
+    <color name="tb_water">#5C76FF</color>
+    <color name="tb_water_ink">#FFFFFF</color>
+    <color name="tb_eat">#8FA2FF</color>
+    <color name="tb_track_move">#3B3527</color>
+    <color name="tb_track_eat">#3B3527</color>
+    <color name="tb_track_water">#3B3527</color>
+    <color name="tb_lime">#FFD23F</color>
+    <color name="tb_lime_ink">#111111</color>
+    <color name="tb_lime_track">#33111111</color>
+    <color name="tb_ink">#F5ECD6</color>
+</resources>

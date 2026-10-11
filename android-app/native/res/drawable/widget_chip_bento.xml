@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bento: the yellow streak sticker -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/tb_chip" />
+    <stroke android:width="2dp" android:color="@color/tb_ink" />
+    <corners android:radius="10dp" />
+</shape>
