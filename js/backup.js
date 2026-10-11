@@ -15,7 +15,10 @@ const makeFile = (name) => new File([JSON.stringify(exportBackup(), null, 2)], f
 
 /**
  * Android app: a WebView cannot download files, so write the backup into the app's cache folder and open
- * the phone's share sheet on it (the person picks Drive, Files, WhatsApp, email...). Returns false if cancelled.
+ * the phone's share sheet on it (the person picks Drive, Files, WhatsApp, email...).
+ * Returns true when it was shared, or 'unsure' when Android said "cancelled": Android also says that when the
+ * app they picked opens as a pop-up (Drive's "Save to Drive", Quick Share...) even though the file was saved,
+ * so the screen asks the person instead of guessing.
  */
 async function shareNative(name) {
   const Filesystem = nativePlugin('Filesystem');
@@ -27,7 +30,7 @@ async function shareNative(name) {
     markBackedUp();
     return true;
   } catch (e) {
-    if (/cancel/i.test(String((e && e.message) || e))) return false; // they closed the share sheet
+    if (/cancel/i.test(String((e && e.message) || e))) return 'unsure'; // closed the sheet, or saved through a pop-up
     throw e;
   }
 }

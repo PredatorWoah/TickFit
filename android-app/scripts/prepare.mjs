@@ -15,7 +15,7 @@ if (!/^[0-9A-Za-z.+-]{1,40}$/.test(version)) throw new Error(`Odd version name "
 
 rmSync(www, { recursive: true, force: true });
 mkdirSync(www, { recursive: true });
-for (const f of ['index.html', 'manifest.webmanifest', 'css', 'js', 'data', 'icons', 'vendor']) cpSync(join(repo, f), join(www, f), { recursive: true });
+for (const f of ['index.html', 'manifest.webmanifest', 'css', 'fonts', 'js', 'data', 'icons', 'vendor']) cpSync(join(repo, f), join(www, f), { recursive: true });
 
 // Tell the app which version of the Android app it is (shown on the More screen).
 const file = join(www, 'js', 'platform.js');

@@ -5,7 +5,7 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 ## What is different from the website
 
 - **Separate data.** The app keeps its own saved data, apart from the website's. To move your data in either direction, use **More, Back up now** on one side and **More, Restore from a backup file** on the other.
-- **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email.
+- **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email. Some apps (like Drive's "Save to Drive" box) do not tell TickFit whether they saved the file, so TickFit then asks "Did the backup get saved?" and only updates **Last backup** when you say yes.
 - **No service worker.** Every file is already on the phone. Updates come as a new APK (see below).
 - The status bar icons follow your light or dark theme.
 - **Back works inside the app.** The Back button or swipe-back closes a pop-up first, then goes up one screen (a sub-screen to its parent, another tab to Today), and only leaves the app from Today.

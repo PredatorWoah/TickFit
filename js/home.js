@@ -52,7 +52,7 @@ export function renderHome(root, plan, date, goto, actions) {
   });
 
   // ----- workout card -----
-  const wkCard = h('div', { class: 'home-card' });
+  const wkCard = h('div', { class: 'home-card wk-card' });
   const drawWorkoutCard = () => {
     clear(wkCard);
     if (!day.workout.length) {
@@ -98,7 +98,7 @@ export function renderHome(root, plan, date, goto, actions) {
   ctx.refreshers.push(drawWorkoutCard);
 
   // ----- meals card -----
-  const mealCard = h('div', { class: 'home-card' });
+  const mealCard = h('div', { class: 'home-card meal-card' });
   const drawMealCard = () => {
     clear(mealCard);
     if (!day.meals.length) {

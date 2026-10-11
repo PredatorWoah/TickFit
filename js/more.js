@@ -88,16 +88,43 @@ export function renderMore(root, actions) {
     )
   );
 
-  // ----- appearance -----
+  // ----- appearance: the look (Pulse or Bento) and the theme -----
+  const style = settings.style === 'bento' ? 'bento' : 'pulse';
+  const naturalTheme = (st) => (st === 'bento' ? 'light' : 'dark');
+  const currentTheme = settings.theme || naturalTheme(style);
+  const styleButtons = [
+    ['pulse', 'Pulse', 'Dark, bold, orange'],
+    ['bento', 'Bento', 'Bright blocks, thick lines'],
+  ].map(([id, name, about]) =>
+    h(
+      'button',
+      {
+        type: 'button',
+        class: `style-opt style-${id}`,
+        'aria-pressed': String(style === id),
+        onclick: () => {
+          if (id === style) return;
+          setSetting('style', id);
+          // Each look comes with its own natural theme, unless the person follows the phone
+          if (currentTheme !== 'auto') setSetting('theme', naturalTheme(id));
+          applyTheme(getState().settings);
+          again();
+        },
+      },
+      h('span', { class: 'style-swatch', 'aria-hidden': 'true' }, h('i', {}), h('i', {}), h('i', {})),
+      h('b', {}, name),
+      h('small', {}, about)
+    )
+  );
   const themeButtons = ['dark', 'light', 'auto'].map((t) =>
     h(
       'button',
       {
         type: 'button',
-        'aria-pressed': String((settings.theme || 'dark') === t),
+        'aria-pressed': String(currentTheme === t),
         onclick: () => {
           setSetting('theme', t);
-          applyTheme(t);
+          applyTheme(getState().settings);
           again();
         },
       },
@@ -193,21 +220,44 @@ export function renderMore(root, actions) {
 
   root.append(
     h('h1', { class: 'page-title' }, 'More'),
-    planCard,
-    dataCard,
-    h('section', { class: 'card' }, h('h2', {}, 'Appearance'), h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)),
     h(
       'section',
       { class: 'card' },
-      h('h2', {}, 'Calorie estimates'),
-      h('p', { class: 'hint' }, 'TickFit estimates the calories you burn. If your watch or gym machine usually shows more or less, nudge all the estimates here. You can also correct a single day on the Progress tab. Calories you type in yourself are never changed.'),
+      h('h2', {}, 'Look'),
+      h('div', { class: 'style-pick', role: 'group', 'aria-label': 'Look' }, styleButtons),
+      h('h2', { class: 'sub-h' }, 'Theme'),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'Theme' }, themeButtons)
+    ),
+    planCard,
+    dataCard,
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Calories burnt: fine tune'),
+      h('p', { class: 'hint' }, 'TickFit guesses how many calories your workouts burn. If your watch or the gym machine usually shows a different number, move all of TickFit\'s guesses up or down to match it.'),
       h(
         'div',
-        { class: 'seg', role: 'group', 'aria-label': 'Calorie estimate adjustment' },
-        [80, 90, 100, 110, 120].map((pct) =>
-          h('button', { type: 'button', 'aria-pressed': String(Math.round(burnFactor(settings) * 100) === pct), onclick: () => { setSetting('burnCalibration', pct); again(); } }, `${pct}%`)
+        { class: 'seg', role: 'group', 'aria-label': 'Make calorie burn estimates lower or higher' },
+        [
+          [80, '−20%'],
+          [90, '−10%'],
+          [100, 'As is'],
+          [110, '+10%'],
+          [120, '+20%'],
+        ].map(([pct, label]) =>
+          h('button', { type: 'button', 'aria-pressed': String(Math.round(burnFactor(settings) * 100) === pct), onclick: () => { setSetting('burnCalibration', pct); again(); } }, label)
         )
-      )
+      ),
+      h(
+        'p',
+        { class: 'hint tight' },
+        (() => {
+          const pct = Math.round(burnFactor(settings) * 100);
+          const ex = Math.round(300 * burnFactor(settings));
+          return pct === 100 ? 'Now: guesses shown as they are. Example: a 300 kcal workout shows 300 kcal.' : `Now: guesses ${pct > 100 ? 'raised' : 'lowered'} by ${Math.abs(pct - 100)}%. Example: a 300 kcal workout shows ${ex} kcal.`;
+        })()
+      ),
+      h('p', { class: 'hint tight' }, 'Only affects estimates. Calories you type in yourself never change. To fix one day, use the Progress tab.')
     ),
     h(
       'section',
