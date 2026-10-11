@@ -1,7 +1,7 @@
 // Tests for the exercise / meal library and per-day picks. Run: node tests/library.mjs
 import { parsePlanText, validatePlan } from '../js/parser.js';
 import { dayFor, plannedDay } from '../js/schedule.js';
-import { candidates, focusFor, savePick, resetPick, isPicked, customCandidate } from '../js/library.js';
+import { candidates, focusFor, savePick, resetPick, isPicked, customCandidate, chosenFor, addToDay, addToLibrary, libraryUses, removeFromLibrary } from '../js/library.js';
 import { dayStats } from '../js/stats.js';
 
 let fail = 0;
@@ -75,6 +75,19 @@ const again = validatePlan(JSON.parse(JSON.stringify(wp)));
 ok(again.ok && again.plan.library.exercises.length === wp.library.exercises.length, 'library survives a backup round trip');
 ok(again.plan.picks[fri].workout.length === 4 && again.plan.library.exercises.find((x) => x.id === wp.picks[fri].workout[3]), 'picks survive and still point at library ids');
 ok(!validatePlan({ name: 'x', days: [{ label: 'd', workout: [], meals: [] }], picks: { 'not a date': { workout: ['a'] }, '2026-01-01': 'junk' } }).plan.picks, 'junk picks are dropped');
+
+// Library screen helpers: add to a day, add your own, remove only what no day uses.
+const sun = '2026-10-11';
+const all = candidates(wp, sun, 'workout');
+ok(addToDay(wp, sun, 'workout', all.find((c) => c.item.exercise === 'Squat'), all) && dayFor(wp, sun).workout.map((w) => w.exercise).join() === 'Squat', 'add one exercise to a day');
+ok(!addToDay(wp, sun, 'workout', all.find((c) => c.item.exercise === 'Squat'), candidates(wp, sun, 'workout')), 'adding the same one twice is refused');
+ok(chosenFor(wp, sun, 'workout', candidates(wp, sun, 'workout')).length === 1, 'chosenFor lists what is on the day');
+const before = wp.library.exercises.length;
+const id = addToLibrary(wp, 'workout', customCandidate('workout', 'Pec Deck', 'Chest'));
+ok(wp.library.exercises.length === before + 1 && libraryUses(wp, id) === 0, 'add your own to the library without touching any day');
+ok(removeFromLibrary(wp, 'workout', id) && wp.library.exercises.length === before, 'an unused item can be removed');
+const squatId = wp.picks[sun].workout[0];
+ok(libraryUses(wp, squatId) >= 1 && !removeFromLibrary(wp, 'workout', squatId), 'an item a day uses cannot be removed');
 
 console.log(fail ? `\n${fail} failed` : '\nAll library tests passed');
 process.exit(fail ? 1 : 0);

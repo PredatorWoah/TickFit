@@ -46,10 +46,18 @@ export const hasGeminiKey = () => !!getGeminiConfig().key;
  * Throws an Error with a friendly message on any problem.
  */
 export async function convertWithGemini(docText) {
-  const { key, model } = getGeminiConfig();
-  if (!key) throw new Error('Add your Gemini API key in More first.');
   if (!docText.trim()) throw new Error('Paste or upload your plan text first.');
   if (docText.length > MAX_DOC_CHARS) throw new Error(`That document is very long (${docText.length.toLocaleString()} characters). Trim it to under ${MAX_DOC_CHARS.toLocaleString()}.`);
+  return askGemini(buildPrompt(docText), { maxTokens: 32768 });
+}
+
+/**
+ * Ask Gemini anything that should come back as JSON, and return the reply text.
+ * Throws an Error with a friendly message on any problem.
+ */
+export async function askGemini(prompt, { maxTokens = 8192 } = {}) {
+  const { key, model } = getGeminiConfig();
+  if (!key) throw new Error('Add your Gemini API key in More first.');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -60,8 +68,8 @@ export async function convertWithGemini(docText) {
       signal: controller.signal,
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, // header, not URL, so it never lands in logs
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: buildPrompt(docText) }] }],
-        generationConfig: { temperature: 0.1, responseMimeType: 'application/json', maxOutputTokens: 32768 },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, responseMimeType: 'application/json', maxOutputTokens: maxTokens },
       }),
     });
   } catch (e) {

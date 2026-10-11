@@ -7,7 +7,7 @@ import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting 
 import { parsePlanText } from './parser.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
-import { convertWithGemini, hasGeminiKey } from './gemini.js';
+import { activeAI, convertPlanWithAI } from './aiassist.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
 import { weeklyWeekdays, weekdayName } from './schedule.js';
 import { openMergeSheet, offerMerge, canMergeInto } from './mergeui.js';
@@ -220,7 +220,7 @@ export function renderImport(root, actions) {
       try {
         box.value = await extractText(file);
         clear(messages);
-        status.textContent = `Read ${file.name} (${box.value.length.toLocaleString()} characters) on this device. If it is already plan JSON, tap Import. If it is a normal document, convert it with ${hasGeminiKey() ? 'Gemini or ' : ''}a chatbot using "Copy prompt with this text".`;
+        status.textContent = `Read ${file.name} (${box.value.length.toLocaleString()} characters) on this device. If it is already plan JSON, tap Import. If it is a normal document, convert it with ${activeAI() ? activeAI().name + ' or ' : ''}a chatbot using "Copy prompt with this text".`;
       } catch (err) {
         status.textContent = '';
         showResult({ errors: [err.message], warnings: [] });
@@ -228,8 +228,9 @@ export function renderImport(root, actions) {
     },
   });
 
-  // Optional: convert with the user's own Gemini key.
-  const geminiBtn = hasGeminiKey()
+  // Optional: convert with the person's own Claude or Gemini key (set in More).
+  const ai = activeAI();
+  const geminiBtn = ai
     ? h(
         'button',
         {
@@ -238,25 +239,25 @@ export function renderImport(root, actions) {
           onclick: async (e) => {
             const btn = e.currentTarget;
             btn.disabled = true;
-            btn.textContent = 'Converting with Gemini...';
+            btn.textContent = `Converting with ${ai.name}...`;
             clear(messages);
             try {
-              const reply = await convertWithGemini(box.value);
+              const reply = await convertPlanWithAI(box.value);
               const result = parsePlanText(reply);
               // Show the JSON so the user can look it over before importing.
               box.value = result.ok ? JSON.stringify(result.plan, null, 2) : reply;
-              status.textContent = result.ok ? 'Gemini converted it. Have a look, then tap Import plan.' : '';
+              status.textContent = result.ok ? `${ai.name} converted it. Have a look, then tap Import plan.` : '';
               showResult(result);
             } catch (err) {
               status.textContent = '';
               showResult({ errors: [err.message], warnings: [] });
             } finally {
               btn.disabled = false;
-              btn.textContent = 'Convert with Gemini';
+              btn.textContent = `Convert with ${ai.name}`;
             }
           },
         },
-        'Convert with Gemini'
+        `Convert with ${ai.name}`
       )
     : null;
 

@@ -33,6 +33,7 @@ const view = { screen: 'today', date: todayStr(), planId: null };
 const lazyScreens = {
   build: () => import('./build.js').then((m) => m.renderBuild),
   edit: () => import('./editor.js').then((m) => m.renderEditor),
+  library: () => import('./libraryui.js').then((m) => m.renderLibrary),
 };
 let drawId = 0; // each draw() gets a number, so a slow screen that finishes loading late cannot overwrite a newer one
 
@@ -63,8 +64,8 @@ const TABS = [
   { id: 'progress', label: 'Progress', icon: 'progress' },
   { id: 'more', label: 'More', icon: 'more' },
 ];
-const MORE_TAB_SCREENS = ['more', 'plans', 'new', 'import', 'build', 'edit'];
-const NEEDS_PLAN = ['today', 'workout', 'meals', 'progress'];
+const MORE_TAB_SCREENS = ['more', 'plans', 'new', 'import', 'build', 'edit', 'library'];
+const NEEDS_PLAN = ['today', 'workout', 'meals', 'progress', 'library'];
 
 /** Switch screen. opts: { date } for Today, { planId } for the editor. */
 function show(screen, opts = {}) {
@@ -137,6 +138,7 @@ function draw() {
   else if (s === 'new') renderNewPlan(root, actions);
   else if (s === 'import') renderImport(root, actions);
   else if (s === 'build') showLazy(id, 'build', (render) => render(root, actions));
+  else if (s === 'library') showLazy(id, 'library', (render) => render(root, plan, actions));
   else if (s === 'more') renderMore(root, actions);
   else if (s === 'progress') renderProgress(root, plan, (date) => show('today', { date }));
   else if (s === 'workout') renderWorkout(root, plan, view.date, gotoDate);
@@ -156,7 +158,7 @@ function draw() {
   lastScreenKey = screenKey;
   view.dir = null;
 
-  if (s !== 'build' && s !== 'edit') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn
+  if (s !== 'build' && s !== 'edit' && s !== 'library') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn
 }
 
 /** A gentle, dismissible reminder to back up, shown on Today only when there is real progress to lose. */

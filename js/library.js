@@ -99,6 +99,35 @@ export function pickItems(plan, date, kind, items) {
   return savePick(plan, date, kind, chosen);
 }
 
+/** What is on a date right now, as candidates from `all` (the result of candidates()). */
+export function chosenFor(plan, date, kind, all) {
+  const ids = (plan.picks && plan.picks[date] && plan.picks[date][kind]) || plannedDay(plan, date)[kind].map((x) => x.id);
+  return ids.map((id) => all.find((c) => c.id === id)).filter(Boolean);
+}
+
+/** Add one item to the end of a date's list. False if something with that name is already there. */
+export function addToDay(plan, date, kind, cand, all) {
+  const chosen = chosenFor(plan, date, kind, all);
+  if (chosen.some((c) => norm(nameOf(kind, c.item)) === norm(nameOf(kind, cand.item)))) return false;
+  savePick(plan, date, kind, [...chosen, cand]);
+  return true;
+}
+
+/** Put a new item (from customCandidate) in the plan's library without changing any day. Returns its id. */
+export const addToLibrary = (plan, kind, cand) => ensureInLibrary(plan, kind, cand);
+
+/** On how many dates a library item is picked. */
+export const libraryUses = (plan, id) => Object.values(plan.picks || {}).filter((p) => (p.workout || []).includes(id) || (p.meals || []).includes(id)).length;
+
+/** Take an item out of the plan's library. Refused (false) while any date still uses it, so no logged day loses it. */
+export function removeFromLibrary(plan, kind, id) {
+  const list = plan.library && plan.library[listKey(kind)];
+  const i = list ? list.findIndex((x) => x.id === id) : -1;
+  if (i < 0 || libraryUses(plan, id) > 0) return false;
+  list.splice(i, 1);
+  return true;
+}
+
 /** Go back to the plan's own list for this date. */
 export function resetPick(plan, date, kind) {
   savePick(plan, date, kind, plannedDay(plan, date)[kind].map((it) => ({ id: it.id, item: it, source: 'day' })));

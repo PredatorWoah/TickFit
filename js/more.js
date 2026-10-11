@@ -7,6 +7,8 @@ import { icon } from './icons.js';
 import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb } from './store.js';
 import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
+import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, DEFAULT_CLAUDE_MODEL } from './claude.js';
+import { activeAI } from './aiassist.js';
 import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
@@ -123,10 +125,53 @@ export function renderMore(root, actions) {
   // ----- app version (the deploy stamp on the running code) -----
   const versionRow = h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'Running version'), h('span', { class: 'kv-value' }, runningVersion()));
 
-  // ----- Gemini (optional) -----
-  const cfg = getGeminiConfig();
-  const keyInput = h('input', { class: 'text-input', type: 'password', autocomplete: 'off', spellcheck: false, placeholder: cfg.key ? 'Key saved (hidden)' : 'Paste your Gemini API key', 'aria-label': 'Gemini API key' });
-  const modelInput = h('input', { class: 'text-input', type: 'text', autocomplete: 'off', spellcheck: false, value: cfg.model, 'aria-label': 'Gemini model name' });
+  // ----- AI helpers (optional): Claude and Gemini, each with the person's own key -----
+  /** One provider's key and model, with Save and Remove. */
+  const keyBlock = ({ name, cfg, save, clear, defaultModel, keyLabel, notes }) => {
+    const keyInput = h('input', { class: 'text-input', type: 'password', autocomplete: 'off', spellcheck: false, placeholder: cfg.key ? 'Key saved (hidden)' : `Paste your ${name} API key`, 'aria-label': `${name} API key` });
+    const modelInput = h('input', { class: 'text-input', type: 'text', autocomplete: 'off', spellcheck: false, value: cfg.model, 'aria-label': `${name} model name` });
+    return h(
+      'details',
+      { class: 'ai-block', open: !!cfg.key },
+      h('summary', {}, h('b', {}, name), h('span', { class: 'pill' }, cfg.key ? 'Key saved' : 'Not set up')),
+      h('ul', { class: 'ai-notes' }, notes.map((n) => h('li', {}, n))),
+      h('label', { class: 'f' }, h('span', {}, keyLabel), keyInput),
+      h('label', { class: 'f' }, h('span', {}, `Model (default ${defaultModel})`), modelInput),
+      h(
+        'button',
+        {
+          class: 'btn primary wide',
+          type: 'button',
+          onclick: () => {
+            const key = keyInput.value.trim() || cfg.key;
+            if (!key) return toast('Paste a key first');
+            save({ key, model: modelInput.value });
+            toast(`${name} key saved on this device`);
+            again();
+          },
+        },
+        'Save'
+      ),
+      cfg.key &&
+        h(
+          'button',
+          {
+            class: 'btn danger wide',
+            type: 'button',
+            onclick: () => {
+              clear();
+              toast('Key removed');
+              again();
+            },
+          },
+          'Remove key from this device'
+        )
+    );
+  };
+  const claudeCfg = getClaudeConfig();
+  const geminiCfg = getGeminiConfig();
+  const ai = activeAI();
+  const bothKeys = !!(claudeCfg.key && geminiCfg.key);
 
   // ----- my plan: the one obvious place to switch, edit or add plans -----
   const plan = getActivePlan();
@@ -142,7 +187,8 @@ export function renderMore(root, actions) {
       h('button', { class: 'btn', type: 'button', onclick: () => actions.show('plans') }, 'Switch plans'),
       plan && h('button', { class: 'btn', type: 'button', onclick: () => actions.show('edit', { planId: plan.id }) }, 'Edit this plan'),
       h('button', { class: 'btn primary', type: 'button', onclick: () => actions.show('new') }, icon('plus', 18), 'New plan')
-    )
+    ),
+    plan && h('button', { class: 'btn wide lib-open', type: 'button', onclick: () => actions.show('library') }, icon('library', 18), 'Exercise and meal library')
   );
 
   root.append(
@@ -225,8 +271,8 @@ export function renderMore(root, actions) {
     h(
       'section',
       { class: 'card' },
-      h('h2', {}, 'AI helper (optional)'),
-      h('p', { class: 'hint' }, 'Turn a plain document into a plan in one tap using your own free Google Gemini key. You do not need this: the "Copy AI prompt" button works with any chatbot.'),
+      h('h2', {}, 'AI helpers (optional)'),
+      h('p', { class: 'hint' }, 'With your own Claude or Gemini key, TickFit can turn a document into a plan in one tap and suggest exercises and meals for a day. You do not need this: the "Copy AI prompt" button works with any chatbot.'),
       h(
         'div',
         { class: 'msg warn' },
@@ -234,49 +280,44 @@ export function renderMore(root, actions) {
         h(
           'ul',
           {},
-          h('li', {}, 'The text of your document is sent to Google when you use this. Nothing else leaves your phone.'),
-          h('li', {}, 'On the free tier, Google may use what you send to improve its products.'),
+          h('li', {}, 'Only what you ask about is sent: the document you convert, or the day\'s name, focus and chosen exercise or meal names (plus your goal, experience, equipment and diet if you used the plan builder). Never your history, weights or notes.'),
           h('li', {}, 'Your key is saved in this browser, unencrypted. Anyone who can use this phone profile or browser could read it. Use a key you can delete, and never reuse an important one.'),
-          h('li', {}, 'The key is never included in backup files.')
+          h('li', {}, 'Keys are never included in backup files.')
         )
       ),
-      h('label', { class: 'f' }, h('span', {}, 'API key (free from Google AI Studio)'), keyInput),
-      h('label', { class: 'f' }, h('span', {}, `Model (default ${DEFAULT_MODEL})`), modelInput),
-      h(
-        'button',
-        {
-          class: 'btn primary wide',
-          type: 'button',
-          onclick: () => {
-            const key = keyInput.value.trim() || cfg.key;
-            if (!key) return toast('Paste a key first');
-            saveGeminiConfig({ key, model: modelInput.value });
-            toast('Saved on this device');
-            again();
-          },
-        },
-        'Save'
-      ),
-      cfg.key &&
+      bothKeys &&
         h(
-          'button',
-          {
-            class: 'btn danger wide',
-            type: 'button',
-            onclick: () => {
-              clearGeminiKey();
-              toast('Key removed');
-              again();
-            },
-          },
-          'Remove key from this device'
-        )
+          'div',
+          { class: 'seg', role: 'group', 'aria-label': 'Which AI to use' },
+          ['claude', 'gemini'].map((id) =>
+            h('button', { type: 'button', 'aria-pressed': String(ai && ai.id === id), onclick: () => { setSetting('aiProvider', id); again(); } }, id === 'claude' ? 'Use Claude' : 'Use Gemini')
+          )
+        ),
+      ai && !bothKeys && h('p', { class: 'hint' }, `Using ${ai.name}.`),
+      keyBlock({
+        name: 'Claude',
+        cfg: claudeCfg,
+        save: saveClaudeConfig,
+        clear: clearClaudeKey,
+        defaultModel: DEFAULT_CLAUDE_MODEL,
+        keyLabel: 'API key (from the Anthropic Console)',
+        notes: ['By Anthropic. Needs an Anthropic Console account with credit: each use costs a little on your account.', 'What you send goes to Anthropic under their API terms.'],
+      }),
+      keyBlock({
+        name: 'Gemini',
+        cfg: geminiCfg,
+        save: saveGeminiConfig,
+        clear: clearGeminiKey,
+        defaultModel: DEFAULT_MODEL,
+        keyLabel: 'API key (free from Google AI Studio)',
+        notes: ['By Google. Has a free tier.', 'On the free tier, Google may use what you send to improve its products.'],
+      })
     ),
     h(
       'section',
       { class: 'card' },
       h('h2', {}, 'Privacy'),
-      h('p', { class: 'hint' }, 'TickFit has no accounts, no servers and no tracking. Everything you enter stays in this browser on this device. Nothing is ever sent anywhere.')
+      h('p', { class: 'hint' }, 'TickFit has no accounts, no servers and no tracking. Everything you enter stays in this browser on this device. Nothing is sent anywhere, except by the optional food lookup and AI helpers above, and only when you use them.')
     )
   );
 }
