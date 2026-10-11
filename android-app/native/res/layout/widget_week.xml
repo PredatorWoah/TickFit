@@ -31,6 +31,7 @@
                 android:src="@drawable/ic_w_flame" />
 
             <TextView
+                android:maxLines="1"
                 android:id="@+id/w_streak"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -42,6 +43,7 @@
         </LinearLayout>
 
         <TextView
+            android:maxLines="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="day streak"
@@ -58,6 +60,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -84,6 +87,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -110,6 +114,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -136,6 +141,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -162,6 +168,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -188,6 +195,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -214,6 +222,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_l6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

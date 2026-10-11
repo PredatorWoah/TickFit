@@ -980,3 +980,33 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 :root[data-style='bento'] .tab::before { display: none; }
 :root[data-style='bento'] .tab.active { background: var(--accent); color: #111111; border-color: #111111; }
 :root[data-style='bento'] .tab-dot { border-color: #111111; }
+
+/* ----- Progress photos (Progress screen) ----- */
+.ph-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ph-head h2 { margin-bottom: 2px; }
+.ph-strip { display: flex; gap: 10px; overflow-x: auto; margin: 14px -18px 6px; padding: 2px 18px 6px; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.ph-strip::-webkit-scrollbar { display: none; }
+.ph-item { flex: 0 0 78%; max-width: 360px; scroll-snap-align: center; }
+.ph-slide { position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; padding: 0; border: 0; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); }
+.ph-slide img, .ph-big img { display: block; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
+/* the date along the bottom, like a watermark */
+.ph-mark { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 34px 12px 10px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.62)); color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); pointer-events: none; }
+.ph-mark b { font-family: var(--font-num); font-size: 20px; font-weight: 800; letter-spacing: 0.02em; }
+.ph-mark small { font-size: 12px; font-weight: 700; opacity: 0.88; }
+.ph-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 2px 0 4px; }
+.ph-pos { min-width: 64px; text-align: center; color: var(--muted); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ph-add { margin-top: 12px; }
+.ph-add .btn { white-space: nowrap; padding: 0 12px; }
+.ph-big { position: relative; border-radius: var(--radius-sm); overflow: hidden; background: #000; aspect-ratio: 3 / 4; max-height: 62vh; margin: 0 auto 12px; }
+.ph-big img { object-fit: contain; }
+.ph-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ph-side { margin: 0; }
+.ph-side .ph-big { margin: 0; }
+.ph-side .ph-mark b { font-size: 15px; }
+:root:not([data-style='bento']) .ph-mark b { text-transform: uppercase; font-size: 24px; }
+:root:not([data-style='bento']) .ph-side .ph-mark b { font-size: 17px; }
+/* Bento: outlined photo blocks, the date on a yellow sticker */
+:root[data-style='bento'] .ph-slide, :root[data-style='bento'] .ph-big { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
+:root[data-style='bento'] .ph-item { padding: 0 4px 4px 0; }
+:root[data-style='bento'] .ph-mark { left: 10px; right: auto; bottom: 10px; align-items: flex-start; padding: 6px 10px; border: 2px solid #111; border-radius: 10px; background: #ffd23f; color: #111; text-shadow: none; transform: rotate(-3deg); }
+:root[data-style='bento'] .ph-mark b { font-size: 16px; }

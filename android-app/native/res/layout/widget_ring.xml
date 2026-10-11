@@ -15,6 +15,7 @@
         android:orientation="horizontal">
 
         <TextView
+            android:maxLines="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -24,6 +25,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_streak"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -50,6 +52,7 @@
 
         <ImageView
             android:id="@+id/w_ring"
+            android:src="@drawable/widget_ring_preview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@null"
@@ -62,6 +65,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:maxLines="1"
                 android:textStyle="bold"
         android:id="@+id/w_pct"
                 android:layout_width="wrap_content"
@@ -69,10 +73,12 @@
                 android:fontFamily="sans-serif-condensed"
                 android:text="64%"
                 android:textColor="@color/tf_text"
-                android:textSize="24sp" />
+                android:textSize="14sp" />
 
             <TextView
+                android:maxLines="1"
                 android:id="@+id/w_sub"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="5 of 9"

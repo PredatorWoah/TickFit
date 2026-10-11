@@ -20,10 +20,14 @@ const FORBIDDEN = [
   [/BroadcastChannel/, 'BroadcastChannel'], [/indexedDB/, 'indexedDB'], [/document\.cookie/, 'cookies'], [/<iframe/i, 'iframe'],
   [/importScripts/, 'importScripts'], [/navigator\.geolocation/, 'geolocation'], [/\.postMessage\(/, 'postMessage'], [/WebRTC|RTCPeerConnection/, 'WebRTC'],
 ];
+// The one exception: progress photos are too big for localStorage, so photos.js keeps them in the browser's own
+// on-device database (IndexedDB). It stores, it never sends: it has no fetch and no other way out (checked above).
+const ALLOWED = { 'js/photos.js': ['indexedDB'] };
 for (const f of files) {
   const text = read(f).replace(/\/\/.*$/gm, ''); // ignore comments
-  for (const [re, label] of FORBIDDEN) check(`${f} does not use ${label}`, !re.test(text));
+  for (const [re, label] of FORBIDDEN) if (!(ALLOWED[f] || []).includes(label)) check(`${f} does not use ${label}`, !re.test(text));
 }
+check('photos.js keeps photos only in its own local database', /DB_NAME = 'tickfit-photos'/.test(read('js/photos.js')) && !/\bfetch\(|navigator\.share|sendBeacon/.test(read('js/photos.js')));
 
 // 2. fetch() is only used in the places we expect.
 const FETCH_ALLOWED = { 'js/plans.js': 1, 'js/gemini.js': 1, 'js/claude.js': 1, 'js/lookup.js': 1, 'sw.js': 1 };

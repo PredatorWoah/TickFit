@@ -4,7 +4,7 @@
 
 ## What is stored, and where
 
-Everything you enter (plans, ticks, sets, weights, notes, water, settings, and the answers you give the plan builder such as age, height and weight) is saved in your browser's `localStorage`, on your own device. Nothing else exists. The author of TickFit cannot see it, because there is nowhere for it to go.
+Everything you enter (plans, ticks, sets, weights, notes, water, settings, and the answers you give the plan builder such as age, height and weight) is saved in your browser's `localStorage`, on your own device. Progress photos are too big for that, so they go in the browser's own on-device database (IndexedDB, named `tickfit-photos`), shrunk to about 1280 pixels. Nothing else exists. The author of TickFit cannot see it, because there is nowhere for it to go.
 
 ## What leaves your device
 
@@ -35,6 +35,10 @@ The "Build one for me" feature runs entirely on your phone using formulas and bu
 
 The "Form video" button simply opens a link (your own, or a YouTube search for the exercise's name) in a new tab. TickFit does not load or embed any video itself.
 
+## Progress photos
+
+Photos you take or pick on the Progress tab stay on this device. They are never uploaded, and they are **not** in the backup file (it would get very large), so if you change phones, save the ones you want with **Save a copy** first. Delete one by tapping it, then **Delete**. In the Android app, taking a photo opens your phone's own camera app, and TickFit never asks for the camera permission itself.
+
 ## Backups
 
 A backup file contains all your plans, progress, notes, body weight log, settings and plan builder answers (but never your Claude or Gemini key). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
@@ -53,10 +57,11 @@ Browsers keep site data per *origin*, which is the host name, not the folder. On
 
 ## How we check the "nothing leaves your device" promise
 
-`node tests/privacy.mjs` runs on every change. It fails if the code starts using anything that could send data away (uploads, web sockets, beacons, cookies, cross-tab messaging, embedded frames), if `fetch` appears anywhere unexpected, if the code names a website that isn't on a short allow list, or if the Content Security Policy is loosened. You can read the allow list at the top of that file.
+`node tests/privacy.mjs` runs on every change. It fails if the code starts using anything that could send data away (uploads, web sockets, beacons, cookies, cross-tab messaging, embedded frames; the on-device photo database is allowed only in `js/photos.js`, which has no way to send anything), if `fetch` appears anywhere unexpected, if the code names a website that isn't on a short allow list, or if the Content Security Policy is loosened. You can read the allow list at the top of that file.
 
 ## Deleting your data
 
 - One plan: **Plans > Delete**.
+- One progress photo: tap it on the Progress tab, then **Delete**.
 - Everything: clear this site's data in your browser settings, or remove the installed app.
 - Backups you exported are ordinary files you control.
