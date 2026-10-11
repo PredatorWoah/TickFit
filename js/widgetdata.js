@@ -98,8 +98,7 @@ export function widgetSnapshot(state, today) {
   const plan = (state.plans || []).find((p) => p.id === state.activePlanId) || (state.plans || [])[0];
   if (!plan) return null;
   const records = (state.progress && state.progress[plan.id]) || {};
-  const style = (state.settings || {}).style === 'bento' ? 'bento' : 'pulse'; // the widgets follow the app's look
-  return { ...dayPart(plan, records, today, style), next: dayPart(plan, records, addDays(today, 1), style) };
+  return { ...dayPart(plan, records, today), next: dayPart(plan, records, addDays(today, 1)) };
 }
 
 /** Pulse's three rings as percentages (0 to 100), or -1 for one the day doesn't have. Same sums as Today. */
@@ -114,7 +113,7 @@ function ringsPart(day, rec, meals, waterMl, waterTarget) {
   return { move, eat, water: waterTarget > 0 ? pctOf(waterMl, waterTarget) : -1 };
 }
 
-function dayPart(plan, records, today, style) {
+function dayPart(plan, records, today) {
   const rec = records[today] || { ticks: {}, sets: {}, waterMl: 0 };
   const day = dayFor(plan, today);
   const stats = dayStats(day, rec);
@@ -125,7 +124,6 @@ function dayPart(plan, records, today, style) {
 
   return {
     v: SNAPSHOT_VERSION,
-    style,
     date: today,
     dateText: dateText(today),
     label: shortLabel(day.label),

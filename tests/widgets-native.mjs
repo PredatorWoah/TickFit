@@ -25,7 +25,7 @@ const night = new Set([...pulseNight, ...bentoNight]);
 const generated = bentoFiles(join(N, 'res'));
 const genNames = (folder) => generated.filter((g) => g.path.startsWith(folder + '/')).map((g) => g.path.slice(folder.length + 1).replace(/\.xml$/, ''));
 const strings = valueNames('res/values/widget_strings.xml');
-const pools = { id: ids, layout: new Set([...names('res/layout'), ...genNames('layout')]), drawable: new Set([...names('res/drawable'), ...genNames('drawable')]), color: colors, string: strings, xml: names('res/xml') };
+const pools = { id: ids, layout: new Set([...names('res/layout'), ...genNames('layout')]), drawable: new Set([...names('res/drawable'), ...genNames('drawable')]), color: colors, string: strings, xml: new Set([...names('res/xml'), ...genNames('xml')]) };
 
 const missingJava = [...java.matchAll(/R\.(id|layout|drawable|color|string)\.(\w+)/g)].filter(([, k, n]) => !pools[k].has(n)).map(([x]) => x);
 ok(missingJava.length === 0, 'every R.* the Java code uses exists ' + missingJava.join(' '));
@@ -37,7 +37,6 @@ ok(missingXml.length === 0, 'every @resource the XML names exists ' + missingXml
 ok([...colors].every((c) => night.has(c)) && [...night].every((c) => colors.has(c)), 'light and dark themes define the same colours');
 ok([...pulse].every((c) => bentoColors.has('tb_' + c.slice(3))) && [...bentoColors].every((c) => pulse.has('tf_' + c.slice(3))), 'Pulse (tf_) and Bento (tb_) define the same colours');
 ok(generated.some((g) => g.path === 'layout/widget_today_bento.xml') && generated.every((g) => !/@color\/tf_/.test(g.text)), 'every widget layout gets a Bento twin, with no Pulse colours left in it');
-for (const key of ['ring', 'today', 'nextup', 'water', 'week', 'lifted']) ok(pools.layout.has(`widget_${key}_bento`), `${key} has a Bento layout`);
 ok(/views\(c, s, R\.layout\./.test(java) && !/new RemoteViews\(c\.getPackageName\(\), R\.layout\.widget_(?!message)/.test(java), 'every widget picks its layout through the look (views())');
 
 // Well formed enough: every opening tag closes (a tiny stack check, comments and declarations skipped).
@@ -54,8 +53,12 @@ for (const f of allXml) {
 }
 
 const customize = readFileSync('android-app/scripts/customize.mjs', 'utf8');
-for (const [cls, key] of [['Ring', 'ring'], ['Today', 'today'], ['NextUp', 'nextup'], ['Water', 'water'], ['Week', 'week'], ['Lifted', 'lifted']]) {
-  ok(new RegExp(`public static class ${cls} extends Base`).test(java), `${cls} widget class exists`);
+const PULSE = [['Ring', 'ring'], ['Today', 'today'], ['NextUp', 'nextup'], ['Water', 'water'], ['Week', 'week'], ['Lifted', 'lifted']];
+for (const [cls, key] of [...PULSE, ...PULSE.map(([c, k]) => [c + 'Bento', k + '_bento'])]) {
+  const bentoOne = cls.endsWith('Bento');
+  ok(new RegExp(`public static class ${cls} extends ${bentoOne ? cls.replace(/Bento$/, '') : 'Base'}`).test(java), `${cls} widget class exists`);
+  ok(new RegExp(`\\b${cls}\\.class`).test(java), `${cls} is redrawn with the others`);
+  if (bentoOne) ok(new RegExp(`class ${cls} extends \\w+ \\{\\s*@Override\\s*boolean bentoLook\\(\\) \\{\\s*return true;`).test(java), `${cls} draws in the Bento look`);
   ok(pools.layout.has(`widget_${key}`) && pools.xml.has(`widget_${key}_info`) && strings.has(`tf_w_${key}`) && strings.has(`tf_w_${key}_desc`), `${cls} has a layout, provider info, label and description`);
   ok(customize.includes(`['${cls}', '${key}']`), `${cls} is added to the manifest`);
 }

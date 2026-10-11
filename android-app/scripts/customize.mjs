@@ -97,6 +97,13 @@ const WIDGETS = [
   ['Water', 'water'],
   ['Week', 'week'],
   ['Lifted', 'lifted'],
+  // each again in the Bento look (their resources come from bento.mjs)
+  ['RingBento', 'ring_bento'],
+  ['TodayBento', 'today_bento'],
+  ['NextUpBento', 'nextup_bento'],
+  ['WaterBento', 'water_bento'],
+  ['WeekBento', 'week_bento'],
+  ['LiftedBento', 'lifted_bento'],
 ];
 const receivers = WIDGETS.map(
   ([cls, key]) => `

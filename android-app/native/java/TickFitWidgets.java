@@ -19,8 +19,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * TickFit's six home screen widgets. Each one only places text and numbers that the app already worked out
- * (js/widgetdata.js), so the logic lives in one place and is tested there.
+ * TickFit's home screen widgets: six of them, each in the Pulse look and again in the Bento look. Each one
+ * only places text and numbers that the app already worked out (js/widgetdata.js), so the logic lives in one
+ * place and is tested there.
  *
  *   Ring    2x2  today's ring, streak and the day's name
  *   Today   4x2  ring, workout row, calories, protein and water
@@ -32,9 +33,9 @@ import org.json.JSONObject;
  * Tapping a widget opens the app on the right screen. Nothing here can crash the home screen: a problem
  * shows a small "Open TickFit" message instead.
  *
- * They follow the look picked in the app (the snapshot's "style"): Pulse uses the layouts as written, with
- * three rings for Move, Eat and Water; Bento uses the "_bento" twin of each layout, drawable and colour, which
- * android-app/scripts/bento.mjs makes when the app is built.
+ * Pulse widgets use the layouts as written, with three rings for Move, Eat and Water. The Bento widgets
+ * (RingBento and so on) use the "_bento" twin of each layout, drawable and colour, which
+ * android-app/scripts/bento.mjs makes when the app is built. The person picks either from the widget list.
  */
 public final class TickFitWidgets {
     static final String EXTRA_SCREEN = "tickfit_screen";
@@ -42,7 +43,10 @@ public final class TickFitWidgets {
     static final String ACTION_REFRESH = "io.github.predatorwoah.tickfit.REFRESH_WIDGETS";
     static final int WATER_STEP_ML = 250;
 
-    private static final Class<?>[] ALL = { Ring.class, Today.class, NextUp.class, Water.class, Week.class, Lifted.class };
+    private static final Class<?>[] ALL = {
+        Ring.class, Today.class, NextUp.class, Water.class, Week.class, Lifted.class,
+        RingBento.class, TodayBento.class, NextUpBento.class, WaterBento.class, WeekBento.class, LiftedBento.class,
+    };
 
     private TickFitWidgets() {}
 
@@ -50,14 +54,21 @@ public final class TickFitWidgets {
     public abstract static class Base extends AppWidgetProvider {
         abstract RemoteViews build(Context c, JSONObject s);
 
+        /** Which look this widget is drawn in. Each widget comes twice in the widget list: Pulse and Bento. */
+        boolean bentoLook() {
+            return false;
+        }
+
         RemoteViews safeBuild(Context c) {
+            boolean bento = bentoLook();
             try {
                 JSONObject s = WidgetStore.snapshot(c);
-                if (s == null) return message(c, "Open TickFit once to set up this widget");
-                if (!WidgetStore.today().equals(s.optString("date"))) return message(c, "Tap to load today in TickFit");
+                if (s == null) return message(c, bento, "Open TickFit once to set up this widget");
+                if (!WidgetStore.today().equals(s.optString("date"))) return message(c, bento, "Tap to load today in TickFit");
+                s.put("style", bento ? "bento" : "pulse"); // the drawing code below reads the look from here
                 return build(c, s);
             } catch (Exception e) {
-                return message(c, "Tap to open TickFit");
+                return message(c, bento, "Tap to open TickFit");
             }
         }
 
@@ -163,6 +174,49 @@ public final class TickFitWidgets {
         }
     }
 
+    // The Bento versions: the same widgets, drawn with the Bento layouts, drawables and colours
+    public static class RingBento extends Ring {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
+    public static class TodayBento extends Today {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
+    public static class NextUpBento extends NextUp {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
+    public static class WaterBento extends Water {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
+    public static class WeekBento extends Week {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
+    public static class LiftedBento extends Lifted {
+        @Override
+        boolean bentoLook() {
+            return true;
+        }
+    }
+
     /** Redraw every TickFit widget on the home screen. */
     static void updateAll(Context c) {
         AppWidgetManager manager = AppWidgetManager.getInstance(c);
@@ -199,8 +253,14 @@ public final class TickFitWidgets {
     // ---------------------------------------------------------------------------------------------
     // shared pieces
 
-    private static RemoteViews message(Context c, String text) {
-        RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_message);
+    private static RemoteViews message(Context c, boolean bento, String text) {
+        JSONObject look = new JSONObject();
+        try {
+            look.put("style", bento ? "bento" : "pulse");
+        } catch (org.json.JSONException ignored) {
+            // cannot happen with a plain string
+        }
+        RemoteViews v = views(c, look, R.layout.widget_message);
         v.setTextViewText(R.id.w_msg, text);
         v.setOnClickPendingIntent(R.id.w_root, open(c, "today"));
         return v;

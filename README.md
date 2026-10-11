@@ -56,7 +56,7 @@ Everything stays on your device. There is no server to send anything to. See [PR
 
 ### Install it on your phone
 
-- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). A complete app with everything inside it, so it works with no internet, plus six **home screen widgets** that follow your Pulse or Bento look (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
+- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). A complete app with everything inside it, so it works with no internet, plus twelve **home screen widgets**: six kinds, each in a Pulse and a Bento version you pick from the widget list (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
 - **iPhone (Safari):** Share button, then **Add to Home Screen**.
 - **Android (Chrome):** menu, then **Install app** (or **Add to Home screen**).
 
