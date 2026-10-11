@@ -381,7 +381,10 @@ public final class TickFitWidgets {
     private static void ringInto(Context c, RemoteViews v, JSONObject s, int sizeDp, boolean longSub) {
         int[] n = ringNumbers(s);
         if (bento(s)) {
+            // Bento: one bold ring with a big % and "5 of 9" in the middle (the layout starts small, for Pulse)
             v.setImageViewBitmap(R.id.w_ring, ringBitmap(c, s, sizeDp, n[2]));
+            v.setTextViewTextSize(R.id.w_pct, android.util.TypedValue.COMPLEX_UNIT_SP, sizeDp >= 110 ? 24 : 21);
+            v.setViewVisibility(R.id.w_sub, View.VISIBLE);
         } else {
             // Pulse: the day's % sits small in the middle of the three rings, the rings say the rest
             v.setImageViewBitmap(R.id.w_ring, tripleRingBitmap(c, s, sizeDp, ringPcts(s)));
@@ -455,7 +458,7 @@ public final class TickFitWidgets {
     static RemoteViews today(Context c, JSONObject s) {
         RemoteViews v = views(c, s, R.layout.widget_today);
         ringInto(c, v, s, 104, true);
-        streakInto(v, R.id.w_streak, s.optInt("streak", 0), " day streak");
+        streakInto(v, R.id.w_streak, s.optInt("streak", 0), "");
         v.setTextViewText(R.id.w_label, s.optString("label"));
         v.setTextViewText(R.id.w_date, s.optString("dateText"));
         JSONObject wk = s.optJSONObject("workout");

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A sample of the Move / Eat / Water rings, only for the widget picker preview (the real rings are drawn by TickFitWidgets.java). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="110dp" android:height="110dp" android:viewportWidth="110" android:viewportHeight="110">
+    <path android:pathData="M55,6 a49,49 0 1,1 0,98 a49,49 0 1,1 0,-98" android:fillColor="#00000000" android:strokeColor="@color/tf_track_move" android:strokeWidth="10" android:strokeLineCap="butt" />
+    <path android:pathData="M55,6 A49,49 0 1,1 17.24,86.23" android:fillColor="#00000000" android:strokeColor="@color/tf_accent" android:strokeWidth="10" android:strokeLineCap="round" />
+    <path android:pathData="M55,18 a37,37 0 1,1 0,74 a37,37 0 1,1 0,-74" android:fillColor="#00000000" android:strokeColor="@color/tf_track_eat" android:strokeWidth="10" android:strokeLineCap="butt" />
+    <path android:pathData="M55,18 A37,37 0 1,1 29.67,81.97" android:fillColor="#00000000" android:strokeColor="@color/tf_eat" android:strokeWidth="10" android:strokeLineCap="round" />
+    <path android:pathData="M55,30 a25,25 0 1,1 0,50 a25,25 0 1,1 0,-50" android:fillColor="#00000000" android:strokeColor="@color/tf_track_water" android:strokeWidth="10" android:strokeLineCap="butt" />
+    <path android:pathData="M55,30 A25,25 0 0,1 55.00,80.00" android:fillColor="#00000000" android:strokeColor="@color/tf_water" android:strokeWidth="10" android:strokeLineCap="round" />
+</vector>

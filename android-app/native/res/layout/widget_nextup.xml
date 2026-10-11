@@ -68,6 +68,7 @@
         android:orientation="vertical">
 
         <Chronometer
+            android:maxLines="1"
             android:textStyle="bold"
         android:id="@+id/w_clock"
             android:layout_width="wrap_content"
@@ -77,6 +78,7 @@
             android:textSize="18sp" />
 
         <TextView
+            android:maxLines="1"
             android:textStyle="bold"
         android:id="@+id/w_time"
             android:layout_width="wrap_content"
@@ -88,6 +90,7 @@
             android:visibility="gone" />
 
         <TextView
+            android:maxLines="1"
             android:id="@+id/w_sets"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
