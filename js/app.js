@@ -224,7 +224,7 @@ function handleBack(canGoBack) {
 
 function start() {
   load();
-  applyTheme(getState().settings.theme);
+  applyTheme(getState().settings);
   protectStorage().then(() => view.screen === 'more' && draw()); // ask the browser to keep our data; shown on the More screen
   // People who already have plans never need the welcome screen.
   if (getState().plans.length && !getState().settings.welcomed) setSetting('welcomed', true);

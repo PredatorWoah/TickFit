@@ -8,7 +8,7 @@
 //     plans:    [ { id, name, startDate, days: [...] } ],
 //     progress: { [planId]: { "2026-10-04": { ticks, weights, waterMl, notes } } },
 //     bodyLog:  { "2026-10-04": 72.4 },   // body weight in kg, one per day
-//     settings: { theme: "dark", lang: "en" }
+//     settings: { theme: "dark", style: "pulse", lang: "en" }
 //   }
 
 import { todayStr } from './dates.js';

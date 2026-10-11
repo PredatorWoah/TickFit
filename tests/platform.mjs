@@ -49,7 +49,7 @@ eq('the backup date is recorded', typeof getState().settings.lastBackup, 'string
 
 getState().settings.lastBackup = null;
 shareBehaviour = 'cancel';
-eq('closing the share sheet is not an error and does not count as a backup', [await shareBackupFile('x'), getState().settings.lastBackup], [false, null]);
+eq('an Android "cancelled" (also sent when Drive saves through a pop-up) asks the person instead of guessing', [await shareBackupFile('x'), getState().settings.lastBackup], ['unsure', null]);
 shareBehaviour = 'fail';
 let threw = false; try { await shareBackupFile('x'); } catch { threw = true; }
 eq('a real failure is reported (so the screen can tell the person)', threw, true);
@@ -58,8 +58,8 @@ eq('"Download" in the app also goes through the share sheet', await saveBackupFi
 eq('file names are cleaned in the app too', calls.filter((c) => c[0] === 'writeFile').pop()[1], 'y.json');
 
 calls.length = 0;
-applyTheme('light'); applyTheme('dark');
-eq('status bar icons follow the theme', calls.filter((c) => c[0] === 'bars').map((c) => c[1]), ['LIGHT', 'DARK']);
+applyTheme({ theme: 'light' }); applyTheme({ style: 'bento' }); applyTheme({});
+eq('status bar icons follow the theme (Bento is light unless a theme was picked)', calls.filter((c) => c[0] === 'bars').map((c) => c[1]), ['LIGHT', 'LIGHT', 'DARK']);
 
 // missing plugins must not crash
 delete globalThis.window.Capacitor.Plugins.Share;

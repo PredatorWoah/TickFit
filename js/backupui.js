@@ -7,6 +7,7 @@ import { icon } from './icons.js';
 import { toast } from './dom.js';
 import { openSheet } from './sheet.js';
 import { isNative } from './platform.js';
+import { markBackedUp } from './store.js';
 import { canShareFiles, saveBackupFile, shareBackupFile, canOverwrite, saveOverExisting, defaultBackupName } from './backup.js';
 
 /**
@@ -23,9 +24,18 @@ export function openBackupSheet(onDone = () => {}, opts = {}) {
         close();
         onDone();
       };
+      // Android cannot always tell whether the file was saved (see shareNative in backup.js), so ask
+      const askIfSaved = () =>
+        body.replaceChildren(
+          h('p', { class: 'hint' }, 'Did the backup get saved? Some apps (like Drive) do not tell TickFit when they finish.'),
+          h('button', { class: 'btn primary wide', type: 'button', onclick: () => { markBackedUp(); finish('Backup saved'); } }, 'Yes, it is saved'),
+          h('button', { class: 'btn wide', type: 'button', onclick: close }, 'No, not this time')
+        );
       const run = (fn, msg) => async () => {
         try {
-          if ((await fn(input.value)) !== false) finish(msg);
+          const result = await fn(input.value);
+          if (result === 'unsure') askIfSaved();
+          else if (result !== false) finish(msg);
         } catch {
           toast('That did not work. Try another option.');
         }
