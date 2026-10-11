@@ -667,3 +667,27 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .merge-text b { overflow-wrap: anywhere; }
 .merge-text small { color: var(--muted); font-size: 13px; }
 .merge-row .btn { flex: none; }
+.pick-chosen { display: flex; gap: 6px; align-items: stretch; }
+.pick-chosen .pick-row { flex: 1; min-width: 0; }
+.pick-moves { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.pick-move { flex: 1; width: 44px; min-height: 28px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+.pick-move:disabled { opacity: 0.3; }
+.pick-ai .pick-row { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.pick-suggest { margin: 10px 0 0; }
+
+/* ----- AI helper keys in More ----- */
+.ai-block { margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.ai-block summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; cursor: pointer; }
+.ai-notes { margin: 6px 0 10px; padding-left: 18px; color: var(--muted); font-size: 14px; }
+
+/* ----- More > Library ----- */
+.lib-open { margin-top: 10px; }
+.lib-group { margin: 18px 0 0; }
+.lib-cat { display: flex; align-items: center; gap: 8px; margin: 0 2px 8px; }
+.lib-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lib-row { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.lib-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lib-text b { overflow-wrap: anywhere; }
+.lib-text small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.lib-row .btn { flex: none; }
+.lib-row .btn[disabled] { opacity: 1; color: var(--accent); background: transparent; border-color: transparent; }

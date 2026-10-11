@@ -2,7 +2,8 @@
 // The "Choose exercises" / "Choose meals" sheet: mix and match what you do on one date.
 //   * Filter chips by category (Back, Biceps, Breakfast...). It starts on the day's focus, so on
 //     "Friday Back Biceps" you see back and biceps exercises first.
-//   * Tick what you want. The order you tick them in is the order you do them.
+//   * Tick what you want, then move them up or down into the order you'll do them.
+//   * With a Claude or Gemini key set in More, ask it for suggestions that fit the day.
 //   * Add your own, or go back to the plan's list.
 // Loaded on demand (only when someone opens it), so it costs nothing at startup.
 
@@ -13,23 +14,10 @@ import { savePlans } from './store.js';
 import { plannedDay } from './schedule.js';
 import { mealNumbers } from './stats.js';
 import { candidates, focusFor, savePick, resetPick, isPicked, customCandidate } from './library.js';
-import { EXERCISES, CARDIO } from './exercises.js';
+import { builtinExercises } from './builtin.js';
+import { activeAI, suggest } from './aiassist.js';
 
-const GROUP_CATEGORY = { squat: 'Legs', hinge: 'Legs', lunge: 'Legs', hamstring: 'Legs', quad: 'Legs', glute: 'Legs', calf: 'Legs', hpush: 'Chest', chest: 'Chest', vpush: 'Shoulders', shoulder: 'Shoulders', hpull: 'Back', vpull: 'Back', triceps: 'Triceps', biceps: 'Biceps', core: 'Core' };
-const DOSE = { compound: [3, '8 to 12', '90s'], isolation: [3, '10 to 15', '60s'], calf: [3, '12 to 15', '45s'], core: [3, '15', '45s'] };
-
-/** TickFit's own exercise list, shaped like plan exercises. */
-function builtinExercises() {
-  const lifts = EXERCISES.map((e) => {
-    const [sets, reps, rest] = DOSE[e.kind] || DOSE.isolation;
-    const timed = /plank|wall sit/i.test(e.name);
-    return { exercise: e.name, sets, reps: timed ? '30 sec' : reps, rest, weight: '', notes: '', video: '', category: GROUP_CATEGORY[e.groups[0]] || 'Other' };
-  });
-  const cardio = CARDIO.map((c) => ({ exercise: c.name, sets: 1, reps: '20 min', rest: '', weight: '', notes: '', video: '', category: 'Cardio' }));
-  return [...lifts, ...cardio];
-}
-
-const SOURCE_NOTE = { day: 'on the plan today', library: '', plan: 'from another day', builtin: 'TickFit list', new: 'new' };
+const SOURCE_NOTE = { day: 'on the plan today', library: '', plan: 'from another day', builtin: 'TickFit list', new: 'new', ai: 'suggested' };
 
 /**
  * @param plan    the active plan (changed in place and saved)
@@ -93,30 +81,47 @@ export function openPicker({ plan, date, kind, onDone }) {
       }
 
       function drawList() {
-        count.textContent = chosen.length ? `${chosen.length} chosen. They show in the order you tick them.` : `Nothing chosen yet. ${isWorkout ? 'An empty list makes it a rest day.' : ''}`;
+        count.textContent = chosen.length ? `${chosen.length} chosen. Use the arrows to put them in order.` : `Nothing chosen yet. ${isWorkout ? 'An empty list makes it a rest day.' : ''}`;
         // Chosen ones always stay on top, so you can see and untick them whatever the filter.
         const rest = all.filter((c) => !chosen.includes(c) && (filter.size === 0 || filter.has(c.category)) && (!query || nameOf(c).toLowerCase().includes(query) || c.category.toLowerCase().includes(query)));
+        // Move a chosen one up (-1) or down (+1), keeping focus on the same button so it can be tapped again.
+        const move = (c, dir, which) => {
+          const i = chosen.indexOf(c);
+          const j = i + dir;
+          if (i < 0 || j < 0 || j >= chosen.length) return;
+          const next = [...chosen];
+          [next[i], next[j]] = [next[j], next[i]];
+          chosen = next;
+          drawList();
+          const again = list.querySelector(`[data-move="${which}"][data-at="${j}"]`) || list.querySelector(`[data-move][data-at="${j}"]`);
+          if (again) again.focus({ preventScroll: false });
+        };
         const row = (c) => {
           const at = chosen.indexOf(c);
+          const toggle = h(
+            'button',
+            {
+              type: 'button',
+              class: 'pick-row' + (at >= 0 ? ' on' : ''),
+              role: 'checkbox',
+              'aria-checked': String(at >= 0),
+              onclick: () => {
+                chosen = at >= 0 ? chosen.filter((x) => x !== c) : [...chosen, c];
+                drawList();
+              },
+            },
+            h('span', { class: 'pick-num', 'aria-hidden': 'true' }, at >= 0 ? String(at + 1) : icon('plus', 18)),
+            h('span', { class: 'pick-text' }, h('b', {}, nameOf(c)), h('small', {}, [detail(c), SOURCE_NOTE[c.source]].filter(Boolean).join(' · '))),
+            h('span', { class: 'pick-cat' }, c.category)
+          );
+          if (at < 0) return h('li', { class: c.source === 'ai' ? 'pick-ai' : null }, toggle);
+          const arrow = (dir, which, label, glyph, disabled) =>
+            h('button', { type: 'button', class: 'pick-move', 'data-move': which, 'data-at': String(at), 'aria-label': `${label}: ${nameOf(c)}`, disabled, onclick: () => move(c, dir, which) }, icon(glyph, 20));
           return h(
             'li',
-            {},
-            h(
-              'button',
-              {
-                type: 'button',
-                class: 'pick-row' + (at >= 0 ? ' on' : ''),
-                role: 'checkbox',
-                'aria-checked': String(at >= 0),
-                onclick: () => {
-                  chosen = at >= 0 ? chosen.filter((x) => x !== c) : [...chosen, c];
-                  drawList();
-                },
-              },
-              h('span', { class: 'pick-num', 'aria-hidden': 'true' }, at >= 0 ? String(at + 1) : icon('plus', 18)),
-              h('span', { class: 'pick-text' }, h('b', {}, nameOf(c)), h('small', {}, [detail(c), SOURCE_NOTE[c.source]].filter(Boolean).join(' · '))),
-              h('span', { class: 'pick-cat' }, c.category)
-            )
+            { class: 'pick-chosen' },
+            toggle,
+            h('span', { class: 'pick-moves' }, arrow(-1, 'up', 'Move up', 'chevron-up', at === 0), arrow(1, 'down', 'Move down', 'chevron-down', at === chosen.length - 1))
           );
         };
         list.replaceChildren(...chosen.map(row), ...rest.map(row));
@@ -140,6 +145,47 @@ export function openPicker({ plan, date, kind, onDone }) {
         drawList();
       };
 
+      // ----- suggestions from Claude or Gemini (only with a key set in More) -----
+      const ai = activeAI();
+      const aiStatus = h('p', { class: 'hint', role: 'status' });
+      const aiBtn = ai
+        ? h(
+            'button',
+            {
+              class: 'btn small pick-suggest',
+              type: 'button',
+              onclick: async () => {
+                aiBtn.disabled = true;
+                aiStatus.textContent = `Asking ${ai.name}...`;
+                try {
+                  const day = plannedDay(plan, date);
+                  const items = await suggest(kind, { dayLabel: day.label, focus: [...filter], have: chosen.map(nameOf) });
+                  const fresh = items
+                    .map(({ category, ...it }) => {
+                      const cand = customCandidate(kind, isWorkout ? it.exercise : it.name, category);
+                      return { ...cand, item: { ...cand.item, ...it }, source: 'ai' };
+                    })
+                    .filter((cand) => !all.some((x) => nameOf(x).toLowerCase() === nameOf(cand).toLowerCase()));
+                  all.unshift(...fresh);
+                  for (const cand of fresh) if (!cats.includes(cand.category)) cats.push(cand.category);
+                  aiStatus.textContent = fresh.length ? `${fresh.length} suggestion${fresh.length === 1 ? '' : 's'} from ${ai.name}, marked "suggested". Tick the ones you want.` : `${ai.name} only suggested things already in your list.`;
+                  query = '';
+                  search.value = '';
+                  filter = new Set();
+                  drawChips();
+                  drawList();
+                } catch (e) {
+                  aiStatus.textContent = e.message;
+                } finally {
+                  aiBtn.disabled = false;
+                }
+              },
+            },
+            icon('sparkle', 18),
+            `Suggest ${isWorkout ? 'exercises' : 'meals'} with ${ai.name}`
+          )
+        : null;
+
       const save = () => {
         savePick(plan, date, kind, chosen);
         savePlans();
@@ -152,6 +198,8 @@ export function openPicker({ plan, date, kind, onDone }) {
         h('p', { class: 'hint' }, isWorkout ? 'Pick the exercises for this day only. The plan itself stays the same, and your logged sets are kept.' : 'Pick the meals for this day only. The plan itself stays the same.'),
         chips,
         search,
+        aiBtn,
+        aiBtn && aiStatus,
         count,
         list,
         h(
