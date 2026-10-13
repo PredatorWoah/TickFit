@@ -180,6 +180,11 @@ export function validatePlan(raw) {
   }
 
   const days = rawDays.map((d, i) => validateDay(d, i, errors, warnings, library));
+  // Days that only name what they are about get a starting list from the library (schedule.js plannedDay)
+  if (library && library.exercises.length) {
+    const open = days.filter((d) => d && !d.workout.length).length;
+    if (open) warnings.push(`${open} day${open === 1 ? ' has' : 's have'} no exercises of their own. TickFit fills ${open === 1 ? 'it' : 'them'} from the plan's exercise options by the day's name or focus (a day called "Rest" stays a rest day). Tap "Choose exercises" on a day to change it.`);
+  }
 
   const plan = { name, days };
   if (library) plan.library = library;
@@ -204,7 +209,8 @@ function validateDay(d, i, errors, warnings, library = null) {
     warnings.push(`${where} had no "label", so I used "${where}".`);
   }
 
-  // Workout (empty list = rest day)
+  // Workout (empty list = rest day). AIs sometimes call it "exercises"; accept that too.
+  if ((d.workout === undefined || d.workout === null) && Array.isArray(d.exercises)) d = { ...d, workout: d.exercises };
   let workout = [];
   if ((d.workout === undefined || d.workout === null) && library) {
     // Fine with a library: the exercises are picked each day.

@@ -41,9 +41,19 @@ export function renderWorkout(root, plan, date, goto) {
 
   root.append(dateBar(ctx));
 
-  // ----- a rest day -----
+  // ----- a rest day (or, in a plan with exercise options, a day whose name didn't match any of them) -----
   if (!day.workout.length) {
-    root.append(h('div', { class: 'empty-card' }, h('div', { class: 'empty-icon' }, icon('flame', 32)), h('h1', { class: 'wk-title' }, 'Rest day'), h('p', {}, 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.'), pickButton(ctx, 'workout')));
+    const hasOptions = !!(plan.library && plan.library.exercises && plan.library.exercises.length) && !/\brest\b/i.test(day.label);
+    root.append(
+      h(
+        'div',
+        { class: 'empty-card' },
+        h('div', { class: 'empty-icon' }, icon(hasOptions ? 'dumbbell' : 'flame', 32)),
+        h('h1', { class: 'wk-title' }, hasOptions ? "Pick today's exercises" : 'Rest day'),
+        h('p', {}, hasOptions ? 'Your plan has exercise options to choose from. Tap below and pick what you will do today.' : 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.'),
+        pickButton(ctx, 'workout')
+      )
+    );
     root.append(notesCard(ctx));
     return;
   }
@@ -55,11 +65,14 @@ export function renderWorkout(root, plan, date, goto) {
   const progressFill = h('div', { class: 'bar-fill' });
   const stateArea = h('div', { class: 'wk-state' });
   root.append(
-    h('h1', { class: 'wk-title' }, day.label),
-    h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
-    pickButton(ctx, 'workout'),
-    h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
-    stateArea
+    ...[
+      h('h1', { class: 'wk-title' }, day.label),
+      h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
+      day.suggested && !day.picked && h('p', { class: 'hint tight' }, "Suggested from your plan's exercise options. Tap Choose exercises to swap any."),
+      pickButton(ctx, 'workout'),
+      h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
+      stateArea,
+    ].filter(Boolean)
   );
   root.append(notesCard(ctx));
 

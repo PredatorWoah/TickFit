@@ -7,7 +7,7 @@
 // What you chose for a date lives in plan.picks:  { "2026-10-09": { workout: [ids], meals: [ids] } }.
 // schedule.js dayFor() reads the picks, so every screen, streak and summary follows them.
 
-import { plannedDay } from './schedule.js';
+import { plannedDay, focusFor } from './schedule.js';
 import { slug } from './parser.js';
 import { muscleGroup } from './lift.js';
 
@@ -44,15 +44,8 @@ export function candidates(plan, date, kind, builtin = []) {
   return out;
 }
 
-/** The categories to start the filter on: the day's "focus", else categories named in its label ("Friday Back Biceps"). */
-export function focusFor(day, categories) {
-  if (day.focus && day.focus.length) return categories.filter((c) => day.focus.some((f) => norm(f) === norm(c)));
-  const label = ' ' + norm(day.label).replace(/[^a-z0-9]+/g, ' ') + ' ';
-  return categories.filter((c) => {
-    const n = norm(c).replace(/[^a-z0-9]+/g, ' ').trim();
-    return n && (label.includes(` ${n} `) || label.includes(` ${n.replace(/s$/, '')} `));
-  });
-}
+/** The categories to start the filter on (see schedule.js). */
+export { focusFor };
 
 /** Copy a picked item into the library if it isn't there yet. Returns its library id. */
 function ensureInLibrary(plan, kind, cand) {
