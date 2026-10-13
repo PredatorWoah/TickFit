@@ -66,16 +66,62 @@ export function dayFor(plan, date) {
   };
 }
 
-/** The day exactly as the plan has it, before any picks. */
+/**
+ * The day as the plan has it, before any picks for that date.
+ *
+ * A plan made from a document full of options (an AI puts them in "library") may leave a day's own list empty
+ * and only say what the day is about: "Wednesday Shoulders + Abs", or a "focus". Such a day is not a rest day,
+ * so it gets a sensible starting list from the library (marked suggested: true); "Choose exercises" changes it.
+ * A day whose label names no library category, like "Sunday Rest", stays empty.
+ */
 export function plannedDay(plan, date) {
   const i = dayIndexFor(plan, date);
-  if (i >= 0) return plan.days[i];
-  return {
-    label: `${weekdayName(weekdayOfDate(date))} (rest)`,
-    workout: [],
-    meals: [],
-    extras: { waterLiters: null, supplements: [], notes: '' },
-  };
+  if (i < 0) {
+    return {
+      label: `${weekdayName(weekdayOfDate(date))} (rest)`,
+      workout: [],
+      meals: [],
+      extras: { waterLiters: null, supplements: [], notes: '' },
+    };
+  }
+  const day = plan.days[i];
+  const lib = plan.library;
+  if (!lib || (day.workout.length && day.meals.length)) return day;
+  const workout = day.workout.length ? day.workout : fromLibrary(day, lib.exercises || [], 'workout');
+  const meals = day.meals.length ? day.meals : fromLibrary(day, lib.meals || [], 'meals');
+  return workout === day.workout && meals === day.meals ? day : { ...day, workout, meals, suggested: true };
+}
+
+const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** The categories a day is about: its "focus", else categories named in its label ("Friday Back Biceps"). */
+export function focusFor(day, categories) {
+  if (day.focus && day.focus.length) return categories.filter((c) => day.focus.some((f) => norm(f) === norm(c)));
+  const label = ' ' + norm(day.label).replace(/[^a-z0-9]+/g, ' ') + ' ';
+  return categories.filter((c) => {
+    const n = norm(c).replace(/[^a-z0-9]+/g, ' ').trim();
+    return n && (label.includes(` ${n} `) || label.includes(` ${n.replace(/s$/, '')} `));
+  });
+}
+
+/**
+ * A starting list from the library for an empty day.
+ *   exercises: the day's categories, up to 6 from one category or 4 each from several, 8 at most
+ *   meals:     the day's meal categories if it names any, else one of each (breakfast, lunch...), 6 at most
+ * The items keep their library ids, so ticks and logged sets stay attached when the list is shown again.
+ */
+function fromLibrary(day, items, kind) {
+  if (!items.length) return kind === 'workout' ? day.workout : day.meals;
+  const cats = [...new Set(items.map((x) => x.category).filter(Boolean))];
+  let focus = focusFor(day, cats);
+  if (!focus.length) {
+    if (kind === 'workout') return day.workout; // nothing named: a real rest day
+    focus = cats;
+  }
+  const each = kind === 'meals' ? 1 : focus.length === 1 ? 6 : 4;
+  const out = [];
+  for (const c of focus) out.push(...items.filter((x) => norm(x.category) === norm(c)).slice(0, each));
+  return out.slice(0, kind === 'meals' ? 6 : 8);
 }
 
 /**

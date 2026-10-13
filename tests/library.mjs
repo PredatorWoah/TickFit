@@ -41,7 +41,8 @@ ok(focusFor({ label: 'Day 3' }, cats).length === 0, 'no focus means All');
 
 // Picks: 2026-10-09 is a Friday.
 const fri = '2026-10-09';
-ok(dayFor(wp, fri).workout.length === 0, 'Friday starts empty');
+const friStart = dayFor(wp, fri);
+ok(friStart.suggested && friStart.workout.length > 0 && friStart.workout.every((w) => ['Back', 'Biceps'].includes(w.category)), 'Friday Back Biceps starts with Back and Biceps exercises from the library, not as a rest day: ' + friStart.workout.map((w) => w.exercise).join(', '));
 const cands = candidates(wp, fri, 'workout', [{ exercise: 'Plank', sets: 3, reps: '30 sec', category: 'Core' }, { exercise: 'Deadlift', category: 'Back' }]);
 ok(cands.some((c) => c.source === 'plan' && c.item.exercise === 'Leg Press'), "another day's exercise is offered");
 ok(cands.filter((c) => c.item.exercise === 'Deadlift').length === 1, 'the same name is offered once (library beats the built-in list)');
@@ -50,7 +51,7 @@ savePick(wp, fri, 'workout', pick);
 const friDay = dayFor(wp, fri);
 ok(friDay.workout.map((w) => w.exercise).join(',') === 'Deadlift,Barbell Curl,Leg Press,Plank', 'picked exercises show in the order chosen');
 ok(wp.library.exercises.some((x) => x.exercise === 'Plank' && x.category === 'Core') && wp.library.exercises.some((x) => x.exercise === 'Leg Press'), 'built-in and other-day picks are copied into the library');
-ok(dayFor(wp, '2026-10-16').workout.length === 0, 'next Friday is untouched');
+ok(JSON.stringify(dayFor(wp, '2026-10-16').workout) === JSON.stringify(friStart.workout), 'next Friday is untouched (its suggested list again)');
 ok(dayStats(friDay, { ticks: { [friDay.workout[0].id]: true } }).done === 1, 'ticks on picked exercises count');
 ok(isPicked(wp, fri, 'workout') && !isPicked(wp, fri, 'meals'), 'only the workout was changed');
 

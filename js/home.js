@@ -119,7 +119,8 @@ export function renderHome(root, plan, date, goto, actions) {
   const drawWorkoutCard = () => {
     clear(wkCard);
     if (!day.workout.length) {
-      wkCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon('flame', 22)), h('div', { class: 'hc-text' }, h('b', {}, 'Rest day'), h('span', {}, 'Recovery is part of the plan.'))), pickButton(ctx, 'workout'));
+      const hasOptions = !!(plan.library && plan.library.exercises && plan.library.exercises.length) && !/\brest\b/i.test(day.label);
+      wkCard.append(h('div', { class: 'hc-top' }, h('span', { class: 'hc-icon' }, icon(hasOptions ? 'dumbbell' : 'flame', 22)), h('div', { class: 'hc-text' }, h('b', {}, hasOptions ? "Pick today's exercises" : 'Rest day'), h('span', {}, hasOptions ? 'Your plan has options to choose from.' : 'Recovery is part of the plan.'))), pickButton(ctx, 'workout'));
       return;
     }
     const rec = ctx.rec();
