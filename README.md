@@ -55,7 +55,7 @@
 ### AI assistant (optional)
 
 - **Completely optional:** tick **More > AI helpers > Use AI helpers** to switch it on; untick to make every bit of AI disappear. TickFit works fully without it.
-- **Bring your own key** from **OpenCode Zen** (several free models), **OpenAI**, **Claude** or **Gemini**. Each has step-by-step instructions with links to the page where you make a key. After saving, TickFit fetches the models that key can use into a dropdown, with filters: **Free only**, by family (claude, gpt, qwen, kimi...) and a search box.
+- **Bring your own key** from **OpenRouter** (one key for hundreds of models, many of them free), **OpenAI**, **Claude** or **Gemini**. Each has step-by-step instructions with links to the page where you make a key. After saving, TickFit fetches the models that key can use into a dropdown, with filters: **Free only**, by maker (meta-llama, deepseek, qwen, google...) and a search box. A new OpenRouter key starts on a good free model by itself.
 - **A personal assistant:** the round **Ask AI** button on Today, Workout, Meals and Progress opens a chat. Ask it to summarise your week, review your progress or goal, swap or add exercises, make a day doable at home, change meals, calories, protein, water or workout time. It answers and proposes changes as plain sentences; **nothing changes until you tap Apply** (or Apply all), and Undo puts it back. Day changes only touch that day; plan-wide edits say so.
 - **Your history stays yours:** a separate tick decides whether the assistant may see your last 2 weeks (ticks, sets, weight, steps).
 - **Usage ran out?** TickFit waits and asks again by itself when your limit resets, and tells you when.
@@ -112,7 +112,7 @@
 
 ## Privacy
 
-Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the optional AI helpers (OpenCode Zen, OpenAI, Claude or Gemini, with your own key) that send what you ask about to the provider you pick, only if you switch them on.
+Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the optional AI helpers (OpenRouter, OpenAI, Claude or Gemini, with your own key) that send what you ask about to the provider you pick, only if you switch them on.
 
 ## How to use it
 
@@ -123,7 +123,7 @@ Everything stays on your device. There is no server to send anything to. See [PR
 
 ### Install it on your phone
 
-- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). A complete app with everything inside it, so it works with no internet, plus twelve **home screen widgets**: six kinds, each in an Arena and a Bento version you pick from the widget list (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
+- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest) once; after that it **updates itself** (it says when a new version is ready, then downloads, checks and installs it in a tap or two, keeping your data). A complete app with everything inside it, so it works with no internet, plus twelve **home screen widgets**: six kinds, each in an Arena and a Bento version you pick from the widget list (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
 - **iPhone (Safari):** Share button, then **Add to Home Screen**.
 - **Android (Chrome):** menu, then **Install app** (or **Add to Home screen**).
 
@@ -163,7 +163,7 @@ You do not need to write JSON by hand. Any free chatbot can convert a plan docum
 
 If something is wrong, TickFit lists every problem in plain language. Paste that back to the chatbot and ask it to fix it.
 
-**Optional one tap version:** tick **More > AI helpers > Use AI helpers**, pick OpenCode Zen (it has free models), OpenAI, Claude or Gemini and paste your own key (each one has a "How to get a key" with links). Then **Convert with AI** replaces the copy and paste, and **Suggest exercises / meals** appears in the Choose sheet. Read the notes on that screen first: what you ask about is sent to the provider you pick, and the key is stored (unencrypted) on your device.
+**Optional one tap version:** tick **More > AI helpers > Use AI helpers**, pick OpenRouter (it has free models), OpenAI, Claude or Gemini and paste your own key (each one has a "How to get a key" with links). Then **Convert with AI** replaces the copy and paste, and **Suggest exercises / meals** appears in the Choose sheet. Read the notes on that screen first: what you ask about is sent to the provider you pick, and the key is stored (unencrypted) on your device.
 
 ## Plan format
 

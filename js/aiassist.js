@@ -1,5 +1,5 @@
 // aiassist.js
-// The small AI helpers, using whichever AI the person set up in More (llm.js: OpenCode Zen, OpenAI, Claude or
+// The small AI helpers, using whichever AI the person set up in More (llm.js: OpenRouter, OpenAI, Claude or
 // Gemini), each with their own key, straight from their browser. Nothing here runs unless AI is switched on.
 //
 //   * convertPlanWithAI(text)   turn a plan document into TickFit JSON (the Import screen)

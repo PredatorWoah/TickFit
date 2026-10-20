@@ -1,6 +1,6 @@
 // Tests for the optional AI: providers and models (llm.js) and the assistant's actions (assistant.js).
 // Run: node tests/assistant.mjs
-import { isFreeModel, modelFamily, filterModels, normalizeModels, retryAtFrom, aiEnabled, QuotaError } from '../js/llm.js';
+import { isFreeModel, modelFamily, filterModels, normalizeModels, pickModel, retryAtFrom, aiEnabled, QuotaError } from '../js/llm.js';
 import { cleanAction, parseReply, describeAction, applyAction, assistantPrompt, assistantContext } from '../js/assistant.js';
 import { dayFor } from '../js/schedule.js';
 import { getState } from '../js/store.js';
@@ -9,15 +9,26 @@ let fail = 0;
 const eq = (m, got, want) => { const ok = JSON.stringify(got) === JSON.stringify(want); if (!ok) fail++; console.log(ok ? 'ok  ' : 'FAIL', m, ok ? '' : `got ${JSON.stringify(got)} want ${JSON.stringify(want)}`); };
 
 // ----- models -----
-eq('free models: -free and big-pickle', ['qwen3.6-plus-free', 'big-pickle', 'claude-sonnet-4-5', 'gpt-5-free-tier'].map(isFreeModel), [true, true, false, false]);
-eq('families', ['claude-sonnet-4-5', 'qwen3.6-plus-free', 'models/gemini-2.5-flash', 'GPT-5'].map(modelFamily), ['claude', 'qwen', 'gemini', 'gpt']);
-const oc = normalizeModels('opencode', { data: [{ id: 'claude-sonnet-4-5' }, { id: 'qwen3.6-plus-free' }, { id: 'big-pickle' }, { id: 'kimi-k2' }] });
-eq('opencode list marks free', oc.filter((m) => m.free).map((m) => m.id), ['qwen3.6-plus-free', 'big-pickle']);
-eq('filter: free only, free first then by name', filterModels(oc, { free: true }).map((m) => m.id), ['big-pickle', 'qwen3.6-plus-free']);
-eq('filter: family and text', [filterModels(oc, { family: 'claude' }).map((m) => m.id), filterModels(oc, { text: 'KIMI' }).map((m) => m.id)], [['claude-sonnet-4-5'], ['kimi-k2']]);
+eq('free models: ":free" ids or both prices 0', [isFreeModel('meta-llama/llama-3.3-70b-instruct:free'), isFreeModel('x/y', { prompt: '0', completion: '0' }), isFreeModel('x/y', { prompt: '0.000001', completion: '0' }), isFreeModel('openrouter/auto', { prompt: '-1', completion: '-1' }), isFreeModel('anthropic/claude-sonnet-4.5')], [true, true, false, false, false]);
+eq('families: the maker before the slash, else the first word', ['meta-llama/llama-3.3-70b-instruct:free', 'deepseek/deepseek-chat-v3:free', 'claude-sonnet-4-5', 'models/gemini-2.5-flash', 'GPT-5'].map(modelFamily), ['meta-llama', 'deepseek', 'claude', 'gemini', 'gpt']);
+const OR = { data: [
+  { id: 'anthropic/claude-sonnet-4.5', name: 'Anthropic: Claude Sonnet 4.5', pricing: { prompt: '0.000003', completion: '0.000015' } },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Meta: Llama 3.3 70B Instruct (free)', pricing: { prompt: '0', completion: '0' } },
+  { id: 'deepseek/deepseek-chat-v3-0324:free', name: 'DeepSeek V3 (free)', pricing: { prompt: '0', completion: '0' } },
+  { id: 'moonshotai/kimi-k2', name: 'Kimi K2', pricing: { prompt: '0.0000005', completion: '0.000002' } },
+  { id: 'openrouter/auto', name: 'Auto Router', pricing: { prompt: '-1', completion: '-1' } },
+] };
+const oc = normalizeModels('openrouter', OR);
+eq('openrouter list marks free', oc.filter((m) => m.free).map((m) => m.id), ['meta-llama/llama-3.3-70b-instruct:free', 'deepseek/deepseek-chat-v3-0324:free']);
+eq('no prices are kept in the list', oc.every((m) => !('pricing' in m)), true);
+eq('filter: free only, free first then by name', filterModels(oc, { free: true }).map((m) => m.id), ['deepseek/deepseek-chat-v3-0324:free', 'meta-llama/llama-3.3-70b-instruct:free']);
+eq('filter: maker and text', [filterModels(oc, { family: 'anthropic' }).map((m) => m.id), filterModels(oc, { text: 'KIMI' }).map((m) => m.id)], [['anthropic/claude-sonnet-4.5'], ['moonshotai/kimi-k2']]);
+eq('a free model is picked to start, the best one first', pickModel(oc), 'deepseek/deepseek-chat-v3-0324:free');
+eq('any free model if none of the favourites is there', pickModel(normalizeModels('openrouter', { data: [{ id: 'acme/tiny:free' }, { id: 'acme/big' }] })), 'acme/tiny:free');
+eq('no free models: nothing picked', [pickModel(normalizeModels('openrouter', { data: [{ id: 'acme/big', pricing: { prompt: '1', completion: '1' } }] })), pickModel(null)], [null, null]);
 eq('openai list keeps chat models only', normalizeModels('openai', { data: [{ id: 'gpt-5-mini' }, { id: 'whisper-1' }, { id: 'gpt-4o-realtime-preview' }, { id: 'text-embedding-3-small' }, { id: 'o4-mini' }] }).map((m) => m.id), ['gpt-5-mini', 'o4-mini']);
 eq('gemini list keeps generateContent models, drops the models/ prefix', normalizeModels('gemini', { models: [{ name: 'models/gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', supportedGenerationMethods: ['generateContent'] }, { name: 'models/embedding-001', supportedGenerationMethods: ['embedContent'] }] }).map((m) => [m.id, m.name]), [['gemini-2.5-flash', 'Gemini 2.5 Flash']]);
-eq('garbage model lists are empty', [normalizeModels('opencode', null), normalizeModels('gemini', {})], [[], []]);
+eq('garbage model lists are empty', [normalizeModels('openrouter', null), normalizeModels('gemini', {})], [[], []]);
 
 // ----- usage ran out: when to try again -----
 const now = 1_000_000;
@@ -25,6 +36,9 @@ eq('Retry-After in seconds', retryAtFrom({ 'retry-after': '20' }, 0, now), now +
 eq('Retry-After as a date', retryAtFrom({ 'retry-after': new Date(now + 90000).toUTCString() }, 0, now) >= now + 89000, true);
 eq('no header: 30 s, then 1 min, then 2 min', [0, 1, 2].map((a) => retryAtFrom(null, a, now) - now), [30000, 60000, 120000]);
 eq('backoff tops out at an hour', retryAtFrom(null, 20, now) - now, 3600000);
+const big = 1_800_000_000_000;
+eq("OpenRouter's reset time (ms since 1970) is used", retryAtFrom({ 'x-ratelimit-reset': String(big + 120000) }, 0, big) - big, 120000);
+eq('a reset time over a day away is capped at a day', retryAtFrom({ 'x-ratelimit-reset': String(big + 9e9) }, 0, big) - big, 86400000);
 eq('QuotaError carries the time', new QuotaError('x', 5).retryAt, 5);
 eq('AI is off without keys, and when switched off', [aiEnabled({ aiOn: true }), aiEnabled({ aiOn: false }), aiEnabled({})], [false, false, false]);
 

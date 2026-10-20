@@ -8,29 +8,31 @@ Everything you enter (plans, ticks, sets, weights, notes, water, settings, and t
 
 ## What leaves your device
 
-Nothing, unless you switch on one of these optional features:
+Nothing, unless you switch on one of these optional features (plus one check for new versions in the Android app, described right after them):
 
-- **AI helpers (off unless you tick "Use AI helpers" in More and add a key).** You pick one provider: OpenCode Zen (`opencode.ai`), OpenAI (`api.openai.com`), Anthropic Claude (`api.anthropic.com`) or Google Gemini (`generativelanguage.googleapis.com`), with your own key. Then, and only when you tap something:
+- **AI helpers (off unless you tick "Use AI helpers" in More and add a key).** You pick one provider: OpenRouter (`openrouter.ai`), OpenAI (`api.openai.com`), Anthropic Claude (`api.anthropic.com`) or Google Gemini (`generativelanguage.googleapis.com`), with your own key. Then, and only when you tap something:
   - **The assistant** (the Ask AI button) sends your message, the conversation so far, and your plan for the next 7 days (exercises, meals, water, and your plan builder answers if you used it). Your last 2 weeks of ticks, logged sets, typed-in workout time, notes, body weight, steps and measurements are added **only** while "Let the assistant see my history" is ticked. The AI only suggests changes: nothing in your data changes until you tap **Apply**, and Undo puts it back.
   - **Convert with AI** on the Import screen sends the text of the document you are converting.
   - **Suggest exercises / meals** in the Choose sheet sends the day's name and focus, the names already chosen and your plan builder answers. Never your history.
   - Saving a key asks that provider for its list of models (only the key is sent).
 
-  Each provider handles what you send under its own terms. Paid models cost money on your account with them; free models (OpenCode's free ones, Gemini's free tier) may use what you send to improve their models, so do not send anything you consider private. With AI switched off, no request to any of them is ever made.
+  Each provider handles what you send under its own terms. Paid models cost money on your account with them; free models (OpenRouter's free ones, Gemini's free tier) may use what you send to improve their models, so do not send anything you consider private. With AI switched off, no request to any of them is ever made.
 
 - **Online food lookup (off unless you turn it on).** If you switch on **More > Food lookup**, tapping **Estimate from foods** in the plan editor sends the *name* of a food the built-in table does not know (for example `quinoa crunch`) to Open Food Facts (`world.openfoodfacts.org`), a free open food database. No amounts, plans, progress, weight or personal details are sent. Like any website, they can see your IP address. If you never turn it on, no request is ever made.
 - **Scanning a packet's barcode (same setting).** The camera picture stays on your phone: the phone reads the stripes itself. Only the barcode's digits (like `8901063012345`) are sent to Open Food Facts to find the product's name, calories and protein. If the lookup is off, TickFit asks before turning it on.
+
+- **Looking for a new version (Android app only, on unless you switch it off).** Once a day, and when you tap **More > App version > Check for updates**, the app asks GitHub for TickFit's latest release (`api.github.com/repos/PredatorWoah/TickFit/releases/latest`), the same public page anyone can open. Nothing about you, your plans or your progress is sent; GitHub sees an ordinary request from your phone's internet address. When you tap **Update**, the new APK is downloaded from TickFit's releases on GitHub, its SHA-256 fingerprint is checked against the one GitHub publishes, and Android's own installer takes over (Android also refuses an update not signed by TickFit's key). Switch the daily check off with **Look for a new version by itself** in the same card. The website never does this: it updates through its service worker from this site.
 
 These two stay on the phone too, but are worth spelling out:
 
 - **Steps (Android app, off unless you connect it).** **More > Steps** asks Health Connect for permission to *read step counts* and nothing else; the app's install file even removes every other health permission the plugin would add. The daily counts are saved with the rest of your data (and go into backups and spreadsheet exports). Nothing is written to Health Connect and nothing is sent anywhere. **Stop showing steps** stops reading; you can also take the permission away in Health Connect.
 - **Reminders (Android app, off unless you turn them on).** They are scheduled on the phone with Android's own notifications. Nothing is sent anywhere.
 
-TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to the four AI providers above (`opencode.ai`, `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com`) and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
+TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to the four AI providers above (`openrouter.ai`, `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com`), to `world.openfoodfacts.org` and to `api.github.com` (the version check). A bug or a bad edit cannot quietly start talking to some other server.
 
 ## Your AI keys
 
-- Each is stored unencrypted on this device, in its own storage slot (`tickfit:opencode`, `tickfit:openai`, `tickfit:claude`, `tickfit:gemini`), apart from your data.
+- Each is stored unencrypted on this device, in its own storage slot (`tickfit:openrouter`, `tickfit:openai`, `tickfit:claude`, `tickfit:gemini`), apart from your data. (TickFit 2.1 to 2.3 offered OpenCode Zen instead of OpenRouter; its old key slot, `tickfit:opencode`, is deleted when you update.)
 - Anyone who can use this phone or browser profile, or a malicious browser extension, could read them. Use keys you can revoke, and never reuse an important one.
 - They are **never** included in backup files.
 - **Remove key** in More deletes it from this device.

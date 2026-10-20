@@ -11,7 +11,7 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 - **Steps from Health Connect:** **More > Steps** shows your daily steps (from Google Fit, Samsung Health, a watch...) on Today. The app can only *read step counts*: the build removes every other health permission. Android 13 and older need the free "Health Connect by Android" app; Android 14+ has it built in.
 - **Automatic daily backup** into `Documents/TickFit` (last 7 kept), on by default, in **More > Your data**. Android 10 and older ask for the storage permission once.
 - **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email. Some apps (like Drive's "Save to Drive" box) do not tell TickFit whether they saved the file, so TickFit then asks "Did the backup get saved?" and only updates **Last backup** when you say yes.
-- **No service worker.** Every file is already on the phone. Updates come as a new APK (see below).
+- **No service worker.** Every file is already on the phone. Updates come as a new APK, and the app installs them itself: **More > App version > Check for updates** (and a daily check, on unless you switch it off) downloads the new APK from the Releases page, checks its SHA-256 fingerprint, and opens Android's installer. The first time, Android asks once to allow TickFit to install updates.
 - The status bar icons follow your light or dark theme.
 - **Back works inside the app.** The Back button or swipe-back closes a pop-up first, then goes up one screen (a sub-screen to its parent, another tab to Today), and only leaves the app from Today.
 - Ticking a set or a meal gives a light haptic tap.
@@ -70,7 +70,7 @@ The **Get the app** card in TickFit's More screen links to the latest release.
 1. Download `TickFit-….apk` from the latest release on your phone.
 2. Open it. Android asks you to allow installs from your browser or Files app, turn that on once.
 3. If Play Protect warns about an unknown developer, choose **Install anyway**.
-4. To update, download the newer APK and install it over the old one. Your data stays.
+4. To update, tap **Update** when TickFit says a new version is ready (or **More > App version > Check for updates**). It downloads and checks the new APK and opens Android's installer; tap **Update** there. Your data stays. Downloading the newer APK from the Releases page and installing it over the old one works too.
 
 ## How it is built (for developers)
 

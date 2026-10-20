@@ -16,6 +16,7 @@ import { openBackupSheet } from './backupui.js';
 import { runningVersion, forceUpdate } from './update.js';
 import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
 import { isNative, appVersion } from './platform.js';
+import { canUpdateInApp, checkForUpdate, pendingUpdate } from './updater.js';
 import { burnFactor } from './burn.js';
 import { describeBackupAge } from './safety.js';
 import { reminderSettings, setReminder, prepareReminders, scheduleReminders } from './reminders.js';
@@ -300,7 +301,9 @@ export function renderMore(root, actions) {
     plan && h('button', { class: 'btn wide lib-open', type: 'button', onclick: () => actions.show('library') }, icon('library', 18), 'Exercise and meal library')
   );
 
+  // cards that don't apply here (Android only ones on the web) are null: drop them, or append() prints "null"
   root.append(
+    ...[
     h('h1', { class: 'page-title' }, 'More'),
     h(
       'section',
@@ -380,14 +383,7 @@ export function renderMore(root, actions) {
     stepsCard(),
     getAppCard() || '',
     isNative()
-      ? h(
-          'section',
-          { class: 'card' },
-          h('h2', {}, 'App version'),
-          h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'TickFit for Android'), h('span', { class: 'kv-value' }, appVersion())),
-          h('p', { class: 'hint' }, 'This app has everything inside it, so it works with no internet. New versions come as a new download on the Releases page. Your data stays on this phone when you update (install the new file over the old one).'),
-          h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'See the latest version')
-        )
+      ? appUpdateCard(settings)
       : h(
           'section',
           { class: 'card' },
@@ -415,6 +411,56 @@ export function renderMore(root, actions) {
       { class: 'card' },
       h('h2', {}, 'Privacy'),
       h('p', { class: 'hint' }, 'TickFit has no accounts, no servers and no tracking. Everything you enter stays in this browser on this device. Nothing is sent anywhere, except by the optional food lookup and AI helpers above, and only when you use them.')
+    )
+    ].filter(Boolean)
+  );
+}
+
+/** Android app: the version, a button that looks for a new one and updates right here, and the daily check. */
+function appUpdateCard(settings) {
+  const status = h('p', { class: 'hint', role: 'status' });
+  const openSheet = (rel) => import('./updateui.js').then((m) => m.openUpdateSheet(rel));
+  const found = pendingUpdate();
+  const btn = h('button', { class: 'btn wide' + (found ? ' primary' : ''), type: 'button' }, found ? `Update to ${found.version}` : 'Check for updates');
+  btn.onclick = async () => {
+    if (pendingUpdate()) return openSheet(pendingUpdate());
+    btn.disabled = true;
+    status.textContent = 'Looking for a new version...';
+    try {
+      const rel = await checkForUpdate();
+      if (rel) {
+        status.textContent = `TickFit ${rel.version} is out.`;
+        btn.textContent = `Update to ${rel.version}`;
+        btn.classList.add('primary');
+        openSheet(rel);
+      } else status.textContent = `You have the newest version (${appVersion()}).`;
+    } catch (e) {
+      status.textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  };
+  if (!canUpdateInApp())
+    return h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'App version'),
+      h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'TickFit for Android'), h('span', { class: 'kv-value' }, appVersion())),
+      h('a', { class: 'btn wide', href: 'https://github.com/PredatorWoah/TickFit/releases/latest', target: '_blank', rel: 'noopener' }, 'See the latest version')
+    );
+  return h(
+    'section',
+    { class: 'card' },
+    h('h2', {}, 'App version'),
+    h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'TickFit for Android'), h('span', { class: 'kv-value' }, appVersion())),
+    h('p', { class: 'hint' }, 'New versions install right here, over this app, so your data stays. The app works with no internet; it only goes online to look for an update.'),
+    btn,
+    status,
+    h(
+      'label',
+      { class: 'check-line' },
+      h('input', { type: 'checkbox', checked: settings.updateCheck !== false, onchange: (e) => setSetting('updateCheck', e.target.checked) }),
+      'Look for a new version by itself (once a day). It asks GitHub for the latest release; nothing about you is sent.'
     )
   );
 }
