@@ -52,6 +52,14 @@
   <img src="docs/screenshots/swap.png" alt="Swap a meal for one with about the same calories and protein" width="220">
 </p>
 
+### AI assistant (optional)
+
+- **Completely optional:** tick **More > AI helpers > Use AI helpers** to switch it on; untick to make every bit of AI disappear. TickFit works fully without it.
+- **Bring your own key** from **OpenCode Zen** (several free models), **OpenAI**, **Claude** or **Gemini**. Each has step-by-step instructions with links to the page where you make a key. After saving, TickFit fetches the models that key can use into a dropdown, with filters: **Free only**, by family (claude, gpt, qwen, kimi...) and a search box.
+- **A personal assistant:** the round **Ask AI** button on Today, Workout, Meals and Progress opens a chat. Ask it to summarise your week, review your progress or goal, swap or add exercises, make a day doable at home, change meals, calories, protein, water or workout time. It answers and proposes changes as plain sentences; **nothing changes until you tap Apply** (or Apply all), and Undo puts it back. Day changes only touch that day; plan-wide edits say so.
+- **Your history stays yours:** a separate tick decides whether the assistant may see your last 2 weeks (ticks, sets, weight, steps).
+- **Usage ran out?** TickFit waits and asks again by itself when your limit resets, and tells you when.
+
 ### Plans
 
 - **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries). The diet can be the same every day, **Mixed** (your main diet with non-veg on a few evenly spread days), or **picked per day** (for example vegan Monday, egg Wednesday, non-veg Sunday) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
@@ -104,7 +112,7 @@
 
 ## Privacy
 
-Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the optional AI helpers (Claude or Gemini, with your own key) that send what you ask about to Anthropic or Google if you choose to turn them on.
+Everything stays on your device. There is no server to send anything to. See [PRIVACY.md](PRIVACY.md) for the details, including the optional AI helpers (OpenCode Zen, OpenAI, Claude or Gemini, with your own key) that send what you ask about to the provider you pick, only if you switch them on.
 
 ## How to use it
 
@@ -127,7 +135,7 @@ TickFit stores everything in your browser on your phone. That is what makes it p
 
 - **Install it** to your Home Screen (see above). Installed apps are far less likely to have their data cleared.
 - **Back up daily.** A web page cannot save files by itself (no browser allows it), so TickFit makes it as easy as possible: a reminder on Today once a day, a one tap **Back up now** sheet, and a red dot on the More tab when your backup is 3 days old. In the sheet you can rename the file, share it (save to Files or Drive, send it on WhatsApp or email) or download it. Android and iPhone cannot overwrite an old file, so a repeated name becomes "name (1)"; desktop Chrome and Edge can use **Save over an existing file**.
-- **New phone?** Make a backup on the old phone, open the same link on the new one, then **More > Restore from a backup file**. Your Claude or Gemini key (if you set one) is never in the backup, on purpose.
+- **New phone?** Make a backup on the old phone, open the same link on the new one, then **More > Restore from a backup file**. Your AI keys (if you set any) are never in the backup, on purpose.
 - **Two devices do not sync.** Without a server that isn't possible, so each device keeps its own history.
 
 ## Build a plan from your details
@@ -155,7 +163,7 @@ You do not need to write JSON by hand. Any free chatbot can convert a plan docum
 
 If something is wrong, TickFit lists every problem in plain language. Paste that back to the chatbot and ask it to fix it.
 
-**Optional one tap version:** with your own [Claude API key](https://console.anthropic.com/) or a free [Google Gemini API key](https://aistudio.google.com/) in **More > AI helpers**, **Convert with Claude** (or Gemini) replaces the copy and paste, and **Suggest exercises / meals** appears in the Choose sheet. Read the warnings on that screen first: what you ask about is sent to Anthropic or Google, and the key is stored (unencrypted) in your browser.
+**Optional one tap version:** tick **More > AI helpers > Use AI helpers**, pick OpenCode Zen (it has free models), OpenAI, Claude or Gemini and paste your own key (each one has a "How to get a key" with links). Then **Convert with AI** replaces the copy and paste, and **Suggest exercises / meals** appears in the Choose sheet. Read the notes on that screen first: what you ask about is sent to the provider you pick, and the key is stored (unencrypted) on your device.
 
 ## Plan format
 

@@ -1,6 +1,6 @@
 // more.js
 // The More screen: your data (backup, restore, storage protection), appearance, rest timer,
-// the optional Gemini key, and the privacy note.
+// the optional AI helpers (aisettings.js) and the privacy note.
 
 import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
@@ -9,9 +9,7 @@ import { restorePhotos } from './photos.js';
 import { runAutoBackup, AUTO_FOLDER } from './autobackup.js';
 import { prepareRestAlert } from './restalert.js';
 import { applyTheme, resolveStyle, naturalTheme } from './theme.js';
-import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
-import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, DEFAULT_CLAUDE_MODEL } from './claude.js';
-import { activeAI } from './aiassist.js';
+import { aiCard } from './aisettings.js';
 import { validatePlan } from './parser.js';
 import { todayStr } from './dates.js';
 import { openBackupSheet } from './backupui.js';
@@ -214,7 +212,7 @@ export function renderMore(root, actions) {
         h('li', {}, 'On the OLD phone: tap "Back up now" and send the file to yourself, for example through Drive, email or WhatsApp.'),
         h('li', {}, 'On the NEW phone: open the same TickFit link and install it.'),
         h('li', {}, 'Open this More screen, tap "Restore from a backup file" and pick the file.'),
-        h('li', {}, 'Check your plans and history, then you are done. Your Gemini key (if you set one) is never in the file, so add it again.')
+        h('li', {}, 'Check your plans and history, then you are done. AI keys (if you set any) are never in the file, so add them again.')
       )
     ),
     exportBlock()
@@ -283,54 +281,6 @@ export function renderMore(root, actions) {
 
   // ----- app version (the deploy stamp on the running code) -----
   const versionRow = h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, 'Running version'), h('span', { class: 'kv-value' }, runningVersion()));
-
-  // ----- AI helpers (optional): Claude and Gemini, each with the person's own key -----
-  /** One provider's key and model, with Save and Remove. */
-  const keyBlock = ({ name, cfg, save, clear, defaultModel, keyLabel, notes }) => {
-    const keyInput = h('input', { class: 'text-input', type: 'password', autocomplete: 'off', spellcheck: false, placeholder: cfg.key ? 'Key saved (hidden)' : `Paste your ${name} API key`, 'aria-label': `${name} API key` });
-    const modelInput = h('input', { class: 'text-input', type: 'text', autocomplete: 'off', spellcheck: false, value: cfg.model, 'aria-label': `${name} model name` });
-    return h(
-      'details',
-      { class: 'ai-block', open: !!cfg.key },
-      h('summary', {}, h('b', {}, name), h('span', { class: 'pill' }, cfg.key ? 'Key saved' : 'Not set up')),
-      h('ul', { class: 'ai-notes' }, notes.map((n) => h('li', {}, n))),
-      h('label', { class: 'f' }, h('span', {}, keyLabel), keyInput),
-      h('label', { class: 'f' }, h('span', {}, `Model (default ${defaultModel})`), modelInput),
-      h(
-        'button',
-        {
-          class: 'btn primary wide',
-          type: 'button',
-          onclick: () => {
-            const key = keyInput.value.trim() || cfg.key;
-            if (!key) return toast('Paste a key first');
-            save({ key, model: modelInput.value });
-            toast(`${name} key saved on this device`);
-            again();
-          },
-        },
-        'Save'
-      ),
-      cfg.key &&
-        h(
-          'button',
-          {
-            class: 'btn danger wide',
-            type: 'button',
-            onclick: () => {
-              clear();
-              toast('Key removed');
-              again();
-            },
-          },
-          'Remove key from this device'
-        )
-    );
-  };
-  const claudeCfg = getClaudeConfig();
-  const geminiCfg = getGeminiConfig();
-  const ai = activeAI();
-  const bothKeys = !!(claudeCfg.key && geminiCfg.key);
 
   // ----- my plan: the one obvious place to switch, edit or add plans -----
   const plan = getActivePlan();
@@ -459,51 +409,7 @@ export function renderMore(root, actions) {
       ),
       h('p', { class: 'hint' }, 'What is sent: only the food name, such as "paneer tikka", to openfoodfacts.org. No amounts, plans, progress or personal details. Their servers can see your IP address, like any website. Off by default.')
     ),
-    h(
-      'section',
-      { class: 'card' },
-      h('h2', {}, 'AI helpers (optional)'),
-      h('p', { class: 'hint' }, 'With your own Claude or Gemini key, TickFit can turn a document into a plan in one tap and suggest exercises and meals for a day. You do not need this: the "Copy AI prompt" button works with any chatbot.'),
-      h(
-        'div',
-        { class: 'msg warn' },
-        h('b', {}, 'Read this first'),
-        h(
-          'ul',
-          {},
-          h('li', {}, 'Only what you ask about is sent: the document you convert, or the day\'s name, focus and chosen exercise or meal names (plus your goal, experience, equipment and diet if you used the plan builder). Never your history, weights or notes.'),
-          h('li', {}, 'Your key is saved in this browser, unencrypted. Anyone who can use this phone profile or browser could read it. Use a key you can delete, and never reuse an important one.'),
-          h('li', {}, 'Keys are never included in backup files.')
-        )
-      ),
-      bothKeys &&
-        h(
-          'div',
-          { class: 'seg', role: 'group', 'aria-label': 'Which AI to use' },
-          ['claude', 'gemini'].map((id) =>
-            h('button', { type: 'button', 'aria-pressed': String(ai && ai.id === id), onclick: () => { setSetting('aiProvider', id); again(); } }, id === 'claude' ? 'Use Claude' : 'Use Gemini')
-          )
-        ),
-      ai && !bothKeys && h('p', { class: 'hint' }, `Using ${ai.name}.`),
-      keyBlock({
-        name: 'Claude',
-        cfg: claudeCfg,
-        save: saveClaudeConfig,
-        clear: clearClaudeKey,
-        defaultModel: DEFAULT_CLAUDE_MODEL,
-        keyLabel: 'API key (from the Anthropic Console)',
-        notes: ['By Anthropic. Needs an Anthropic Console account with credit: each use costs a little on your account.', 'What you send goes to Anthropic under their API terms.'],
-      }),
-      keyBlock({
-        name: 'Gemini',
-        cfg: geminiCfg,
-        save: saveGeminiConfig,
-        clear: clearGeminiKey,
-        defaultModel: DEFAULT_MODEL,
-        keyLabel: 'API key (free from Google AI Studio)',
-        notes: ['By Google. Has a free tier.', 'On the free tier, Google may use what you send to improve its products.'],
-      })
-    ),
+    aiCard(again),
     h(
       'section',
       { class: 'card' },

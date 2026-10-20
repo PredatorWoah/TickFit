@@ -10,11 +10,13 @@ Everything you enter (plans, ticks, sets, weights, notes, water, settings, and t
 
 Nothing, unless you switch on one of these optional features:
 
-- **AI helpers: Claude or Gemini (off unless you add a key).** If you paste your own Anthropic (Claude) or Google (Gemini) API key in **More**, two things can send text to that company, and only when you tap them:
-  - **Convert with Claude / Gemini** on the Import screen sends the text of the document you are converting.
-  - **Suggest exercises / meals** in the Choose sheet sends the day's name and focus, the names of the exercises or meals already chosen and, if you used the plan builder, your goal, experience, equipment, injuries to avoid and diet. Never your history, weights, body weight or notes.
+- **AI helpers (off unless you tick "Use AI helpers" in More and add a key).** You pick one provider: OpenCode Zen (`opencode.ai`), OpenAI (`api.openai.com`), Anthropic Claude (`api.anthropic.com`) or Google Gemini (`generativelanguage.googleapis.com`), with your own key. Then, and only when you tap something:
+  - **The assistant** (the Ask AI button) sends your message, the conversation so far, and your plan for the next 7 days (exercises, meals, water, and your plan builder answers if you used it). Your last 2 weeks of ticks, logged sets, typed-in workout time, notes, body weight, steps and measurements are added **only** while "Let the assistant see my history" is ticked. The AI only suggests changes: nothing in your data changes until you tap **Apply**, and Undo puts it back.
+  - **Convert with AI** on the Import screen sends the text of the document you are converting.
+  - **Suggest exercises / meals** in the Choose sheet sends the day's name and focus, the names already chosen and your plan builder answers. Never your history.
+  - Saving a key asks that provider for its list of models (only the key is sent).
 
-  Claude is billed to your Anthropic account and what you send is handled under Anthropic's API terms. On Google's free tier, Google may use what you send to improve its products, so do not send anything you consider private. If you never add a key, no request to either is ever made.
+  Each provider handles what you send under its own terms. Paid models cost money on your account with them; free models (OpenCode's free ones, Gemini's free tier) may use what you send to improve their models, so do not send anything you consider private. With AI switched off, no request to any of them is ever made.
 
 - **Online food lookup (off unless you turn it on).** If you switch on **More > Food lookup**, tapping **Estimate from foods** in the plan editor sends the *name* of a food the built-in table does not know (for example `quinoa crunch`) to Open Food Facts (`world.openfoodfacts.org`), a free open food database. No amounts, plans, progress, weight or personal details are sent. Like any website, they can see your IP address. If you never turn it on, no request is ever made.
 - **Scanning a packet's barcode (same setting).** The camera picture stays on your phone: the phone reads the stripes itself. Only the barcode's digits (like `8901063012345`) are sent to Open Food Facts to find the product's name, calories and protein. If the lookup is off, TickFit asks before turning it on.
@@ -24,14 +26,14 @@ These two stay on the phone too, but are worth spelling out:
 - **Steps (Android app, off unless you connect it).** **More > Steps** asks Health Connect for permission to *read step counts* and nothing else; the app's install file even removes every other health permission the plugin would add. The daily counts are saved with the rest of your data (and go into backups and spreadsheet exports). Nothing is written to Health Connect and nothing is sent anywhere. **Stop showing steps** stops reading; you can also take the permission away in Health Connect.
 - **Reminders (Android app, off unless you turn them on).** They are scheduled on the phone with Android's own notifications. Nothing is sent anywhere.
 
-TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to `api.anthropic.com`, to `generativelanguage.googleapis.com` and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
+TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to the four AI providers above (`opencode.ai`, `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com`) and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
 
-## Your Claude and Gemini keys
+## Your AI keys
 
-- Each is stored unencrypted in this browser, in its own storage slot (`tickfit:claude`, `tickfit:gemini`).
-- Anyone who can use this phone or browser profile, or a malicious browser extension, could read it. Use a key you can revoke, and never reuse an important one.
+- Each is stored unencrypted on this device, in its own storage slot (`tickfit:opencode`, `tickfit:openai`, `tickfit:claude`, `tickfit:gemini`), apart from your data.
+- Anyone who can use this phone or browser profile, or a malicious browser extension, could read them. Use keys you can revoke, and never reuse an important one.
 - They are **never** included in backup files.
-- **More > Remove key from this device** deletes it.
+- **Remove key** in More deletes it from this device.
 
 ## Plan builder
 
@@ -53,7 +55,7 @@ Photos you take or pick on the Progress tab stay on this device. They are never 
 
 In the Android app, TickFit also saves an automatic backup once a day in your phone's `Documents/TickFit` folder (the last 7 are kept). It stays on your phone; it only goes elsewhere if you sync that folder yourself. Switch it off in **More > Your data**. On Android 10 and older this needs the storage permission, which the app asks for once.
 
-A backup file contains all your plans, progress, notes, body weight log, settings and plan builder answers (but never your Claude or Gemini key). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
+A backup file contains all your plans, progress, notes, body weight log, settings and plan builder answers (but never your AI keys). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
 
 ## Files you upload
 

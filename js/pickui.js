@@ -3,7 +3,7 @@
 //   * Filter chips by category (Back, Biceps, Breakfast...). It starts on the day's focus, so on
 //     "Friday Back Biceps" you see back and biceps exercises first.
 //   * Tick what you want, then move them up or down into the order you'll do them.
-//   * With a Claude or Gemini key set in More, ask it for suggestions that fit the day.
+//   * With AI helpers on in More, ask the AI for suggestions that fit the day.
 //   * Add your own, or go back to the plan's list.
 // Loaded on demand (only when someone opens it), so it costs nothing at startup.
 
@@ -158,7 +158,7 @@ export function openPicker({ plan, date, kind, onDone, packet = null, keep = nul
         drawList();
       };
 
-      // ----- suggestions from Claude or Gemini (only with a key set in More) -----
+      // ----- suggestions from the AI (only with AI helpers on in More) -----
       const ai = activeAI();
       const aiStatus = h('p', { class: 'hint', role: 'status' });
       const aiBtn = ai

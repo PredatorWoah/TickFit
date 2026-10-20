@@ -26,6 +26,7 @@ import { startRestAlerts } from './restalert.js';
 import { handleIncomingPlan } from './shareui.js';
 import { startReminders } from './reminders.js';
 import { startSteps } from './steps.js';
+import { aiEnabled } from './llm.js';
 import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
@@ -163,7 +164,23 @@ function draw() {
   lastScreenKey = screenKey;
   view.dir = null;
 
+  syncAiButton(s, plan);
   if (s !== 'build' && s !== 'edit' && s !== 'library') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn
+}
+
+/** The round "Ask AI" button above the tab bar, on the day screens, only when AI helpers are on. */
+function syncAiButton(screen, plan) {
+  let btn = document.getElementById('ai-fab');
+  const want = plan && aiEnabled() && ['today', 'workout', 'meals', 'progress'].includes(screen);
+  if (!want) return btn && btn.remove();
+  if (!btn) {
+    btn = h('button', { id: 'ai-fab', class: 'ai-fab', type: 'button', 'aria-label': 'Ask AI' }, icon('sparkle', 24));
+    document.body.append(btn);
+  }
+  btn.onclick = async () => {
+    const { openAssistant } = await import('./assistantui.js');
+    openAssistant({ plan: getActivePlan(), date: view.date || todayStr(), onChange: draw });
+  };
 }
 
 /** A gentle, dismissible reminder to back up, shown on Today only when there is real progress to lose. */

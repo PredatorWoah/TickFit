@@ -1,6 +1,6 @@
 // aiassist.js
-// One place for the optional AI helpers, whichever one the person set up in More: Claude (claude.js) or
-// Gemini (gemini.js). Both use the person's own key, straight from their browser.
+// The small AI helpers, using whichever AI the person set up in More (llm.js: OpenCode Zen, OpenAI, Claude or
+// Gemini), each with their own key, straight from their browser. Nothing here runs unless AI is switched on.
 //
 //   * convertPlanWithAI(text)   turn a plan document into TickFit JSON (the Import screen)
 //   * suggest(kind, context)    ideas for exercises or meals for one day (the Choose exercises / meals sheet)
@@ -9,30 +9,23 @@
 // chosen and, if the plan builder was used, the goal, experience, equipment, injuries and diet. Never your
 // history, weights or notes.
 
-import { hasGeminiKey, askGemini, convertWithGemini } from './gemini.js';
-import { hasClaudeKey, askClaude } from './claude.js';
+import { activeProvider, ask } from './llm.js';
 import { buildPrompt } from './ai.js';
 import { parseJsonLoose } from './parser.js';
 import { getState } from './store.js';
 
-const NAMES = { claude: 'Claude', gemini: 'Gemini' };
 const MAX_SUGGESTIONS = 8;
+const MAX_DOC_CHARS = 200000;
 
-/** The AI to use: the one picked in More if its key is set, else whichever has a key. Null without any. */
-export function activeAI() {
-  const picked = (getState().settings || {}).aiProvider;
-  const ready = { claude: hasClaudeKey(), gemini: hasGeminiKey() };
-  const id = ready[picked] ? picked : ready.claude ? 'claude' : ready.gemini ? 'gemini' : null;
-  return id ? { id, name: NAMES[id] } : null;
-}
+/** The AI to use (the one picked in More), or null when AI is off or no key is set. */
+export const activeAI = () => activeProvider();
 
 /** Convert a plan document with the active AI. Returns the reply text (plan JSON). */
-export async function convertPlanWithAI(docText) {
-  const ai = activeAI();
-  if (!ai) throw new Error('Add a Claude or Gemini key in More first.');
-  if (ai.id === 'gemini') return convertWithGemini(docText);
+export async function convertPlanWithAI(docText, opts = {}) {
+  if (!activeAI()) throw new Error('Turn on AI helpers and add a key in More first.');
   if (!docText.trim()) throw new Error('Paste or upload your plan text first.');
-  return askClaude(buildPrompt(docText), { maxTokens: 64000, effort: 'medium' });
+  if (docText.length > MAX_DOC_CHARS) throw new Error(`That document is very long (${docText.length.toLocaleString()} characters). Trim it to under ${MAX_DOC_CHARS.toLocaleString()}.`);
+  return ask(buildPrompt(docText), { maxTokens: 32000, effort: 'medium', ...opts });
 }
 
 /** The prompt for suggestions. Pure, so it can be tested. */
@@ -94,11 +87,11 @@ export function parseSuggestions(kind, text) {
 }
 
 /** Ask the active AI for exercise or meal ideas. Returns clean items (see parseSuggestions). */
-export async function suggest(kind, context) {
+export async function suggest(kind, context, opts = {}) {
   const ai = activeAI();
-  if (!ai) throw new Error('Add a Claude or Gemini key in More first.');
+  if (!ai) throw new Error('Turn on AI helpers and add a key in More first.');
   const prompt = suggestPrompt(kind, { ...context, profile: (getState().settings || {}).profile || null });
-  const text = ai.id === 'claude' ? await askClaude(prompt, { maxTokens: 4000, effort: 'low' }) : await askGemini(prompt, { maxTokens: 4000 });
+  const text = await ask(prompt, { maxTokens: 4000, effort: 'low', ...opts });
   const items = parseSuggestions(kind, text);
   if (!items.length) throw new Error(`${ai.name} did not send any usable suggestions. Try again.`);
   return items;
