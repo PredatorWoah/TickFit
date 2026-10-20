@@ -20,6 +20,10 @@ import { canPromptInstall, promptInstall, isInstalledApp } from './install.js';
 import { isNative, appVersion } from './platform.js';
 import { burnFactor } from './burn.js';
 import { describeBackupAge } from './safety.js';
+import { reminderSettings, setReminder, prepareReminders, scheduleReminders } from './reminders.js';
+import { stepsOn, stepsFor, stepsText, connectSteps, stopSteps } from './steps.js';
+import { dailyCsv, setsCsv } from './csv.js';
+import { shareImage } from './shareimg.js';
 
 const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -80,6 +84,107 @@ export function renderMore(root, actions) {
     );
   }
 
+  // A spreadsheet of your history (csv.js), for Google Sheets or Excel
+  function exportBlock() {
+    const plan = getActivePlan();
+    if (!plan) return null;
+    const send = async (kind) => {
+      const text = kind === 'sets' ? setsCsv(getState(), plan) : dailyCsv(getState(), plan);
+      if (text.split('\r\n').length <= 2) return toast('Nothing logged yet to export');
+      // the BOM tells Excel the file is UTF-8 (names like "Café" stay right)
+      const blob = new Blob(['\ufeff' + text], { type: 'text/csv' });
+      try {
+        await shareImage(blob, `tickfit-${kind}-${todayStr()}.csv`, 'TickFit spreadsheet');
+      } catch {
+        toast('Could not save the spreadsheet');
+      }
+    };
+    return h(
+      'details',
+      { class: 'fold' },
+      h('summary', {}, 'Export to a spreadsheet'),
+      h('p', { class: 'hint' }, `Your history for "${plan.name}" as a CSV file. It opens in Google Sheets, Excel or LibreOffice. This is for looking at your numbers; to move TickFit to another phone, use a backup instead.`),
+      h(
+        'div',
+        { class: 'btn-row' },
+        h('button', { class: 'btn', type: 'button', onclick: () => send('daily') }, 'One row per day'),
+        h('button', { class: 'btn', type: 'button', onclick: () => send('sets') }, 'Every set')
+      )
+    );
+  }
+
+  // ----- reminders (Android app, reminders.js) -----
+  function remindersCard() {
+    if (!isNative()) return null;
+    const r = reminderSettings(settings);
+    const change = async (kind, patch) => {
+      setReminder(kind, patch);
+      if (patch.on && !(await prepareReminders())) {
+        setReminder(kind, { on: false });
+        toast('TickFit is not allowed to send notifications. Allow it in the phone settings.');
+        return again();
+      }
+      scheduleReminders();
+      if ('on' in patch) again();
+    };
+    const time = (value, label, onchange) => h('input', { type: 'time', class: 'time-input', value, 'aria-label': label, onchange: (e) => e.target.value && onchange(e.target.value) });
+    return h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Reminders'),
+      h('p', { class: 'hint' }, 'Phone notifications, made on this phone. They skip days with nothing planned and things you already ticked.'),
+      h('label', { class: 'check-line' }, h('input', { type: 'checkbox', checked: r.workout.on, onchange: (e) => change('workout', { on: e.target.checked }) }), 'Workout days, at'),
+      r.workout.on && h('div', { class: 'time-row' }, time(r.workout.time, 'Workout reminder time', (v) => change('workout', { time: v }))),
+      h('label', { class: 'check-line' }, h('input', { type: 'checkbox', checked: r.meals.on, onchange: (e) => change('meals', { on: e.target.checked }) }), 'Meals, at the times in my plan'),
+      h('label', { class: 'check-line' }, h('input', { type: 'checkbox', checked: r.water.on, onchange: (e) => change('water', { on: e.target.checked }) }), 'Water, until I reach the day\'s target'),
+      r.water.on &&
+        h(
+          'div',
+          { class: 'time-row' },
+          h('span', {}, 'From'),
+          time(r.water.from, 'Water reminders from', (v) => change('water', { from: v })),
+          h('span', {}, 'to'),
+          time(r.water.to, 'Water reminders until', (v) => change('water', { to: v })),
+          h(
+            'select',
+            { class: 'time-input', 'aria-label': 'How often', onchange: (e) => change('water', { every: Number(e.target.value) }) },
+            [1, 2, 3, 4].map((n) => h('option', { value: n, selected: Number(r.water.every) === n }, `every ${n} h`))
+          )
+        )
+    );
+  }
+
+  // ----- steps from Health Connect (Android app, steps.js) -----
+  function stepsCard() {
+    if (!isNative()) return null;
+    const on = stepsOn();
+    const today = stepsFor(todayStr());
+    return h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, 'Steps'),
+      on
+        ? row('Today', today === null ? 'Not read yet' : `${stepsText(today)} steps`, 'good-text')
+        : h('p', { class: 'hint' }, 'Show your daily steps from Health Connect, where Google Fit, Samsung Health and most watches keep them. TickFit only reads step counts, and they stay on this phone.'),
+      on
+        ? h('button', { class: 'btn wide', type: 'button', onclick: () => { stopSteps(); again(); } }, 'Stop showing steps')
+        : h(
+            'button',
+            {
+              class: 'btn wide',
+              type: 'button',
+              onclick: async (e) => {
+                e.currentTarget.disabled = true;
+                const res = await connectSteps();
+                toast(res.message);
+                again();
+              },
+            },
+            'Connect Health Connect'
+          )
+    );
+  }
+
   const backupButtons = [
     h('button', { class: 'btn primary wide', type: 'button', onclick: () => openBackupSheet(again) }, icon('upload', 20), 'Back up now'),
     h('button', { class: 'btn wide', type: 'button', onclick: () => fileInput.click() }, 'Restore from a backup file'),
@@ -111,7 +216,8 @@ export function renderMore(root, actions) {
         h('li', {}, 'Open this More screen, tap "Restore from a backup file" and pick the file.'),
         h('li', {}, 'Check your plans and history, then you are done. Your Gemini key (if you set one) is never in the file, so add it again.')
       )
-    )
+    ),
+    exportBlock()
   );
 
   // ----- appearance: the look (Pulse or Bento) and the theme -----
@@ -320,6 +426,8 @@ export function renderMore(root, actions) {
         'Beep and vibrate when rest ends'
       )
     ),
+    remindersCard(),
+    stepsCard(),
     getAppCard() || '',
     isNative()
       ? h(

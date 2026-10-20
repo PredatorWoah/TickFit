@@ -31,5 +31,10 @@ ok(!opts.some((o) => o.cand.id === 'd'), 'the meal itself is not offered');
 ok(opts[0].cand.id === 'c' || opts[0].cand.id === 'a', 'closest calories and protein, same category first: ' + opts.map((o) => o.cand.item.name).join(', '));
 ok(opts[opts.length - 1].cand.id === 'b' && opts[opts.length - 1].dk === 450, 'a far heavier dinner comes last, with its +450 kcal difference');
 
+{
+  const pl = { id: 'q', startDate: '2026-10-19', days: [{ label: 'D', workout: [], meals: [{ id: 'm', name: 'B', items: ['Poha', 'Rice'] }], extras: { waterLiters: 0, supplements: [] } }] };
+  const names = groceryList(pl, '2026-10-19', 2).map((g) => g.name);
+  ok(!names.some((n) => /\(/.test(n)), 'food table notes like (plate) are left out of the names: ' + names.join(', '));
+}
 console.log(fail ? `\n${fail} failed` : '\nAll grocery tests passed');
 process.exit(fail ? 1 : 0);

@@ -1,6 +1,6 @@
 # TickFit
 
-**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, track calories burnt and your weight, and build a plan from your own details. Two looks to choose from, **Pulse** and **Bento**, plus a website, an Android app and home screen widgets. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
+**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, and let it tell you when to go heavier. Track personal records, calories, weight, body measurements, progress photos and steps. Get a grocery list for the week, swap meals, scan packets, and share a plan with a friend as a QR code. Two looks to choose from, **Pulse** and **Bento**, plus a website, an Android app with reminders and home screen widgets. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
 
 **[Open the web app](https://predatorwoah.github.io/TickFit/)** · **[Download the Android app](https://github.com/PredatorWoah/TickFit/releases/latest)** · [Privacy](PRIVACY.md) · [Contribute](CONTRIBUTING.md)
 
@@ -20,41 +20,86 @@
 
 ## What it does
 
+### Train
+
 - **Today:** a calm summary. In Pulse, three rings show **Move** (sets, orange), **Eat** (calories, cyan) and **Water** (violet) at a glance; in Bento, one big ring on a yellow tile. Plus your streak, a week strip with completion dots, one big **Start workout** button (it shows the live time while you train), your meals at a glance and water. Tap the day title to jump to any day of the plan.
 - **Workout mode:** one screen, no pop-ups. Every exercise is listed, the one you are on is open with a row for each set and big weight and reps boxes. Tick a set and the next exercise opens by itself. A clock runs while you train (it even starts on your first ticked set), and **Finish workout** shows your time, sets and total weight lifted. Boxes are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10").
-- **Notes you can edit:** the day's notes on the Workout screen are laid out as a tidy list (labels in bold, safety warnings in their own box) and collapse when long. Tap the pencil to edit them, hit **Tidy up into points** to auto-arrange your own text, and choose to save for just that day or every day that has the same note.
-- **Meals:** calories and protein meters, each meal as a big tick tile, supplements and water.
-- **Calories and protein for any meal:** in the plan editor type them yourself, or tap **Estimate from foods**. It reads lines like `2 rotis`, `100 g paneer` or `1 or 2 bananas` against a built-in table of common Indian foods, fully offline. Optional: in **More > Food lookup** you can let it look up unfamiliar foods online (Open Food Facts, no key). Off by default; only the food name is sent.
 - **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration. It sits at the top of the screen and pushes the page down instead of covering it. In the Android app it also alerts you with a notification when the screen is off or you switched apps.
 - **Go heavier hints:** hit the top of the rep range on every set last time? The exercise says "Try 42.5 kg today" with a one-tap **Use 42.5 kg**. Fell short? It tells you to stay and chase the reps.
 - **Plates and warm-ups:** **Plates** shows what to load on each side (20, 15 or 10 kg bar, or none), with a little picture. **Warm-up** shows a ramp (about 50%, 70% and 85%) before your working weight.
 - **Personal records:** a set that beats your best (weight and reps together, as an estimated 1 rep max) gets a trophy and a cheer. Progress lists your records; tap one, or any exercise in the strength list, for its chart over time.
 - **Supersets:** tap **Superset with next** to pair exercises. TickFit then moves between them without resting and starts the rest after the last one. Plans can also say `"superset": "A"`.
 - **Form videos:** each exercise can carry a video link. If it doesn't, the **Form video** button opens a YouTube search for that exercise.
-- **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries). The diet can be the same every day, **Mixed** (your main diet with non-veg on a few evenly spread days), or **picked per day** (for example vegan Monday, egg Wednesday, non-veg Sunday) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
-- **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
-- **Mix and match each day:** tap **Choose exercises** or **Choose meals** on Today, Workout or Meals to pick what you do on that date. Filter by category (it starts on the day's focus, so "Friday Back Biceps" opens on back and biceps), search, tick what you want and **move it up or down** into order, add your own, or ask Claude or Gemini for **suggestions** if you set a key. **More > Exercise and meal library** lists everything you can add, by category, with one tap to add it to today. Pick from your plan's library, its other days, or TickFit's built-in exercise list. Only that date changes; **Use the plan's list** puts it back. If a plan only lists *options* (an AI often does this for "choose any 4" style plans), each day starts with a suggested pick from the options matching its name ("Wednesday Shoulders + Abs" gets shoulder and abs exercises), so no day turns into an accidental rest day.
-- **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
-- **Last backup you can trust:** on Android, some apps (like Drive's "Save to Drive" box) never tell TickFit whether they saved the file, so it asks you, and **Last backup** only changes when the file really was saved.
-- **Progress photos:** on the Progress tab, **Take a photo** opens a camera with your last photo shown faintly on top (a "ghost"), so you line up the same pose, distance and angle every time; it has a 3, 5 or 10 second self-timer and a front/back switch. Or pick one **From gallery**. Swipe through them from the first (left) to the latest (right), each with its date along the bottom like a watermark, plus that day's weight and how many weeks in. **Compare** has a slider that wipes from your first photo to the latest (or puts them side by side) ("28 days apart, 2.8 kg down"). Tap one to change its date, **Save a copy** with the date written on it, or delete it. Photos stay on your phone; the backup file can carry them too (a tick box in the backup sheet).
-- **Body measurements:** waist, chest, hips, arms and thighs in cm on the Progress tab, with the change since you started. When the scale stalls, the tape often doesn't.
-- **Daily weight tracker:** tap the Weight tile on Today to log your weight (big number, +/- 0.1 buttons). Progress shows a chart (30 or 90 days), your 7 day average and how much you gained or lost versus last week. The average matters more than any one day, because weight swings a kilo or two with water and food.
-- **Calories per exercise:** every exercise has an effort level (lifting about 5 to 6 METs, a run about 9, a walk about 4, stretching 2.5). TickFit estimates what each exercise burnt from that, your body weight and the time it took (timed work like "30 min" uses its real time; the workout clock is used when you finish). The finish summary shows the total and each exercise, and cardio gets its own line.
-- **Correct the numbers yourself:** the calorie and time estimates are only a guess, so you can fix them. Tap **Edit** on a finished workout, or **Edit time and calories for a day** on the Progress tab (it lists the week or month, and also lets you add a workout you did without logging sets). Typed numbers win over the estimate and everything adds up to them. **More > Calories burnt: fine tune** moves all estimates down or up (−20%, −10%, As is, +10%, +20%) if your watch usually disagrees, with an example of what it does.
-- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, and daily averages for calories, protein and water. Total lifted comes with a desi fun comparison (a bag of atta, an LPG cylinder, a Royal Enfield Bullet, an auto rickshaw, a Maruti 800, an Indian elephant, a WAP-7 engine, the PSLV that sent Mangalyaan to Mars, all the steel in Howrah Bridge, up to INS Vikrant and past 100 million kg) and your next milestone. Each exercise shows its share of the calories and kcal per minute; the strength list shows your best set against your previous best, more reps at the same weight as a new best, an estimated 1 rep max and the weight moved. **Sets per muscle group** shows your balance and which big groups you skipped. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
-- **Share a plan with a friend:** **More > My plan > Share** shows a QR code and a link. Your friend scans it with their phone camera (or opens the link) and TickFit asks to add the plan. The whole plan travels inside the link, with no server and no account; never your progress, weights or photos.
+- **Notes you can edit:** the day's notes on the Workout screen are laid out as a tidy list (labels in bold, safety warnings in their own box) and collapse when long. Tap the pencil to edit them, hit **Tidy up into points** to auto-arrange your own text, and choose to save for just that day or every day that has the same note.
+- **Reminders (Android app):** **More > Reminders** can nudge you at your workout time on workout days, at each meal's time from the plan, and for water every few hours until you reach the day's target. They skip rest days and anything you already ticked.
+
+<p>
+  <img src="docs/screenshots/records.png" alt="Personal records: tap one for its chart over time" width="220">
+  <img src="docs/screenshots/plates.png" alt="Plates per side, with a picture of the bar" width="220">
+  <img src="docs/screenshots/reminders.png" alt="Reminders for workouts, meals and water (Android app)" width="220">
+</p>
+
+### Eat
+
+- **Meals:** calories and protein meters, each meal as a big tick tile, supplements and water.
+- **Calories and protein for any meal:** in the plan editor type them yourself, or tap **Estimate from foods**. It reads lines like `2 rotis`, `100 g paneer` or `1 or 2 bananas` against a built-in table of common Indian foods, fully offline. Optional: in **More > Food lookup** you can let it look up unfamiliar foods online (Open Food Facts, no key). Off by default; only the food name is sent.
 - **Grocery list:** **Meals > Grocery list** adds up every food your meals need for the next 3, 7 or 14 days (`Roti × 14`, `Paneer 700 g`, `Milk 1.4 L`). Tick what you already have, then share or copy it.
 - **Swap a meal:** the swap button on a meal shows the plan's other meals, closest in calories and protein first. One tap swaps it for that day only, with Undo.
 - **Scan a packet:** in **Choose meals > Add your own meal**, **Scan a packet** reads the barcode with the camera (or you type its digits) and fills in the name, calories and protein from Open Food Facts. Only the barcode number is sent, and only after you say yes.
-- **Share your workout:** after **Finish workout**, **Share this workout** makes a picture in your look (time, sets, kg lifted, calories, a desi comparison, top sets, new bests) for Instagram stories or WhatsApp.
+
+<p>
+  <img src="docs/screenshots/groceries.png" alt="Grocery list for the next 3, 7 or 14 days" width="220">
+  <img src="docs/screenshots/swap.png" alt="Swap a meal for one with about the same calories and protein" width="220">
+</p>
+
+### Plans
+
+- **Build a plan for you:** answer a few questions (age, height, weight, goal, experience, days a week, where you train, session length, cardio, diet, injuries). The diet can be the same every day, **Mixed** (your main diet with non-veg on a few evenly spread days), or **picked per day** (for example vegan Monday, egg Wednesday, non-veg Sunday) and TickFit builds a full weekly workout and Indian meal plan on your phone, with calories and protein worked out for you. No internet or AI needed.
+- **Or bring any plan:** paste JSON, upload a PDF or text file, or let a free chatbot convert your document. Friendly errors tell you exactly what is wrong ("Day 3 is missing meals").
+- **Mix and match each day:** tap **Choose exercises** or **Choose meals** on Today, Workout or Meals to pick what you do on that date. Filter by category (it starts on the day's focus, so "Friday Back Biceps" opens on back and biceps), search, tick what you want and **move it up or down** into order, add your own, or ask Claude or Gemini for **suggestions** if you set a key. **More > Exercise and meal library** lists everything you can add, by category, with one tap to add it to today. Pick from your plan's library, its other days, or TickFit's built-in exercise list. Only that date changes; **Use the plan's list** puts it back. If a plan only lists *options* (an AI often does this for "choose any 4" style plans), each day starts with a suggested pick from the options matching its name ("Wednesday Shoulders + Abs" gets shoulder and abs exercises), so no day turns into an accidental rest day.
 - **Plans in one place:** **More > My plan** to switch, edit or add a plan. Switching keeps your history: TickFit offers to **bring in the progress** of your old plan, so your streak, calendar, summaries and lifting history carry on. Each past day keeps the exercises and meals it really had, with every tick and logged set, and nothing already logged is overwritten. **Bring in progress** on the active plan does the same any time. First-time visitors get a short welcome with three clear choices: build a plan for me, I already have one, or show me around with the sample.
 - An **editor** for every exercise, meal and extra.
-- **Undo:** deleting a plan, a day, a photo or a library item, ticking every set at once, going back to the plan's list or restoring a backup all show an **Undo** button for a few seconds.
-- **Automatic backup (Android app):** once a day TickFit saves a backup in the phone's `Documents/TickFit` folder and keeps the last 7. That folder survives uninstalling the app; sync it with Google Drive to be safe from losing the phone. Switch it off or include photos in **More > Your data**.
-- **Keeps your data safe:** asks the browser to protect your data, nudges you to back up once a day (one tap, also offered after a workout, with a red dot on More when it is overdue), and makes moving to a new phone easy (see below).
-- **Two looks, one tap apart** (More > Look): **Pulse**, dark and sporty: three rings for Move (orange), Eat (cyan) and Water (violet), tall condensed numbers and a pill tab bar, and **Bento**, bright cream blocks with thick black outlines in pink, yellow and blue. Each has dark, light and match-my-phone themes. The fonts are bundled with the app (SIL Open Font License, see `fonts/`), so nothing is fetched from font services. Smooth, quick animations (screens glide in, ticks pop, progress fills up, light haptics in the Android app) that switch off if your phone is set to reduce motion. Works offline after the first load.
-- **After a workout**, a pop-up offers to back up your progress (once a day, and you can turn it off in More).
 - A built in **4 week beginner plan with vegetarian Indian meals**, so it is useful on first open.
+
+### Track your progress
+
+- **Progress:** streak, last 7 day completion and a month calendar. Tap a day to open it.
+- **Weekly and monthly summary:** estimated calories burnt, workouts, training time, sets, total weight lifted, a bar per day, comparison with the previous week or month, and daily averages for calories, protein and water. Total lifted comes with a desi fun comparison (a bag of atta, an LPG cylinder, a Royal Enfield Bullet, an auto rickshaw, a Maruti 800, an Indian elephant, a WAP-7 engine, the PSLV that sent Mangalyaan to Mars, all the steel in Howrah Bridge, up to INS Vikrant and past 100 million kg) and your next milestone. Each exercise shows its share of the calories and kcal per minute; the strength list shows your best set against your previous best, more reps at the same weight as a new best, an estimated 1 rep max and the weight moved. **Sets per muscle group** shows your balance and which big groups you skipped. Calories use the MET method (5 METs for lifting x your body weight x workout time), so treat them as a rough guess. Body weight comes from your plan builder answers, or set it right there.
+- **Calories per exercise:** every exercise has an effort level (lifting about 5 to 6 METs, a run about 9, a walk about 4, stretching 2.5). TickFit estimates what each exercise burnt from that, your body weight and the time it took (timed work like "30 min" uses its real time; the workout clock is used when you finish). The finish summary shows the total and each exercise, and cardio gets its own line.
+- **Correct the numbers yourself:** the calorie and time estimates are only a guess, so you can fix them. Tap **Edit** on a finished workout, or **Edit time and calories for a day** on the Progress tab (it lists the week or month, and also lets you add a workout you did without logging sets). Typed numbers win over the estimate and everything adds up to them. **More > Calories burnt: fine tune** moves all estimates down or up (−20%, −10%, As is, +10%, +20%) if your watch usually disagrees, with an example of what it does.
+- **Daily weight tracker:** tap the Weight tile on Today to log your weight (big number, +/- 0.1 buttons). Progress shows a chart (30 or 90 days), your 7 day average and how much you gained or lost versus last week. The average matters more than any one day, because weight swings a kilo or two with water and food.
+- **Body measurements:** waist, chest, hips, arms and thighs in cm on the Progress tab, with the change since you started. When the scale stalls, the tape often doesn't.
+- **Progress photos:** on the Progress tab, **Take a photo** opens a camera with your last photo shown faintly on top (a "ghost"), so you line up the same pose, distance and angle every time; it has a 3, 5 or 10 second self-timer and a front/back switch. Or pick one **From gallery**. Swipe through them from the first (left) to the latest (right), each with its date along the bottom like a watermark, plus that day's weight and how many weeks in. **Compare** has a slider that wipes from your first photo to the latest (or puts them side by side) ("28 days apart, 2.8 kg down"). Tap one to change its date, **Save a copy** with the date written on it, or delete it. Photos stay on your phone; the backup file can carry them too (a tick box in the backup sheet).
+- **Steps (Android app):** **More > Steps** reads your daily steps from Health Connect (where Google Fit, Samsung Health and most watches keep them) and shows them on Today. TickFit asks only to read step counts, nothing else. Needs Android 8.0 or newer.
+
+<p>
+  <img src="docs/screenshots/measurements.png" alt="Body measurements with the change since you started" width="220">
+  <img src="docs/screenshots/steps.png" alt="Steps from Health Connect on Today (Android app)" width="220">
+</p>
+
+### Share
+
+- **Share a plan with a friend:** **More > My plan > Share** shows a QR code and a link. Your friend scans it with their phone camera (or opens the link) and TickFit asks to add the plan. The whole plan travels inside the link, with no server and no account; never your progress, weights or photos.
+- **Share your workout:** after **Finish workout**, **Share this workout** makes a picture in your look (time, sets, kg lifted, calories, a desi comparison, top sets, new bests) for Instagram stories or WhatsApp.
+
+<p>
+  <img src="docs/screenshots/share-plan.png" alt="Share a plan as a QR code or a link" width="220">
+  <img src="docs/screenshots/share-card-pulse.png" alt="Workout picture in the Pulse look" width="270">
+  <img src="docs/screenshots/share-card-bento.png" alt="Workout picture in the Bento look" width="270">
+</p>
+
+### Your data, kept safe
+
+- **Keeps your data safe:** asks the browser to protect your data, nudges you to back up once a day (one tap, also offered after a workout, with a red dot on More when it is overdue), and makes moving to a new phone easy (see below).
+- **Automatic backup (Android app):** once a day TickFit saves a backup in the phone's `Documents/TickFit` folder and keeps the last 7. That folder survives uninstalling the app; sync it with Google Drive to be safe from losing the phone. Switch it off or include photos in **More > Your data**.
+- **Last backup you can trust:** on Android, some apps (like Drive's "Save to Drive" box) never tell TickFit whether they saved the file, so it asks you, and **Last backup** only changes when the file really was saved.
+- **After a workout**, a pop-up offers to back up your progress (once a day, and you can turn it off in More).
+- **Undo:** deleting a plan, a day, a photo or a library item, ticking every set at once, going back to the plan's list or restoring a backup all show an **Undo** button for a few seconds.
+- **Export to a spreadsheet:** **More > Your data > Export to a spreadsheet** gives a CSV with one row per day (done %, sets, volume, calories, protein, water, weight, steps, measurements, notes) or one row per logged set. It opens in Google Sheets, Excel or LibreOffice.
+
+### Two looks
+
+- **Two looks, one tap apart** (More > Look): **Pulse**, dark and sporty: three rings for Move (orange), Eat (cyan) and Water (violet), tall condensed numbers and a pill tab bar, and **Bento**, bright cream blocks with thick black outlines in pink, yellow and blue. Each has dark, light and match-my-phone themes. The fonts are bundled with the app (SIL Open Font License, see `fonts/`), so nothing is fetched from font services. Smooth, quick animations (screens glide in, ticks pop, progress fills up, light haptics in the Android app) that switch off if your phone is set to reduce motion. Works offline after the first load.
 
 ## Privacy
 

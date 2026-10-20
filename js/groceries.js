@@ -36,7 +36,7 @@ export function groceryList(plan, start, days = 7) {
         const key = food ? food[4] : bare(text) || norm(text);
         const q = parseQuantity(text);
         const isMl = /\b(ml|millilitres?|litres?|l)\b/i.test(text);
-        const g = map.get(key) || { key, name: title(key), count: 0, grams: 0, ml: 0, uses: 0 };
+        const g = map.get(key) || { key, name: title(key.replace(/\s*\([^)]*\)/g, '').trim() || key), count: 0, grams: 0, ml: 0, uses: 0 };
         g.uses++;
         if (q.grams !== null) {
           if (isMl) g.ml += q.grams;

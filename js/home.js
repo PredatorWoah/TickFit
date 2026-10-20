@@ -11,6 +11,7 @@ import { updateRecord } from './store.js';
 import { dayStats, mealTotals, currentStreak } from './stats.js';
 import { sessionState, sessionMs, workoutMs, startSession, workoutSummary, estimateMinutes, formatDuration } from './logging.js';
 import { weightTile } from './weightui.js';
+import { stepsOn, stepsFor, stepsText } from './steps.js';
 import { createCtx, dayName, dateText, weekStrip, ring, tripleRing, waterTile, section, openJump, pickButton } from './dayview.js';
 
 /**
@@ -41,7 +42,12 @@ export function renderHome(root, plan, date, goto, actions) {
         h('div', { class: 'head-text' }, h('h1', { class: 'date-main' }, dayName(ctx)), h('p', { class: 'date-sub' }, dateText(ctx)), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => goto(ctx.today) }, 'Back to today')),
         streak > 0 && h('div', { class: 'streak', 'aria-label': `${streak} day streak` }, icon('flame', 20), h('b', {}, String(streak)), h('span', {}, streak === 1 ? 'day' : 'days'))
       ),
-      h('button', { class: 'plan-chip', type: 'button', onclick: () => actions.show('plans') }, h('span', {}, plan.name), icon('chevron-right', 16)),
+      h(
+        'div',
+        { class: 'chip-row' },
+        h('button', { class: 'plan-chip', type: 'button', onclick: () => actions.show('plans') }, h('span', {}, plan.name), icon('chevron-right', 16)),
+        stepsOn() && stepsFor(date) !== null && h('span', { class: 'steps-pill', 'aria-label': `${stepsText(stepsFor(date))} steps` }, icon('steps', 16), h('b', {}, stepsText(stepsFor(date))), ' steps')
+      ),
       weekStrip(ctx)
     )
   );

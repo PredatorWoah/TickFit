@@ -212,6 +212,7 @@ export function importBackup(obj, validatePlan) {
     progress,
     bodyLog: cleanLog(obj.data.bodyLog),
     measureLog: cleanMeasureLog(obj.data.measureLog),
+    stepLog: cleanStepLog(obj.data.stepLog),
     activePlanId: ids.has(obj.data.activePlanId) ? obj.data.activePlanId : plans[0] ? plans[0].id : null,
     settings: { ...defaults().settings, ...(obj.data.settings || {}) },
   };
@@ -272,6 +273,26 @@ export function setMeasurements(date, values) {
   for (const [k, v] of Object.entries(values || {})) if (validCm(v) !== null) day[k] = validCm(v);
   if (Object.keys(day).length) state.measureLog[date] = day;
   else delete state.measureLog[date];
+  save();
+}
+
+// ----- steps (from Health Connect, see steps.js) -----
+
+/** Only "YYYY-MM-DD": whole number of steps survives (backup files can be edited by hand). */
+export function cleanStepLog(obj) {
+  const out = {};
+  for (const [d, v] of Object.entries(obj && typeof obj === 'object' ? obj : {})) {
+    const n = Math.round(Number(v));
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && isFinite(n) && n >= 0 && n < 200000) out[d] = n;
+  }
+  return out;
+}
+
+/** Save the steps for a date. Saves only when the number changed. */
+export function setSteps(date, n) {
+  if (!state.stepLog) state.stepLog = {};
+  if (state.stepLog[date] === n) return;
+  state.stepLog[date] = n;
   save();
 }
 

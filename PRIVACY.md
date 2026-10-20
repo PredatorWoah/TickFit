@@ -19,6 +19,11 @@ Nothing, unless you switch on one of these optional features:
 - **Online food lookup (off unless you turn it on).** If you switch on **More > Food lookup**, tapping **Estimate from foods** in the plan editor sends the *name* of a food the built-in table does not know (for example `quinoa crunch`) to Open Food Facts (`world.openfoodfacts.org`), a free open food database. No amounts, plans, progress, weight or personal details are sent. Like any website, they can see your IP address. If you never turn it on, no request is ever made.
 - **Scanning a packet's barcode (same setting).** The camera picture stays on your phone: the phone reads the stripes itself. Only the barcode's digits (like `8901063012345`) are sent to Open Food Facts to find the product's name, calories and protein. If the lookup is off, TickFit asks before turning it on.
 
+These two stay on the phone too, but are worth spelling out:
+
+- **Steps (Android app, off unless you connect it).** **More > Steps** asks Health Connect for permission to *read step counts* and nothing else; the app's install file even removes every other health permission the plugin would add. The daily counts are saved with the rest of your data (and go into backups and spreadsheet exports). Nothing is written to Health Connect and nothing is sent anywhere. **Stop showing steps** stops reading; you can also take the permission away in Health Connect.
+- **Reminders (Android app, off unless you turn them on).** They are scheduled on the phone with Android's own notifications. Nothing is sent anywhere.
+
 TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to `api.anthropic.com`, to `generativelanguage.googleapis.com` and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
 
 ## Your Claude and Gemini keys
