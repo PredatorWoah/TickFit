@@ -47,7 +47,19 @@ export function planDayIndex(startDate, dateStr, dayCount) {
   return ((diff % dayCount) + dayCount) % dayCount;
 }
 
+const formatters = new Map();
+/**
+ * Same as date.toLocaleDateString(locale, opts), but each formatter is made once and reused: making one is
+ * slow on phones, and the week strip alone needed dozens per screen.
+ */
+export function localDate(date, opts = {}, locale = 'en') {
+  const key = `${locale}|${JSON.stringify(opts)}`;
+  let f = formatters.get(key);
+  if (!f) formatters.set(key, (f = new Intl.DateTimeFormat(locale, opts)));
+  return f.format(date);
+}
+
 /** Nice label like "Sat, 4 Oct". `locale` is e.g. "en" or "hi". */
 export function formatShort(s, locale = 'en') {
-  return fromStr(s).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+  return localDate(fromStr(s), { weekday: 'short', day: 'numeric', month: 'short' }, locale);
 }

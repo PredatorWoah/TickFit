@@ -9,10 +9,10 @@ import { openSheet } from './sheet.js';
 import { getState, getRecord, updateRecord } from './store.js';
 import { dayFor } from './schedule.js';
 import { exerciseBurn, manualOf, hasManual, validManual, bodyWeightKg, burnFactor, MANUAL_MINUTES, MANUAL_KCAL } from './burn.js';
-import { todayStr, fromStr, addDays } from './dates.js';
+import { todayStr, fromStr, addDays, localDate } from './dates.js';
 
 const LOCALE = 'en';
-const dayText = (date) => fromStr(date).toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' });
+const dayText = (date) => localDate(fromStr(date), { weekday: 'short', day: 'numeric', month: 'short' }, LOCALE);
 
 /** Body weight and calibration for the estimate, read fresh each time. */
 function burnInputs() {

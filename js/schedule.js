@@ -25,11 +25,16 @@ export function weekdayOfLabel(label) {
  * It only counts as weekly when EVERY label starts with a weekday and no weekday repeats.
  */
 export function weeklyWeekdays(plan) {
+  // asked for every day shown or looked back on, so remembered per plan until a label changes
+  const labels = plan.days.map((d) => d.label).join('\n');
+  const seen = weeklyMemo.get(plan.days);
+  if (seen && seen.labels === labels) return seen.wds && seen.wds.slice();
   const wds = plan.days.map((d) => weekdayOfLabel(d.label));
-  if (wds.length === 0 || wds.some((w) => w === -1)) return null;
-  if (new Set(wds).size !== wds.length) return null;
-  return wds;
+  const ok = wds.length > 0 && !wds.some((w) => w === -1) && new Set(wds).size === wds.length;
+  weeklyMemo.set(plan.days, { labels, wds: ok ? wds : null });
+  return ok ? wds.slice() : null;
 }
+const weeklyMemo = new WeakMap();
 
 
 /** 0 = Monday ... 6 = Sunday for a "YYYY-MM-DD" date. */

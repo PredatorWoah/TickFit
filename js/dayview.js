@@ -11,7 +11,7 @@ import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, getRecord, updateRecord } from './store.js';
 import { WATER_STEP_ML, pctFor } from './stats.js';
-import { todayStr, addDays, fromStr } from './dates.js';
+import { todayStr, addDays, fromStr, localDate } from './dates.js';
 import { dayIndexFor, dayFor, jumpDelta } from './schedule.js';
 import { haptic } from './platform.js';
 
@@ -41,8 +41,8 @@ export function createCtx(plan, date, goto) {
 }
 
 /** "Monday" or "Today" */
-export const dayName = (ctx) => (ctx.date === ctx.today ? 'Today' : fromStr(ctx.date).toLocaleDateString(LOCALE, { weekday: 'long' }));
-export const dateText = (ctx) => fromStr(ctx.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' });
+export const dayName = (ctx) => (ctx.date === ctx.today ? 'Today' : localDate(fromStr(ctx.date), { weekday: 'long' }, LOCALE));
+export const dateText = (ctx) => localDate(fromStr(ctx.date), { day: 'numeric', month: 'long' }, LOCALE);
 
 /** Sheet to jump to any day of the plan. */
 export function openJump(ctx) {
@@ -69,7 +69,7 @@ export function openJump(ctx) {
                   },
                 },
                 h('span', { class: 'jump-label' }, pd.label),
-                h('span', { class: 'jump-date' }, fromStr(target).toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' }))
+                h('span', { class: 'jump-date' }, localDate(fromStr(target), { weekday: 'short', day: 'numeric', month: 'short' }, LOCALE))
               )
             );
           })
@@ -137,11 +137,11 @@ export function weekStrip(ctx) {
         {
           class: 'chip' + (cd === ctx.date ? ' sel' : '') + (cd === ctx.today ? ' is-today' : ''),
           type: 'button',
-          'aria-label': dt.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }),
+          'aria-label': localDate(dt, { weekday: 'long', day: 'numeric', month: 'long' }, LOCALE),
           'aria-pressed': String(cd === ctx.date),
           onclick: () => cd !== ctx.date && ctx.goto(cd),
         },
-        h('span', { class: 'dow' }, dt.toLocaleDateString(LOCALE, { weekday: 'narrow' })),
+        h('span', { class: 'dow' }, localDate(dt, { weekday: 'narrow' }, LOCALE)),
         h('span', { class: 'dnum' }, String(dt.getDate())),
         dot
       )

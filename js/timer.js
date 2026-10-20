@@ -88,6 +88,23 @@ export function stopRest() {
   document.body.classList.remove('has-rest');
 }
 
+/**
+ * Make the sound player ahead of time, while nothing is happening (making it takes a moment on phones, and
+ * doing it in the tap that starts a rest made that tap stutter). It stays paused until a tap resumes it.
+ */
+export function warmAudio() {
+  const make = () => {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    } catch {
+      audioCtx = null;
+    }
+  };
+  if (audioCtx) return;
+  // after the screen has finished sliding in, in a quiet moment
+  setTimeout(() => (typeof requestIdleCallback === 'function' ? requestIdleCallback(make, { timeout: 2000 }) : make()), 700);
+}
+
 /** Start (or restart) the rest timer. Call this from a tap so audio is allowed. */
 export function startRest(seconds, label) {
   stopRest();

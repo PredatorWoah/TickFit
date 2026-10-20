@@ -15,7 +15,7 @@ import { sessionState, sessionMs, workoutMs, startSession, workoutSummary, estim
 import { suggestNext } from './gym.js';
 import { weightTile } from './weightui.js';
 import { stepsOn, stepsFor, stepsText } from './steps.js';
-import { addDays, diffDays, fromStr } from './dates.js';
+import { addDays, diffDays, fromStr, localDate } from './dates.js';
 import { haptic } from './platform.js';
 import { lookOf } from './theme.js';
 import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump, pickButton, LOCALE } from './dayview.js';
@@ -128,7 +128,7 @@ function arenaHome(root, ctx, actions) {
   const { day, plan, date } = ctx;
   const streak = currentStreak(plan, ctx.records(), ctx.today);
   const matchday = plan.startDate ? diffDays(plan.startDate, date) + 1 : 0;
-  const kicker = [matchday > 0 ? `MATCHDAY ${matchday}` : null, fromStr(date).toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()].filter(Boolean).join(' · ');
+  const kicker = [matchday > 0 ? `MATCHDAY ${matchday}` : null, localDate(fromStr(date), { weekday: 'short', day: 'numeric', month: 'short' }, LOCALE).toUpperCase()].filter(Boolean).join(' · ');
 
   root.append(
     h(
@@ -143,7 +143,7 @@ function arenaHome(root, ctx, actions) {
 
   // ----- the scoreboard: you today against the same weekday last week -----
   const lastDate = addDays(date, -7);
-  const lastName = fromStr(lastDate).toLocaleDateString(LOCALE, { weekday: 'long' }).toUpperCase();
+  const lastName = localDate(fromStr(lastDate), { weekday: 'long' }, LOCALE).toUpperCase();
   const you = h('span', { class: 'ar-big you' });
   const them = h('span', { class: 'ar-big' });
   const line = h('span', { class: 'ar-line-text' });

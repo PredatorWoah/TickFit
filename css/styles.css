@@ -602,19 +602,17 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .tab:active { transform: scale(0.92); }
 
 /* ----- Screens glide in. The first few items rise one after another. ----- */
-@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes slide-next { from { opacity: 0; transform: translateX(26px); } to { opacity: 1; transform: none; } }
 @keyframes slide-prev { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
-#app.enter > * { animation: rise 0.42s var(--ease) both; }
+/* quick: the first parts land within a third of a second, so a tap never feels like it is waiting */
+#app.enter > * { animation: rise 0.3s var(--ease) backwards; }
 #app.enter[data-dir='next'] > * { animation-name: slide-next; }
 #app.enter[data-dir='prev'] > * { animation-name: slide-prev; }
-#app.enter > *:nth-child(2) { animation-delay: 0.035s; }
-#app.enter > *:nth-child(3) { animation-delay: 0.07s; }
-#app.enter > *:nth-child(4) { animation-delay: 0.105s; }
-#app.enter > *:nth-child(5) { animation-delay: 0.14s; }
-#app.enter > *:nth-child(6) { animation-delay: 0.175s; }
-#app.enter > *:nth-child(7) { animation-delay: 0.21s; }
-#app.enter > *:nth-child(n + 8) { animation-delay: 0.24s; }
+#app.enter > *:nth-child(2) { animation-delay: 0.03s; }
+#app.enter > *:nth-child(3) { animation-delay: 0.06s; }
+#app.enter > *:nth-child(4) { animation-delay: 0.09s; }
+#app.enter > *:nth-child(n + 5) { animation-delay: 0.12s; }
 
 /* ----- Things that fill up do it smoothly ----- */
 .ring-fill { transition: stroke-dashoffset 0.8s var(--ease), filter 0.4s; }

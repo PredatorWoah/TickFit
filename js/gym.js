@@ -83,21 +83,37 @@ export function warmupSets(workKg, bar = 20) {
   return out;
 }
 
-/** Every logged set of an exercise before `date` (newest first is not needed). */
-function setsBefore(plan, records, date, name, maxBack = 400) {
-  const key = norm(name);
-  const out = [];
-  for (let i = 1; i <= maxBack; i++) {
-    const d = addDays(date, -i);
-    if (d < plan.startDate) break;
-    const rec = records && records[d];
+/**
+ * Every logged set before `date`, grouped by exercise name: { name -> [{ date, w, r, e1rm }] }.
+ * A screen update asks for this once per exercise; building it once and sharing it for the rest of that
+ * update (it is dropped right after, so a new tick is never missed) keeps ticking a set quick on phones.
+ */
+let shared = null;
+function historyIndex(plan, records, date, maxBack) {
+  if (shared && shared.plan === plan && shared.records === records && shared.date === date && shared.maxBack === maxBack) return shared.index;
+  const index = new Map();
+  const from = addDays(date, -maxBack);
+  // only the days that have a record (walking every calendar day was slow on phones)
+  for (const d of Object.keys(records || {})) {
+    if (d >= date || d < from || d < plan.startDate) continue;
+    const rec = records[d];
     if (!rec || !rec.sets) continue;
     for (const ex of dayFor(plan, d).workout) {
-      if (norm(ex.exercise) !== key) continue;
-      for (const s of rec.sets[ex.id] || []) if (s && s.done && s.w > 0 && s.r > 0) out.push({ date: d, w: s.w, r: s.r, e1rm: oneRepMax(s.w, s.r) });
+      const done = (rec.sets[ex.id] || []).filter((s) => s && s.done && s.w > 0 && s.r > 0);
+      if (!done.length) continue;
+      const key = norm(ex.exercise);
+      if (!index.has(key)) index.set(key, []);
+      for (const s of done) index.get(key).push({ date: d, w: s.w, r: s.r, e1rm: oneRepMax(s.w, s.r) });
     }
   }
-  return out;
+  shared = { plan, records, date, maxBack, index };
+  queueMicrotask(() => (shared = null));
+  return index;
+}
+
+/** Every logged set of an exercise before `date` (newest first is not needed). */
+function setsBefore(plan, records, date, name, maxBack = 400) {
+  return (historyIndex(plan, records, date, maxBack).get(norm(name)) || []).slice();
 }
 
 /** Your best set of this exercise before that day, by estimated 1 rep max. Null if you never logged it. */
