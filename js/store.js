@@ -31,6 +31,9 @@ export function load() {
     if (raw) {
       const parsed = JSON.parse(raw);
       state = { ...defaults(), ...parsed, settings: { ...defaults().settings, ...(parsed.settings || {}) } };
+      // Plans made before 1.7.0 with exercise options: their earlier days showed as rest days (nothing to tick),
+      // so from 1.6.1 on they'd count as missed. Mark where the suggested lists began (see stats.js pctFor).
+      for (const p of state.plans || []) if (p.library && !p.suggestFrom) p.suggestFrom = todayStr();
     }
   } catch (e) {
     // Corrupted data or storage blocked. Keep a copy of the bad data so nothing is lost silently.
@@ -70,6 +73,13 @@ export function save() {
 }
 
 export const isPersistent = () => storageWorks;
+
+/** A copy of everything, to put back with restoreSnapshot (used by Undo). */
+export const snapshot = () => JSON.stringify(state);
+export function restoreSnapshot(json) {
+  state = JSON.parse(json);
+  save();
+}
 export const getState = () => state;
 
 const uid = () => 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -83,6 +93,7 @@ export function getActivePlan() {
 /** Add a validated plan (from parser.js) and make it active. Returns the stored plan. */
 export function addPlan(plan, startDate) {
   const stored = { ...plan, id: uid(), startDate: startDate || plan.startDate || todayStr() };
+  if (stored.library) stored.suggestFrom = stored.startDate; // a new plan shows its suggested days from the start
   state.plans.push(stored);
   state.activePlanId = stored.id;
   save();

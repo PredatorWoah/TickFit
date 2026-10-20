@@ -6,7 +6,7 @@
 //   * A rest timer starts after each set (More has a switch for that).
 //   * Finish workout shows a summary: time, sets and total weight lifted.
 
-import { h, clear } from './dom.js';
+import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { notesCard } from './notesui.js';
@@ -335,12 +335,21 @@ export function renderWorkout(root, plan, date, goto) {
                 class: 'btn wide',
                 type: 'button',
                 onclick: () => {
+                  const was = rows.map((x) => !!x.done);
                   rows.forEach((x) => (x.done = true));
                   if (sessionState(ctx.rec()) === 'idle') ctx.change((r) => startSession(r));
                   save();
                   drawBody();
                   const next = nextExercise(day, ctx.rec());
                   setOpenExercise(next ? next.id : null, true);
+                  toast('All sets ticked', {
+                    undo: () => {
+                      rows.forEach((x, k) => (x.done = was[k]));
+                      save();
+                      setOpenExercise(w.id, true);
+                      drawBody();
+                    },
+                  });
                 },
               },
               'Mark all sets done'

@@ -2,7 +2,7 @@
 // are about. These used to show every day as a "Rest day". Run: node tests/optiondays.mjs
 import { parsePlanText } from '../js/parser.js';
 import { dayFor } from '../js/schedule.js';
-import { dayStats } from '../js/stats.js';
+import { dayStats, pctFor, currentStreak } from '../js/stats.js';
 import { savePick, candidates } from '../js/library.js';
 
 let fail = 0;
@@ -48,6 +48,19 @@ ok(dayFor(plan, '2026-10-14').workout.length === 2 && dayFor(plan, '2026-10-21')
 // "exercises" instead of "workout" on a day (a common AI slip) is read too
 const alias = parsePlanText(JSON.stringify({ name: 'x', days: [{ label: 'Day 1', exercises: [{ name: 'Squat', sets: 3, reps: '8' }], meals: [] }] }));
 ok(alias.ok && alias.plan.days[0].workout[0].exercise === 'Squat', 'a day\'s "exercises" list is read as its workout');
+
+// 1.7.0: those suggested days used to be "rest days" with nothing to tick, so the days before the fix
+// (plan.suggestFrom) must not suddenly count as missed and break a streak
+const old = { ...res.plan, id: 'o', startDate: '2026-10-12', suggestFrom: '2026-10-20' };
+const recs = { '2026-10-15': { ticks: {}, sets: {} }, '2026-10-16': { ticks: { [dayFor(old, '2026-10-16').workout[0].id]: true }, sets: {} } };
+ok(pctFor(old, recs, '2026-10-14') === null && pctFor(old, recs, '2026-10-15') === null, 'untouched suggested days before the fix are neither done nor missed');
+ok(pctFor(old, recs, '2026-10-16') > 0, 'a day you did tick still counts');
+ok(pctFor(old, recs, '2026-10-21') === 0, 'from the fix on, a skipped suggested day counts as missed');
+// a full day on the 19th: the untouched days before it (13th to 18th, except the 16th) don't end the streak
+const full = { ...recs, '2026-10-19': { ticks: Object.fromEntries([...dayFor(old, '2026-10-19').workout, ...dayFor(old, '2026-10-19').meals].map((x) => [x.id, true])), sets: {} } };
+ok(currentStreak(old, full, '2026-10-19') === 1, 'the untouched 17th and 18th do not break the streak; the barely ticked 16th (under 50%) does: ' + currentStreak(old, full, '2026-10-19'));
+const full2 = { ...full, '2026-10-16': { ticks: Object.fromEntries([...dayFor(old, '2026-10-16').workout, ...dayFor(old, '2026-10-16').meals].map((x) => [x.id, true])), sets: {} } };
+ok(currentStreak(old, full2, '2026-10-19') === 2, 'two full days with untouched old days between them make a streak of 2');
 
 console.log(fail ? `\n${fail} failed` : '\nAll option-day tests passed');
 process.exit(fail ? 1 : 0);

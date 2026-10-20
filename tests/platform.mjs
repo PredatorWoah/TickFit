@@ -26,7 +26,7 @@ const mem = {};
 globalThis.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => (mem[k] = String(v)) };
 
 const { isNative, nativePlugin, appVersion } = await import('../js/platform.js');
-const { canShareFiles, shareBackupFile, saveBackupFile, canOverwrite } = await import('../js/backup.js');
+const { canShareFiles, shareBackupFile, saveBackupFile, canOverwrite, prepareBackup } = await import('../js/backup.js');
 const { getState, load } = await import('../js/store.js');
 const { applyTheme } = await import('../js/theme.js');
 const { isInstalledApp } = await import('../js/install.js');
@@ -40,7 +40,7 @@ eq('sharing files is available in the app', canShareFiles(), true);
 globalThis.window.showSaveFilePicker = () => {}; // a WebView has this function but it does nothing
 eq('"Save over an existing file" is not offered in the app', canOverwrite(), false);
 
-let ok = await shareBackupFile('my backup');
+let ok = await shareBackupFile('my backup', await prepareBackup());
 eq('share returns true', ok, true);
 eq('the backup is written to the cache folder as utf8 then shared', calls.slice(0, 2), [['writeFile', 'my backup.json', 'CACHE', 'utf8'], ['share', 'file:///data/cache/my backup.json']]);
 const written = JSON.parse(store.get('my backup.json'));
@@ -49,12 +49,12 @@ eq('the backup date is recorded', typeof getState().settings.lastBackup, 'string
 
 getState().settings.lastBackup = null;
 shareBehaviour = 'cancel';
-eq('an Android "cancelled" (also sent when Drive saves through a pop-up) asks the person instead of guessing', [await shareBackupFile('x'), getState().settings.lastBackup], ['unsure', null]);
+eq('an Android "cancelled" (also sent when Drive saves through a pop-up) asks the person instead of guessing', [await shareBackupFile('x', await prepareBackup()), getState().settings.lastBackup], ['unsure', null]);
 shareBehaviour = 'fail';
-let threw = false; try { await shareBackupFile('x'); } catch { threw = true; }
+let threw = false; try { await shareBackupFile('x', await prepareBackup()); } catch { threw = true; }
 eq('a real failure is reported (so the screen can tell the person)', threw, true);
 shareBehaviour = 'ok';
-eq('"Download" in the app also goes through the share sheet', await saveBackupFile('y'), true);
+eq('"Download" in the app also goes through the share sheet', await saveBackupFile('y', await prepareBackup()), true);
 eq('file names are cleaned in the app too', calls.filter((c) => c[0] === 'writeFile').pop()[1], 'y.json');
 
 calls.length = 0;
@@ -64,7 +64,7 @@ eq('status bar icons follow the theme (Bento is light unless a theme was picked)
 // missing plugins must not crash
 delete globalThis.window.Capacitor.Plugins.Share;
 eq('without the Share plugin the share option is hidden', canShareFiles(), false);
-threw = false; try { await shareBackupFile('z'); } catch { threw = true; }
+threw = false; try { await shareBackupFile('z', await prepareBackup()); } catch { threw = true; }
 eq('without the Share plugin sharing fails cleanly', threw, true);
 
 // a normal browser

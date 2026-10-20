@@ -91,9 +91,16 @@ export const STREAK_MIN_PCT = 50;
  * so a rest day never breaks your streak or drags down your week.
  */
 export function pctFor(plan, records, date) {
-  const stats = dayStats(dayFor(plan, date), (records || {})[date]);
+  const day = dayFor(plan, date);
+  const rec = (records || {})[date];
+  // A day filled with suggestions from the plan's options, from before TickFit showed them (plan.suggestFrom),
+  // with nothing ticked: it looked like a rest day at the time, so it neither helps nor hurts.
+  if (day.suggested && !day.picked && plan.suggestFrom && date < plan.suggestFrom && !hasTicks(rec)) return null;
+  const stats = dayStats(day, rec);
   return stats.total === 0 ? null : stats.pct;
 }
+
+const hasTicks = (rec) => !!rec && ((rec.ticks && Object.values(rec.ticks).some(Boolean)) || (rec.sets && Object.values(rec.sets).some((l) => Array.isArray(l) && l.some((x) => x && x.done))));
 
 /**
  * Current streak: consecutive days (ending today) that reached STREAK_MIN_PCT.

@@ -3,7 +3,7 @@
 
 import { h, clear, copyText, toast } from './dom.js';
 import { icon } from './icons.js';
-import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting } from './store.js';
+import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting, snapshot, restoreSnapshot } from './store.js';
 import { parsePlanText } from './parser.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
@@ -97,11 +97,15 @@ export function renderPlans(root, actions) {
               class: 'btn danger',
               type: 'button',
               onclick: () => {
-                const tip = !active && canMergeInto(getState().activePlanId) ? ' Tip: to keep its days, use "Bring in progress" on your active plan first.' : '';
-                if (confirm(`Delete "${p.name}" and all its progress? This cannot be undone.${tip}`)) {
-                  removePlan(p.id);
-                  actions.refresh();
-                }
+                const before = snapshot();
+                removePlan(p.id);
+                actions.refresh();
+                toast(`Deleted "${p.name}"`, {
+                  undo: () => {
+                    restoreSnapshot(before);
+                    actions.refresh();
+                  },
+                });
               },
             },
             'Delete'

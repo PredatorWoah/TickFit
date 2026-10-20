@@ -40,7 +40,7 @@ edit(gradle, /versionCode\s+\d+/, `versionCode ${versionCode}`, 'set versionCode
 edit(gradle, /versionName\s+"[^"]*"/, `versionName "${versionName}"`, 'set versionName');
 
 // ----- permissions
-edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />', 'add the vibrate permission');
+edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n    <!-- the daily automatic backup into Documents/TickFit: only Android 10 and older need these -->\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />', 'add the vibrate permission');
 
 // ----- the web view: no stretchy overscroll (it drags the tab bar around) and no scroll bars
 const mainActivity = resolve(here, '..', 'android', 'app', 'src', 'main', 'java', 'io', 'github', 'predatorwoah', 'tickfit', 'MainActivity.java');

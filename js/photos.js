@@ -3,8 +3,8 @@
 //
 // Photos are far too big for localStorage (where the rest of TickFit lives), so they go in the browser's own
 // database, IndexedDB, under "tickfit-photos". Like everything else they never leave the device: nothing here
-// sends anything anywhere. They are NOT in the backup file (it would get huge); the screen says so, and each
-// photo can be saved on its own.
+// sends anything anywhere. They can go inside the backup file (the backup sheet asks), and each photo can also
+// be saved on its own.
 //
 // Each photo: { id, date: 'YYYY-MM-DD', added: ms, blob: JPEG, w, h }
 
@@ -42,10 +42,29 @@ function run(mode, fn) {
   );
 }
 
-/** All photos, oldest first (by the date they show, then when they were added). */
+/** All photos, oldest first (by the date they show, then when they were added). Binned ones are left out. */
 export async function listPhotos() {
-  const all = (await run('readonly', (s) => s.getAll())) || [];
+  const all = ((await run('readonly', (s) => s.getAll())) || []).filter((p) => !p.binned);
   return all.sort((a, b) => (a.date === b.date ? a.added - b.added : a.date < b.date ? -1 : 1));
+}
+
+// Deleting goes through a bin first, so Undo works and nothing comes back if the app closes meanwhile:
+// binPhoto hides it at once (saved in the database), unbinPhoto is Undo, emptyBin really deletes.
+async function setBinned(id, binned) {
+  const photo = await run('readonly', (s) => s.get(id));
+  if (!photo) return;
+  if (binned) photo.binned = Date.now();
+  else delete photo.binned;
+  await run('readwrite', (s) => s.put(photo));
+}
+export const binPhoto = (id) => setBinned(id, true);
+export const unbinPhoto = (id) => setBinned(id, false);
+
+/** Really delete binned photos (all of them, or those binned more than `olderThanMs` ago). */
+export async function emptyBin(olderThanMs = 0) {
+  const all = (await run('readonly', (s) => s.getAll())) || [];
+  const now = Date.now();
+  for (const p of all) if (p.binned && now - p.binned >= olderThanMs) await deletePhoto(p.id);
 }
 
 /** Shrink a picture to MAX_SIDE and make it a JPEG. Pure maths for the size, so it can be tested. */
@@ -109,4 +128,41 @@ export async function withWatermark(photo, label) {
   g.textAlign = 'center';
   g.fillText(label, canvas.width / 2, canvas.height - size * 0.8);
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+}
+
+// ----- photos inside the backup file -----
+
+const toBase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1]);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+
+/** Every photo as plain data for the backup file: { id, date, added, w, h, jpeg: base64 }. */
+export async function photosForBackup() {
+  const out = [];
+  for (const p of await listPhotos()) out.push({ id: p.id, date: p.date, added: p.added, w: p.w, h: p.h, jpeg: await toBase64(p.blob) });
+  return out;
+}
+
+/** How many photos there are and roughly how big they make a backup (MB, base64 grows them by a third). */
+export async function photoStats() {
+  const all = await listPhotos();
+  return { count: all.length, mb: Math.round((all.reduce((t, p) => t + p.blob.size, 0) * 1.37) / 1e5) / 10 };
+}
+
+/** Put photos from a backup file back. Photos already here (same id) are kept as they are. Returns how many were added. */
+export async function restorePhotos(list) {
+  const have = new Set((await listPhotos()).map((p) => p.id));
+  let added = 0;
+  for (const x of list) {
+    if (!x || typeof x.jpeg !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) || have.has(x.id)) continue;
+    const bytes = Uint8Array.from(atob(x.jpeg), (ch) => ch.charCodeAt(0));
+    const photo = { id: String(x.id || `ph-${Date.now().toString(36)}-${added}`), date: x.date, added: Number(x.added) || Date.now(), w: Number(x.w) || 0, h: Number(x.h) || 0, blob: new Blob([bytes], { type: 'image/jpeg' }) };
+    await run('readwrite', (s) => s.put(photo));
+    added++;
+  }
+  return added;
 }

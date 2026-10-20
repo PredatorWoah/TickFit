@@ -216,7 +216,21 @@ export function openPicker({ plan, date, kind, onDone }) {
           'div',
           { class: 'pick-actions' },
           isPicked(plan, date, kind) &&
-            h('button', { class: 'btn', type: 'button', onclick: () => { resetPick(plan, date, kind); savePlans(); close(); toast('Back to the plan for this day'); onDone(); } }, 'Use the plan\'s list'),
+            h('button', { class: 'btn', type: 'button', onclick: () => {
+                const before = JSON.stringify(plan.picks || null);
+                resetPick(plan, date, kind);
+                savePlans();
+                close();
+                onDone();
+                toast('Back to the plan for this day', {
+                  undo: () => {
+                    plan.picks = JSON.parse(before) || undefined;
+                    if (!plan.picks) delete plan.picks;
+                    savePlans();
+                    onDone();
+                  },
+                });
+              } }, 'Use the plan\'s list'),
           h('button', { class: 'btn primary', type: 'button', onclick: save }, 'Save for this day')
         )
       );

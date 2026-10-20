@@ -112,10 +112,16 @@ export function renderEditor(root, plan, actions, dayIdx = null) {
               class: 'btn danger',
               onclick: () => {
                 if (plan.days.length === 1) return toast('A plan needs at least one day');
-                if (!confirm(`Delete "${day.label}"?`)) return;
-                plan.days.splice(i, 1);
+                const [gone] = plan.days.splice(i, 1);
                 savePlans();
                 redraw(null);
+                toast(`Deleted "${day.label}"`, {
+                  undo: () => {
+                    plan.days.splice(i, 0, gone);
+                    savePlans();
+                    redraw(null);
+                  },
+                });
               },
             },
             'Delete'

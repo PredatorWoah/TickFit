@@ -63,10 +63,17 @@ export function renderLibrary(root, plan, actions) {
             'aria-label': `Remove ${nameOf(c)} from your library`,
             onclick: () => {
               if (uses > 0) return toast(`Used on ${uses} day${uses === 1 ? '' : 's'}, so it stays. Take it off those days first.`);
-              if (!confirm(`Remove "${nameOf(c)}" from your library?`)) return;
+              const before = JSON.stringify(plan.library);
               removeFromLibrary(plan, view.kind, c.id);
               savePlans();
               redraw();
+              toast(`Removed "${nameOf(c)}"`, {
+                undo: () => {
+                  plan.library = JSON.parse(before);
+                  savePlans();
+                  redraw();
+                },
+              });
             },
           },
           icon('trash', 18)
