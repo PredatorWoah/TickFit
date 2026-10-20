@@ -121,12 +121,13 @@ function drawNav() {
 
 let lastScreenKey = null;
 
-/** Fade the new screen in. Sliding sideways when you step to the next or previous day, rising when you change screen. */
-function playEnter(dir) {
+/**
+ * Fade the new screen in: sliding sideways when you step to the next or previous day, rising when you change
+ * screen. Set before the screen is built, so its new elements simply start animating; no forced layout.
+ */
+function setEnter(animate, dir) {
+  root.classList.toggle('enter', animate);
   root.dataset.dir = dir || 'up';
-  root.classList.remove('enter');
-  void root.offsetWidth; // restart the animation
-  root.classList.add('enter');
 }
 
 function draw() {
@@ -136,6 +137,12 @@ function draw() {
   // Screens that need a plan: with none, send people to the welcome screen (first time) or Plans.
   if (!plan && NEEDS_PLAN.includes(view.screen)) view.screen = getState().settings.welcomed ? 'plans' : 'welcome';
   drawNav();
+
+  // Animate only when the screen or day really changed, not when the same screen is just redrawn after a change
+  const screenKey = `${view.screen}|${view.date}|${view.planId || ''}`;
+  setEnter(screenKey !== lastScreenKey, view.dir);
+  lastScreenKey = screenKey;
+  view.dir = null;
 
   const actions = { show, refresh: draw, hasBuilder: true };
   const s = view.screen;
@@ -157,12 +164,6 @@ function draw() {
     renderHome(root, plan, view.date, gotoDate, actions);
     showBackupNudge();
   }
-
-  // Animate only when the screen or day really changed, not when the same screen is just redrawn after a change
-  const screenKey = `${view.screen}|${view.date}|${view.planId || ''}`;
-  if (screenKey !== lastScreenKey) playEnter(view.dir);
-  lastScreenKey = screenKey;
-  view.dir = null;
 
   syncAiButton(s, plan);
   if (s !== 'build' && s !== 'edit' && s !== 'library') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn

@@ -5,7 +5,7 @@ import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { getState } from './store.js';
 import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
-import { todayStr, fromStr, toStr, addDays } from './dates.js';
+import { todayStr, fromStr, toStr, addDays, localDate } from './dates.js';
 import { periodRange, shiftAnchor, summarize } from './summary.js';
 import { bodyWeightKg, burnFactor } from './burn.js';
 import { openEditDaysSheet } from './adjustui.js';
@@ -63,13 +63,13 @@ export function renderProgress(root, plan, goto) {
 
   // ----- calendar -----
   const first = fromStr(monthStart);
-  const title = first.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
+  const title = localDate(first, { month: 'long', year: 'numeric' }, LOCALE);
   const grid = h('div', { class: 'cal-grid', role: 'grid', 'aria-label': title });
 
   // Week starts on Monday. getDay(): Sun=0..Sat=6  ->  Mon=0..Sun=6
   const lead = (first.getDay() + 6) % 7;
   for (let i = 0; i < 7; i++) {
-    const name = fromStr(addDays('2024-01-01', i)).toLocaleDateString(LOCALE, { weekday: 'narrow' }); // 2024-01-01 is a Monday
+    const name = localDate(fromStr(addDays('2024-01-01', i)), { weekday: 'narrow' }, LOCALE); // 2024-01-01 is a Monday
     grid.append(h('div', { class: 'cal-dow', 'aria-hidden': 'true' }, name));
   }
   for (let i = 0; i < lead; i++) grid.append(h('div', { class: 'cal-blank' }));
@@ -159,8 +159,8 @@ function summaryCard(root, plan, records, today, goto) {
   };
 
   const isNow = range.start <= today && today <= range.end;
-  const dayText = (d) => fromStr(d).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
-  const title = sum.kind === 'month' ? fromStr(range.start).toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' }) : isNow ? 'This week' : `${dayText(range.start)} to ${dayText(range.end)}`;
+  const dayText = (d) => localDate(fromStr(d), { day: 'numeric', month: 'short' }, LOCALE);
+  const title = sum.kind === 'month' ? localDate(fromStr(range.start), { month: 'long', year: 'numeric' }, LOCALE) : isNow ? 'This week' : `${dayText(range.start)} to ${dayText(range.end)}`;
   const vsWord = sum.kind === 'month' ? 'last month' : 'last week';
 
   const seg = h(
@@ -190,7 +190,7 @@ function summaryCard(root, plan, records, today, goto) {
       { class: 'sum-bars ' + sum.kind, role: 'img', 'aria-label': `Minutes trained each day, ${s.minutes} in total` },
       s.days.map((d) => h('div', { class: 'sum-bar-col', title: `${dayText(d.date)}: ${d.minutes} min` }, h('div', { class: 'sum-bar' + (d.minutes ? ' on' : ''), style: `height:${d.minutes ? Math.max(8, (d.minutes / maxMin) * 100) : 4}%` })))
     );
-    const labels = sum.kind === 'week' ? h('div', { class: 'sum-bar-days', 'aria-hidden': 'true' }, s.days.map((d) => h('span', {}, fromStr(d.date).toLocaleDateString(LOCALE, { weekday: 'narrow' })))) : null;
+    const labels = sum.kind === 'week' ? h('div', { class: 'sum-bar-days', 'aria-hidden': 'true' }, s.days.map((d) => h('span', {}, localDate(fromStr(d.date), { weekday: 'narrow' }, LOCALE)))) : null;
 
     card.append(
       h('div', { class: 'sum-hero' }, h('div', { class: 'sum-hero-num' }, '~' + fmt(s.kcal)), h('div', { class: 'sum-hero-label' }, 'kcal burnt in workouts (estimate)', delta(s.vs.kcal, s.hasPrev))),

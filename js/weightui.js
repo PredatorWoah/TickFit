@@ -5,13 +5,13 @@ import { h } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, setBodyWeight } from './store.js';
-import { todayStr, fromStr } from './dates.js';
+import { todayStr, fromStr, localDate } from './dates.js';
 import { bodyWeightKg } from './burn.js';
 import { entries, latest, average7, weekChange, formatDelta, chartPoints, validWeight } from './weight.js';
 
 const LOCALE = 'en';
 const log = () => getState().bodyLog || {};
-const shortDate = (d) => fromStr(d).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+const shortDate = (d) => localDate(fromStr(d), { day: 'numeric', month: 'short' }, LOCALE);
 
 /** A coloured chip: green when it matches the goal direction is a personal thing, so we stay neutral and just show the number. */
 const deltaChip = (delta) => (delta === null || delta === undefined ? null : h('span', { class: 'delta' }, formatDelta(delta)));

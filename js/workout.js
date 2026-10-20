@@ -20,8 +20,8 @@ import { exerciseBurn, singleBurn, bodyWeightKg, burnFactor } from './burn.js';
 import { openAdjustSheet } from './adjustui.js';
 import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets } from './stats.js';
 import { rowsFor, saveRows, startSession, finishSession, reopenSession, sessionState, sessionMs, workoutMs, workoutSummary, estimateMinutes, nextExercise, formatDuration } from './logging.js';
-import { parseRestSeconds, startRest } from './timer.js';
-import { fromStr, todayStr } from './dates.js';
+import { parseRestSeconds, startRest, warmAudio } from './timer.js';
+import { fromStr, todayStr, localDate } from './dates.js';
 import { haptic } from './platform.js';
 import { createCtx, dateBar, pickButton, LOCALE } from './dayview.js';
 import { lookOf } from './theme.js';
@@ -39,6 +39,7 @@ export function teardownWorkout() {
 }
 
 export function renderWorkout(root, plan, date, goto) {
+  warmAudio(); // ready before the first rest, so ticking a set never waits for it
   teardownWorkout();
   clear(root);
   const ctx = createCtx(plan, date, goto);
@@ -111,7 +112,7 @@ export function renderWorkout(root, plan, date, goto) {
     }
     best.sort((a, b) => b.w - a.w);
     const minutes = burn.adjustedMinutes ? burn.minutes : Math.round(workoutMs(rec) / 60000);
-    const lines = cardLines({ label: day.label, dateText: fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }), minutes, s, kcal: burn.kcal, best, records });
+    const lines = cardLines({ label: day.label, dateText: localDate(fromStr(date), { weekday: 'long', day: 'numeric', month: 'long' }, LOCALE), minutes, s, kcal: burn.kcal, best, records });
     try {
       const blob = await drawCard(lines, lookOf());
       const how = await shareImage(blob, `tickfit-workout-${date}.png`, 'My workout');
@@ -131,7 +132,7 @@ export function renderWorkout(root, plan, date, goto) {
         const stat = (value, label) => h('div', { class: 'stat' }, h('div', { class: 'stat-value' }, String(value)), h('div', { class: 'stat-label' }, label));
         body.append(
           ...[
-            h('p', { class: 'sheet-target' }, `${day.label} · ${fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' })}`),
+            h('p', { class: 'sheet-target' }, `${day.label} · ${localDate(fromStr(date), { weekday: 'long', day: 'numeric', month: 'long' }, LOCALE)}`),
             h('div', { class: 'stats' }, stat(burn.adjustedMinutes ? `${burn.minutes} min` : formatDuration(workoutMs(ctx.rec())), 'time'), stat(`${s.setsDone}/${s.setsTotal}`, 'sets'), stat(s.volumeKg ? s.volumeKg.toLocaleString() : '–', s.volumeKg ? 'kg lifted' : 'lifted')),
             burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `${burn.adjustedKcal ? '' : '~'}${burn.kcal} kcal`), burn.adjustedKcal ? ' burnt (your number)' : ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
             burn.items.length > 0 && h('ul', { class: 'burn-list' }, burn.items.map((i) => h('li', {}, h('span', {}, i.name), h('span', {}, `~${i.kcal} kcal`)))),
@@ -358,7 +359,7 @@ export function renderWorkout(root, plan, date, goto) {
         ...[
           facts.length > 0 && h('p', { class: 'ex-target' }, facts.join(' · ')),
           w.notes && h('p', { class: 'sheet-note' }, w.notes),
-          lastTime && h('p', { class: 'last-time' }, h('b', {}, 'Last time '), `(${fromStr(lastTime.date).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })}): ${formatSets(lastTime.sets)}`),
+          lastTime && h('p', { class: 'last-time' }, h('b', {}, 'Last time '), `(${localDate(fromStr(lastTime.date), { day: 'numeric', month: 'short' }, LOCALE)}): ${formatSets(lastTime.sets)}`),
           hint &&
             h(
               'div',

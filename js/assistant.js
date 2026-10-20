@@ -14,7 +14,7 @@
 import { getState, setBodyWeight, updateRecord } from './store.js';
 import { dayFor } from './schedule.js';
 import { pickItems } from './library.js';
-import { addDays, todayStr } from './dates.js';
+import { addDays, todayStr, localDate } from './dates.js';
 import { pctFor, mealNumbers, currentStreak } from './stats.js';
 import { manualOf, validManual, MANUAL_MINUTES, MANUAL_KCAL } from './burn.js';
 import { parseJsonLoose } from './parser.js';
@@ -190,7 +190,7 @@ export function parseReply(text, fallbackDate) {
   return { reply, actions };
 }
 
-const shortDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
+const shortDate = (d) => localDate(new Date(d + 'T12:00:00'), { weekday: 'short', day: 'numeric', month: 'short' });
 const exText = (e) => `${e.exercise} ${e.sets} × ${e.reps}${e.weight ? ` at ${e.weight}` : ''}`;
 const mealText = (m) => `${m.name}${m.items.length && m.items[0] !== m.name ? ` (${m.items.join(', ')})` : ''}${m.calories !== undefined ? `, ${m.calories} kcal` : ''}${m.protein !== undefined ? `, ${m.protein} g protein` : ''}`;
 const changesText = (c) => Object.entries(c).map(([k, v]) => `${k} ${Array.isArray(v) ? v.join(', ') : v}`).join(', ');

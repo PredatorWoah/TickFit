@@ -185,10 +185,11 @@ export function exerciseProgress(w, record) {
  */
 export function lastPerformance(plan, records, date, exerciseName, maxBack = 120) {
   const key = norm(exerciseName);
-  for (let i = 1; i <= maxBack; i++) {
-    const d = addDays(date, -i);
-    if (d < plan.startDate) break;
-    const rec = records && records[d];
+  const from = addDays(date, -maxBack);
+  // newest first, and only days that have a record (walking every calendar day was slow on phones)
+  const days = Object.keys(records || {}).filter((d) => d < date && d >= from && d >= plan.startDate).sort().reverse();
+  for (const d of days) {
+    const rec = records[d];
     if (!rec) continue;
     for (const ex of dayFor(plan, d).workout) {
       if (norm(ex.exercise) !== key) continue;

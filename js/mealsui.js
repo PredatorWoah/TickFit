@@ -8,13 +8,13 @@ import { h, toast, copyText } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, setSetting, savePlans } from './store.js';
-import { addDays, fromStr } from './dates.js';
+import { addDays, fromStr, localDate } from './dates.js';
 import { groceryList, groceryText, swapOptions } from './groceries.js';
 import { candidates, chosenFor, savePick } from './library.js';
 import { lookupEnabled, lookupBarcode } from './lookup.js';
 import { isNative, nativePlugin } from './platform.js';
 
-const shortDate = (d) => fromStr(d).toLocaleDateString('en', { day: 'numeric', month: 'short' });
+const shortDate = (d) => localDate(fromStr(d), { day: 'numeric', month: 'short' });
 
 async function shareText(title, text) {
   try {

@@ -5,7 +5,7 @@
 // The app sends this snapshot to the widgets every time something changes (see widgets.js). The widgets
 // can't run JavaScript, so everything they need is in here, already formatted.
 
-import { addDays, fromStr } from './dates.js';
+import { addDays, fromStr, localDate } from './dates.js';
 import { dayFor } from './schedule.js';
 import { dayStats, mealTotals, currentStreak, pctFor, lastPerformance, plannedSets, STREAK_MIN_PCT } from './stats.js';
 import { workoutSummary, sessionState, workoutMs, estimateMinutes, nextExercise } from './logging.js';
@@ -27,7 +27,7 @@ export function shortLabel(label) {
 }
 
 /** "Fri 10 Oct" */
-const dateText = (date) => fromStr(date).toLocaleDateString(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' });
+const dateText = (date) => localDate(fromStr(date), { weekday: 'short', day: 'numeric', month: 'short' }, LOCALE);
 
 /** "45 min" or "1 h 05 min" */
 function minutesText(ms) {
