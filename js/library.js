@@ -138,5 +138,7 @@ export function customCandidate(kind, name, category, extra = {}) {
     kind === 'workout'
       ? { exercise: n, sets: extra.sets || 3, reps: extra.reps || '10', weight: '', rest: '90s', notes: '', video: '' }
       : { name: n, time: '', items: extra.items && extra.items.length ? extra.items : [n] };
+  // a scanned packet brings its own numbers
+  if (kind !== 'workout') for (const k of ['calories', 'protein']) if (typeof extra[k] === 'number' && isFinite(extra[k]) && extra[k] >= 0) item[k] = Math.round(extra[k] * 10) / 10;
   return { id: `new-${slug(n)}`, item, category: cat || guessCategory(kind, item), source: 'new' };
 }

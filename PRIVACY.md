@@ -17,6 +17,7 @@ Nothing, unless you switch on one of these optional features:
   Claude is billed to your Anthropic account and what you send is handled under Anthropic's API terms. On Google's free tier, Google may use what you send to improve its products, so do not send anything you consider private. If you never add a key, no request to either is ever made.
 
 - **Online food lookup (off unless you turn it on).** If you switch on **More > Food lookup**, tapping **Estimate from foods** in the plan editor sends the *name* of a food the built-in table does not know (for example `quinoa crunch`) to Open Food Facts (`world.openfoodfacts.org`), a free open food database. No amounts, plans, progress, weight or personal details are sent. Like any website, they can see your IP address. If you never turn it on, no request is ever made.
+- **Scanning a packet's barcode (same setting).** The camera picture stays on your phone: the phone reads the stripes itself. Only the barcode's digits (like `8901063012345`) are sent to Open Food Facts to find the product's name, calories and protein. If the lookup is off, TickFit asks before turning it on.
 
 TickFit also tells your browser to enforce this: the page ships with a Content Security Policy that only allows connections to this site, to `api.anthropic.com`, to `generativelanguage.googleapis.com` and to `world.openfoodfacts.org`. A bug or a bad edit cannot quietly start talking to some other server.
 

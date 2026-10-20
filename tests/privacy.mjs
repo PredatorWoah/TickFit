@@ -42,6 +42,9 @@ check('aiassist.js never reads your history, weights or body log', !/\.progress|
 check('lookup.js only calls Open Food Facts', /FOOD_API = 'https:\/\/world\.openfoodfacts\.org\/cgi\/search\.pl'/.test(read('js/lookup.js')));
 check('lookup.js refuses to go online unless the opt-in setting is on', /if \(!lookupEnabled\(\)\) return null;[\s\S]*fetch\(/.test(read('js/lookup.js')));
 check('lookup.js sends only the food name in the URL', /search_terms=\$\{encodeURIComponent\(q\)\}/.test(read('js/lookup.js')) && !/getState\(\)\.(plans|progress|bodyLog)/.test(read('js/lookup.js')));
+check('lookup.js barcode lookup only calls Open Food Facts', /BARCODE_API = 'https:\/\/world\.openfoodfacts\.org\/api\/v2\/product\/'/.test(read('js/lookup.js')));
+check('lookup.js sends only the barcode digits', /const code = cleanBarcode\(text\);[\s\S]*\$\{BARCODE_API\}\$\{code\}\.json/.test(read('js/lookup.js')) && /\^\\d\{8,14\}\$/.test(read('js/lookup.js')));
+check('lookup.js barcode lookup is opt-in too', /lookupBarcode\(text\) \{\n  if \(!lookupEnabled\(\)\) return null;/.test(read('js/lookup.js')));
 check('sw.js only handles same-origin GET requests', /req\.method !== 'GET' \|\| url\.origin !== self\.location\.origin/.test(read('sw.js')));
 
 // 3. Every website named in the code is on the allow list.

@@ -8,13 +8,18 @@ import { savePlans } from './store.js';
 import { estimateMeal } from './estimate.js';
 import { toast } from './dom.js';
 import { createCtx, dateBar, tickTile, waterTile, section, meter, pickButton } from './dayview.js';
+import { icon } from './icons.js';
+
+const sheets = () => import('./mealsui.js');
 
 export function renderMeals(root, plan, date, goto) {
   clear(root);
   const ctx = createCtx(plan, date, goto);
   const { day } = ctx;
 
-  root.append(dateBar(ctx), h('h1', { class: 'wk-title' }, 'Meals'), pickButton(ctx, 'meals'));
+  const redraw = () => renderMeals(root, plan, date, goto);
+  const groceries = h('button', { class: 'btn small grocery-btn', type: 'button', onclick: async () => (await sheets()).openGroceries(plan, date) }, icon('cart', 18), 'Grocery list');
+  root.append(dateBar(ctx), h('h1', { class: 'wk-title' }, 'Meals'), h('div', { class: 'meal-tools' }, pickButton(ctx, 'meals'), groceries));
 
   if (!day.meals.length && !day.extras.supplements.length && !day.extras.waterLiters) {
     root.append(h('div', { class: 'empty-card' }, h('p', {}, 'Nothing planned to eat on this day. Tap Choose meals to add some.')));
@@ -50,7 +55,9 @@ export function renderMeals(root, plan, date, goto) {
             const approx = n.estimated ? '~' : '';
             if (typeof n.calories === 'number') macros.push(`${approx}${n.calories} kcal`);
             if (typeof n.protein === 'number') macros.push(`${approx}${n.protein} g protein`);
-            return tickTile(ctx, m.id, [m.time && h('span', { class: 'time' }, m.time), m.name], m.items.join(', '), macros.join(' · '));
+            const li = tickTile(ctx, m.id, [m.time && h('span', { class: 'time' }, m.time), m.name], m.items.join(', '), macros.join(' · '));
+            li.append(h('button', { class: 'icon-btn small tile-swap', type: 'button', 'aria-label': `Swap ${m.name} for another meal`, onclick: async () => (await sheets()).openSwap(plan, date, m, () => ctx.goto(date)) }, icon('swap', 18)));
+            return li;
           })
         )
       )
@@ -81,7 +88,7 @@ export function renderMeals(root, plan, date, goto) {
               }
               savePlans();
               toast(count ? `Saved estimates for ${count} meals` : 'Nothing to estimate');
-              renderMeals(root, plan, date, goto);
+              redraw();
             },
           },
           'Save estimates into my plan'

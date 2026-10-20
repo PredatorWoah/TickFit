@@ -5,11 +5,14 @@
 // (like "paneer", no amounts, no plan, no progress, nothing about you), as a web search. Anything
 // that goes wrong (offline, blocked, slow, nothing found) quietly returns null and the person
 // types the numbers themselves.
+//
+// Scanning a packet's barcode (scanner.js) works the same way: only the barcode's digits are sent.
 
 import { getState } from './store.js';
 import { parseQuantity } from './estimate.js';
 
 export const FOOD_API = 'https://world.openfoodfacts.org/cgi/search.pl';
+export const BARCODE_API = 'https://world.openfoodfacts.org/api/v2/product/';
 const TIMEOUT_MS = 6000;
 const cache = new Map(); // food name -> result, so asking twice does not hit the network twice
 
@@ -57,17 +60,7 @@ export async function lookupFood(line) {
   if (!q) return null;
   let product = cache.get(q);
   if (product === undefined) {
-    product = null;
-    try {
-      const url = `${FOOD_API}?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=8&fields=product_name,nutriments,serving_quantity`;
-      const ctl = new AbortController();
-      const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
-      const res = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
-      clearTimeout(timer);
-      if (res.ok) product = pickProduct(await res.json());
-    } catch {
-      product = null; // offline, blocked or timed out
-    }
+    product = pickProduct(await getJson(`${FOOD_API}?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=8&fields=product_name,nutriments,serving_quantity`));
     cache.set(q, product);
   }
   if (!product) return null;
@@ -75,4 +68,40 @@ export async function lookupFood(line) {
   const assumed = qty.grams === null;
   const grams = Math.min(assumed ? product.serving || 100 : qty.grams, 2000);
   return { name: product.name, grams, assumed, kcal: Math.round((product.kcal100 * grams) / 100), protein: Math.round(((product.protein100 * grams) / 100) * 10) / 10 };
+}
+
+/** A barcode as only digits (8 to 14 of them, like on any packet), or null. */
+export function cleanBarcode(text) {
+  const d = String(text ?? '').replace(/[\s-]/g, '');
+  return /^\d{8,14}$/.test(d) ? d : null;
+}
+
+/**
+ * Look a packet up by its barcode. Returns { name, kcal100, protein100, serving } or null.
+ * Only the digits are sent, and only with the opt-in setting on.
+ */
+export async function lookupBarcode(text) {
+  if (!lookupEnabled()) return null; // never goes online unless the person opted in
+  const code = cleanBarcode(text);
+  if (!code) return null;
+  const key = `#${code}`;
+  if (!cache.has(key)) {
+    const json = await getJson(`${BARCODE_API}${code}.json?fields=product_name,nutriments,serving_quantity`);
+    cache.set(key, json && json.product ? pickProduct({ products: [json.product] }) : null);
+  }
+  return cache.get(key);
+}
+
+// The one place this file goes online. Null on any problem (offline, blocked, slow, not JSON).
+async function getJson(url) {
+  if (!lookupEnabled()) return null;
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    const res = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+    clearTimeout(timer);
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
 }

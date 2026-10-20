@@ -25,12 +25,17 @@ const SOURCE_NOTE = { day: 'on the plan today', library: '', plan: 'from another
  * @param kind    'workout' or 'meals'
  * @param onDone  called after saving, to redraw the screen
  */
-export function openPicker({ plan, date, kind, onDone }) {
+export function openPicker({ plan, date, kind, onDone, packet = null, keep = null }) {
   const isWorkout = kind === 'workout';
   const all = candidates(plan, date, kind, isWorkout ? builtinExercises() : []);
   const current = (plan.picks && plan.picks[date] && plan.picks[date][kind]) || plannedDay(plan, date)[kind].map((x) => x.id);
   // What is ticked, in order. Library ids in a pick match candidates directly.
   let chosen = current.map((id) => all.find((c) => c.id === id)).filter(Boolean);
+  if (keep) {
+    // opened again after scanning a packet: keep what was ticked before
+    for (const c of keep) if (!all.some((x) => x.id === c.id)) all.unshift(c);
+    chosen = keep;
+  }
 
   const cats = [...new Set(all.map((c) => c.category))];
   let filter = new Set(focusFor(plannedDay(plan, date), cats));
@@ -132,8 +137,15 @@ export function openPicker({ plan, date, kind, onDone }) {
       const newName = h('input', { type: 'text', placeholder: isWorkout ? 'Exercise name' : 'Meal name, like Oats bowl', 'aria-label': isWorkout ? 'New exercise name' : 'New meal name', maxlength: 80 });
       const newCat = h('input', { type: 'text', placeholder: isWorkout ? 'Category, like Back' : 'Category, like Breakfast', 'aria-label': isWorkout ? 'New exercise category' : 'New meal category', maxlength: 40, list: 'pick-cats' });
       const newFoods = isWorkout ? null : h('input', { type: 'text', placeholder: 'Foods, comma separated (optional)', 'aria-label': 'Foods in the new meal', maxlength: 300 });
+      let scanned = packet; // { name, grams, calories, protein } from a scanned packet, while the name is unchanged
+      if (packet) {
+        newName.value = packet.name.slice(0, 80);
+        newCat.value = 'Snacks';
+        newFoods.value = `${packet.grams} g ${packet.name}`.slice(0, 300);
+      }
       const addOwn = () => {
-        const c = customCandidate(kind, newName.value, newCat.value, { items: newFoods ? newFoods.value.split(',').map((s) => s.trim()).filter(Boolean) : [] });
+        const nums = scanned && newName.value.trim() === scanned.name ? { calories: scanned.calories, protein: scanned.protein } : {};
+        const c = customCandidate(kind, newName.value, newCat.value, { items: newFoods ? newFoods.value.split(',').map((s) => s.trim()).filter(Boolean) : [], ...nums });
         if (!c) return newName.focus();
         all.unshift(c);
         if (!cats.includes(c.category)) cats.push(c.category);
@@ -141,6 +153,7 @@ export function openPicker({ plan, date, kind, onDone }) {
         newName.value = '';
         newCat.value = '';
         if (newFoods) newFoods.value = '';
+        scanned = null;
         drawChips();
         drawList();
       };
@@ -204,13 +217,33 @@ export function openPicker({ plan, date, kind, onDone }) {
         list,
         h(
           'details',
-          { class: 'pick-add' },
+          { class: 'pick-add', open: !!packet },
           h('summary', {}, isWorkout ? 'Add your own exercise' : 'Add your own meal'),
           h('datalist', { id: 'pick-cats' }, cats.map((c) => h('option', { value: c }))),
           newName,
           newCat,
           newFoods,
-          h('button', { class: 'btn small', type: 'button', onclick: addOwn }, icon('plus', 18), 'Add and choose it')
+          packet && h('p', { class: 'hint tight' }, `From the packet: ${packet.calories} kcal and ${packet.protein} g protein per ${packet.grams} g.`),
+          h(
+            'div',
+            { class: 'btn-row' },
+            h('button', { class: 'btn small', type: 'button', onclick: addOwn }, icon('plus', 18), 'Add and choose it'),
+            !isWorkout &&
+              h(
+                'button',
+                {
+                  class: 'btn small',
+                  type: 'button',
+                  onclick: async () => {
+                    const { scanPacket } = await import('./mealsui.js');
+                    // the scanner opens its own sheet, so this one closes and opens again with the packet filled in
+                    scanPacket((p) => openPicker({ plan, date, kind, onDone, packet: p, keep: chosen }));
+                  },
+                },
+                icon('barcode', 18),
+                'Scan a packet'
+              )
+          )
         ),
         h(
           'div',

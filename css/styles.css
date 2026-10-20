@@ -1094,3 +1094,29 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .qr-svg { width: min(280px, 80vw); padding: 10px; border-radius: 18px; background: #fff; }
 .qr-svg svg { display: block; width: 100%; height: auto; }
 :root[data-style='bento'] .qr-svg { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
+
+/* ----- meals: grocery list, swap, barcode scanner ----- */
+.meal-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.meal-tools .pick-btn { margin: 4px 0 6px; }
+.grocery-btn { min-height: 44px; border-radius: 999px; }
+.tile-swap { flex: none; color: var(--muted); }
+.grocery-list { list-style: none; margin: 6px 0 14px; padding: 0; display: grid; gap: 6px; }
+.grocery-list label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
+.grocery-list input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.grocery-list span:first-of-type { flex: 1; font-weight: 700; overflow-wrap: anywhere; }
+.grocery-list .g-uses { font-size: 12px; color: var(--muted); flex: none; }
+.grocery-list li.done span:first-of-type { text-decoration: line-through; color: var(--muted); }
+.swap-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.swap-row { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+.swap-name { font-weight: 800; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.swap-cat { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.swap-sub { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.swap-nums { font-size: 13px; font-weight: 700; color: var(--accent-text); }
+.scan-view { position: relative; border-radius: 18px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; margin-bottom: 10px; }
+.scan-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scan-line { position: absolute; left: 10%; right: 10%; top: 50%; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: scan-move 1.8s ease-in-out infinite alternate; }
+@keyframes scan-move { from { top: 30%; } to { top: 70%; } }
+@media (prefers-reduced-motion: reduce) { .scan-line { animation: none; } }
+.scan-type { display: flex; gap: 8px; align-items: center; }
+.scan-type input { flex: 1; min-width: 0; }
+:root[data-style='bento'] :is(.grocery-list label, .swap-row) { border: 2px solid var(--ink); }
