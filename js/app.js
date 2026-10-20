@@ -22,6 +22,7 @@ import './install.js'; // starts listening for the browser's install offer
 import { isNative, onBackButton, exitApp } from './platform.js';
 import { startWidgets } from './widgets.js';
 import { runAutoBackup, backupCovered } from './autobackup.js';
+import { startRestAlerts } from './restalert.js';
 import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
@@ -231,6 +232,7 @@ function start() {
   // Android app: today's automatic backup, a little after start so it never slows opening (and again on return)
   const autoBackup = () => runAutoBackup().then((made) => made && view.screen === 'more' && draw());
   setTimeout(autoBackup, 2500);
+  startRestAlerts(); // Android app: rest timer alerts with the screen off
   document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && autoBackup());
   // People who already have plans never need the welcome screen.
   if (getState().plans.length && !getState().settings.welcomed) setSetting('welcomed', true);

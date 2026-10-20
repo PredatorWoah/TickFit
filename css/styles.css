@@ -1017,3 +1017,39 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 :root[data-style='bento'] .toast-undo { background: var(--yellow); color: #111; border: 2px solid #111; }
 .auto-backup { margin: 4px 0 6px; }
 .auto-backup .check-line { font-size: 15px; }
+
+/* ----- Gym helpers on the Workout screen ----- */
+.overload { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 6px 0 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); font-size: 14px; font-weight: 700; }
+.overload > span { display: flex; align-items: center; gap: 8px; flex: 1 1 200px; }
+.overload.up > span .icon { color: var(--accent-text); }
+.overload.stay, .overload.same { background: var(--surface-2); font-weight: 600; color: var(--muted); }
+.warmup { display: flex; flex-direction: column; gap: 2px; margin: 0 0 10px; padding: 10px 12px; border-radius: 14px; border: 1px dashed var(--line); font-size: 15px; }
+.warmup span { font-family: var(--font-num); font-size: 18px; font-weight: 700; }
+.warmup small { color: var(--muted); font-size: 12px; }
+.set-row.pr .set-n { color: var(--accent-text); }
+.set-row.pr .set-n::after { content: ' 🏆'; font-size: 12px; }
+/* supersets: a bracket down the side of the grouped exercises */
+.ex.in-superset { border-left: 4px solid var(--accent); }
+.ex.in-superset:not(.ss-last) { margin-bottom: -4px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+.ex.in-superset:not(.ss-first) { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.ss-tag { display: block; padding: 8px 14px 0; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); }
+:root[data-style='bento'] .ex.in-superset { border-left-width: 8px; border-left-color: var(--accent); }
+/* plates sheet */
+.plate-in { font-size: 28px; font-weight: 800; text-align: center; font-family: var(--font-num); }
+.plates-line { font-size: 18px; font-weight: 800; margin: 6px 0; }
+.plate-stack { display: flex; align-items: center; gap: 3px; min-height: 120px; padding: 10px 4px; overflow-x: auto; }
+.plate-bar { flex: none; width: 46px; height: 14px; border-radius: 4px; background: var(--muted); }
+.plate { flex: none; display: grid; place-items: center; width: 26px; border-radius: 6px; color: #fff; font-size: 11px; font-weight: 800; writing-mode: vertical-rl; text-orientation: mixed; border: 2px solid rgba(0, 0, 0, 0.25); }
+.plate.p25 { height: 110px; background: #d7263d; }
+.plate.p20 { height: 104px; background: #1e5eff; }
+.plate.p15 { height: 94px; background: #f2b705; color: #111; }
+.plate.p10 { height: 82px; background: #1f9d55; }
+.plate.p5 { height: 64px; background: #f4f4f4; color: #111; }
+.plate.p2_5 { height: 52px; background: #333; }
+.plate.p1_25 { height: 42px; background: #888; width: 20px; }
+/* records and lift charts on Progress */
+.pr-row { width: 100%; background: none; border: 0; border-top: 1px solid var(--line); text-align: left; color: inherit; font: inherit; padding: 10px 0; }
+.pr-card .lift-list li:first-child .pr-row { border-top: 0; }
+.lift-name.link-like { background: none; border: 0; padding: 0; color: inherit; font: inherit; font-weight: 700; text-align: left; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); text-underline-offset: 3px; }
+.lift-dot { fill: var(--accent); }
+.lift-dot.best { fill: var(--accent-text); stroke: var(--surface); stroke-width: 2; }

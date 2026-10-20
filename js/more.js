@@ -7,6 +7,7 @@ import { icon } from './icons.js';
 import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb, snapshot, restoreSnapshot } from './store.js';
 import { restorePhotos } from './photos.js';
 import { runAutoBackup, AUTO_FOLDER } from './autobackup.js';
+import { prepareRestAlert } from './restalert.js';
 import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, DEFAULT_CLAUDE_MODEL } from './claude.js';
@@ -305,6 +306,13 @@ export function renderMore(root, actions) {
         h('input', { type: 'checkbox', checked: settings.autoRest !== false, onchange: (e) => setSetting('autoRest', e.target.checked) }),
         'Start it automatically after each set'
       ),
+      isNative() &&
+        h(
+          'label',
+          { class: 'check-line' },
+          h('input', { type: 'checkbox', checked: settings.restAlert !== false, onchange: (e) => { setSetting('restAlert', e.target.checked); if (e.target.checked) prepareRestAlert(); } }),
+          'Alert me when rest ends, even with the screen off'
+        ),
       h(
         'label',
         { class: 'check-line' },
