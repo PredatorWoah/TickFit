@@ -24,6 +24,8 @@ const PATHS = {
   paste: '<rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V4h6v1M9 11h6M9 15h6"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>',
   swap: '<path d="M7 7h12l-3-3M17 17H5l3 3"/>',
+  cart: '<path d="M3 4h2.5l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h7.9a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.4"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
+  barcode: '<path d="M4 6v12M7.5 6v12M10 6v12M13.5 6v12M17 6v12M20 6v12"/>',
   back: '<path d="M15 6l-6 6 6 6"/>',
   calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a2 2 0 0 0 2 4M16 6h3a2 2 0 0 1-2 4M12 13v4M9 20h6"/>',

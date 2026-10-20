@@ -17,7 +17,10 @@ let current = null; // only one sheet at a time
  * @param onClose  called once after the sheet has closed
  */
 export function openSheet({ title, build, onClose }) {
-  if (current) current.close();
+  // A sheet opened from another one takes over its history entry, so the Back button still closes it
+  // (going back here would close the new sheet as soon as it opens).
+  const handoff = !!current;
+  if (current) current.close(true);
 
   const opener = document.activeElement;
   const body = h('div', { class: 'sheet-body' });
@@ -35,13 +38,14 @@ export function openSheet({ title, build, onClose }) {
   let closed = false;
   let poppedByBrowser = false;
 
-  function close() {
+  function close(replaced) {
+    // `replaced` is true only from openSheet (a new sheet took over); a click event passed in counts as false
     if (closed) return;
     closed = true;
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('popstate', onPop);
     // If we pushed a history entry for this sheet and the user didn't already use Back, remove it.
-    if (!poppedByBrowser && history.state && history.state.tickfitSheet) history.back();
+    if (replaced !== true && !poppedByBrowser && history.state && history.state.tickfitSheet) history.back();
     root.classList.remove('open');
     document.body.classList.remove('no-scroll');
     setTimeout(() => root.remove(), 220);
@@ -61,7 +65,7 @@ export function openSheet({ title, build, onClose }) {
   document.body.append(root);
   document.body.classList.add('no-scroll');
   document.addEventListener('keydown', onKey);
-  history.pushState({ tickfitSheet: true }, '');
+  if (!(handoff && history.state && history.state.tickfitSheet)) history.pushState({ tickfitSheet: true }, '');
   window.addEventListener('popstate', onPop);
   build(body, close);
   requestAnimationFrame(() => {
