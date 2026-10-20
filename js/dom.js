@@ -53,15 +53,45 @@ export async function copyText(text) {
   }
 }
 
-/** A short message at the bottom of the screen. */
-export function toast(message) {
+/**
+ * A short message at the bottom of the screen.
+ * @param opts  { undo: fn } adds an Undo button (and keeps the message up longer); { ms } sets how long it stays.
+ *              onGone(undone) runs when it disappears, e.g. to really delete something only once Undo is no longer possible.
+ */
+export function toast(message, opts = {}) {
   const old = document.querySelector('.toast');
-  if (old) old.remove();
-  const el = h('div', { class: 'toast', role: 'status' }, message);
-  document.body.append(el);
-  setTimeout(() => el.classList.add('show'), 10);
-  setTimeout(() => {
+  if (old) {
+    if (old._finish) old._finish(false);
+    old.remove();
+  }
+  let done = false;
+  const el = h('div', { class: 'toast' + (opts.undo ? ' has-action' : ''), role: 'status' }, h('span', {}, message));
+  const finish = (undone) => {
+    if (done) return;
+    done = true;
     el.classList.remove('show');
     setTimeout(() => el.remove(), 300);
-  }, 2200);
+    if (opts.onGone) opts.onGone(undone);
+  };
+  el._finish = finish;
+  if (opts.undo) {
+    el.append(
+      h(
+        'button',
+        {
+          class: 'toast-undo',
+          type: 'button',
+          onclick: () => {
+            if (done) return;
+            opts.undo();
+            finish(true);
+          },
+        },
+        'Undo'
+      )
+    );
+  }
+  document.body.append(el);
+  setTimeout(() => el.classList.add('show'), 10);
+  setTimeout(() => finish(false), opts.ms || (opts.undo ? 5500 : 2200));
 }

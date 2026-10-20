@@ -37,9 +37,11 @@ The "Form video" button simply opens a link (your own, or a YouTube search for t
 
 ## Progress photos
 
-Photos you take or pick on the Progress tab stay on this device. They are never uploaded, and they are **not** in the backup file (it would get very large), so if you change phones, save the ones you want with **Save a copy** first. Delete one by tapping it, then **Delete**. In the Android app, taking a photo opens your phone's own camera app, and TickFit never asks for the camera permission itself.
+Photos you take or pick on the Progress tab stay on this device. They are never uploaded. The backup sheet has a tick box to put them inside the backup file (it gets bigger, about 0.1 to 0.3 MB per photo); you can also save single photos with **Save a copy**. Delete one by tapping it, then **Delete**. In the Android app, taking a photo opens your phone's own camera app, and TickFit never asks for the camera permission itself.
 
 ## Backups
+
+In the Android app, TickFit also saves an automatic backup once a day in your phone's `Documents/TickFit` folder (the last 7 are kept). It stays on your phone; it only goes elsewhere if you sync that folder yourself. Switch it off in **More > Your data**. On Android 10 and older this needs the storage permission, which the app asks for once.
 
 A backup file contains all your plans, progress, notes, body weight log, settings and plan builder answers (but never your Claude or Gemini key). It is a normal file you control. "Share backup" hands the file to your phone's share sheet, and where it goes from there is up to you.
 

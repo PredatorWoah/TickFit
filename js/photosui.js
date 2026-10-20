@@ -10,9 +10,12 @@ import { openSheet } from './sheet.js';
 import { getState } from './store.js';
 import { todayStr, toStr, diffDays, isValidStr } from './dates.js';
 import { isNative, nativePlugin } from './platform.js';
-import { listPhotos, addPhoto, deletePhoto, setPhotoDate, withWatermark } from './photos.js';
+import { listPhotos, addPhoto, deletePhoto, setPhotoDate, withWatermark, binPhoto, unbinPhoto, emptyBin } from './photos.js';
 
 const urls = new Map(); // photo id -> object URL, made once per photo and reused across redraws
+// Photos deleted a moment ago sit in a bin (photos.js) while Undo is offered; a bin left from an earlier visit
+// (the app was closed before the message went) is emptied when the photos are first shown.
+let binChecked = false;
 
 const urlFor = (p) => {
   if (!urls.has(p.id)) urls.set(p.id, URL.createObjectURL(p.blob));
@@ -95,6 +98,10 @@ export function photosCard() {
     let photos = [];
     let problem = null;
     try {
+      if (!binChecked) {
+        binChecked = true;
+        await emptyBin(10000).catch(() => {});
+      }
       photos = await listPhotos();
     } catch (e) {
       problem = e.message;
@@ -210,12 +217,21 @@ function openPhoto(photo, photos, bodyLog, redraw) {
               class: 'btn danger',
               type: 'button',
               onclick: async () => {
-                if (!confirm('Delete this photo from this phone? This cannot be undone.')) return;
-                await deletePhoto(photo.id).catch(() => {});
-                forget(photo.id);
+                // into the bin at once, really deleted only when Undo is no longer offered
+                await binPhoto(photo.id).catch(() => {});
                 close();
-                toast('Photo deleted');
                 redraw();
+                toast('Photo deleted', {
+                  undo: async () => {
+                    await unbinPhoto(photo.id).catch(() => {});
+                    redraw(photo.id);
+                  },
+                  onGone: (undone) => {
+                    if (undone) return;
+                    deletePhoto(photo.id).catch(() => {});
+                    forget(photo.id);
+                  },
+                });
               },
             },
             icon('trash', 18),

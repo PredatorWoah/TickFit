@@ -4,7 +4,9 @@
 
 import { h, clear, toast } from './dom.js';
 import { icon } from './icons.js';
-import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb } from './store.js';
+import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isStoragePersisted, dataSizeKb, snapshot, restoreSnapshot } from './store.js';
+import { restorePhotos } from './photos.js';
+import { runAutoBackup, AUTO_FOLDER } from './autobackup.js';
 import { applyTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, DEFAULT_CLAUDE_MODEL } from './claude.js';
@@ -43,10 +45,17 @@ export function renderMore(root, actions) {
       }
       if (!looksLikeBackup(obj)) return toast('That does not look like a TickFit backup file.');
       if (!confirm('Restore this backup? It REPLACES all plans and progress currently in the app.')) return;
+      const before = snapshot();
       const result = importBackup(obj, validatePlan);
       if (!result.ok) return toast(result.error);
-      toast(`Restored ${result.plans} plan${result.plans === 1 ? '' : 's'}`);
+      const photos = Array.isArray(obj.photos) && obj.photos.length ? await restorePhotos(obj.photos).catch(() => 0) : 0;
       actions.refresh();
+      toast(`Restored ${result.plans} plan${result.plans === 1 ? '' : 's'}${photos ? ` and ${photos} photo${photos === 1 ? '' : 's'}` : ''}`, {
+        undo: () => {
+          restoreSnapshot(before);
+          actions.refresh();
+        },
+      });
     },
   });
 
@@ -54,6 +63,21 @@ export function renderMore(root, actions) {
   const installed = isInstalledApp(); // true in the Android app and for an installed web app
   const inApp = isNative();
   const row = (label, value, tone) => h('div', { class: 'kv' }, h('span', { class: 'kv-label' }, label), h('span', { class: 'kv-value' + (tone ? ' ' + tone : '') }, value));
+
+  // Android app: the daily automatic backup into Documents/TickFit (autobackup.js)
+  function autoBackupBlock() {
+    const on = settings.autoBackup !== false;
+    const when = settings.lastAutoBackup ? describeBackupAge(settings.lastAutoBackup, todayStr()) : 'not yet';
+    return h(
+      'div',
+      { class: 'auto-backup' },
+      row('Automatic backup', on ? (settings.autoBackupError ? 'Problem' : `${when}, Documents/${AUTO_FOLDER}`) : 'Off', on ? (settings.autoBackupError ? 'warn-text' : 'good-text') : ''),
+      on && settings.autoBackupError && h('p', { class: 'msg warn' }, settings.autoBackupError),
+      h('label', { class: 'check-line' }, h('input', { type: 'checkbox', checked: on, onchange: (e) => { setSetting('autoBackup', e.target.checked); if (e.target.checked) runAutoBackup().then(again); else again(); } }), 'Save a backup in Documents/TickFit every day (keeps the last 7)'),
+      on && h('label', { class: 'check-line' }, h('input', { type: 'checkbox', checked: settings.autoBackupPhotos === true, onchange: (e) => { setSetting('autoBackupPhotos', e.target.checked); setSetting('lastAutoBackup', null); runAutoBackup().then(again); } }), 'Include progress photos (bigger files)'),
+      on && h('p', { class: 'hint tight' }, 'That folder stays even if you uninstall the app. To be safe from losing the phone, sync it with Google Drive, or still use "Back up now" once a week.')
+    );
+  }
 
   const backupButtons = [
     h('button', { class: 'btn primary wide', type: 'button', onclick: () => openBackupSheet(again) }, icon('upload', 20), 'Back up now'),
@@ -70,6 +94,7 @@ export function renderMore(root, actions) {
     row('Saved on this phone', `${dataSizeKb()} KB`),
     row('Protected from auto clean up', inApp || persisted === true ? 'Yes' : persisted === false ? 'Not guaranteed' : 'Unknown', inApp || persisted === true ? 'good-text' : ''),
     row('Installed as an app', installed ? 'Yes' : 'No', installed ? 'good-text' : ''),
+    inApp && autoBackupBlock(),
     !installed && isIos() && h('div', { class: 'msg warn' }, h('b', {}, 'Install it on your iPhone. '), 'Safari can erase a website\'s data after about a week of not opening it. Tap Share, then "Add to Home Screen", and open TickFit from there. That removes the risk.'),
     !installed && !isIos() && h('p', { class: 'hint' }, 'Tip: install TickFit from your browser menu ("Install app" or "Add to Home screen"). Installed apps are far less likely to have their data cleared.'),
     ...backupButtons,

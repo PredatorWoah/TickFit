@@ -21,6 +21,7 @@ import { showUpdateBanner } from './update.js';
 import './install.js'; // starts listening for the browser's install offer
 import { isNative, onBackButton, exitApp } from './platform.js';
 import { startWidgets } from './widgets.js';
+import { runAutoBackup, backupCovered } from './autobackup.js';
 import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
@@ -101,7 +102,7 @@ function drawNav() {
   }
   const activeTab = MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
   const { progress, settings } = getState();
-  const stale = backupStale({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup }, todayStr());
+  const stale = !backupCovered(settings, todayStr()) && backupStale({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup }, todayStr());
   TABS.forEach((t, i) => {
     const btn = nav.children[i];
     const active = activeTab === t.id;
@@ -165,6 +166,7 @@ function draw() {
 function showBackupNudge() {
   const { progress, settings } = getState();
   const today = todayStr();
+  if (backupCovered(settings, today)) return; // the app saved one today and a copy went elsewhere this week
   if (!nudgeDue({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup, snoozeUntil: settings.backupSnoozeUntil }, today)) return;
 
   const doBackup = () => openBackupSheet(draw);
@@ -226,6 +228,10 @@ function start() {
   load();
   applyTheme(getState().settings);
   protectStorage().then(() => view.screen === 'more' && draw()); // ask the browser to keep our data; shown on the More screen
+  // Android app: today's automatic backup, a little after start so it never slows opening (and again on return)
+  const autoBackup = () => runAutoBackup().then((made) => made && view.screen === 'more' && draw());
+  setTimeout(autoBackup, 2500);
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && autoBackup());
   // People who already have plans never need the welcome screen.
   if (getState().plans.length && !getState().settings.welcomed) setSetting('welcomed', true);
   view.screen = getActivePlan() ? 'today' : getState().settings.welcomed ? 'plans' : 'welcome';
