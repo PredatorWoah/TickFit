@@ -1,6 +1,6 @@
 // llm.js
 // OPTIONAL AI, with the person's OWN key, straight from their browser or phone. Four providers:
-//   opencode  OpenCode Zen: one key, many models, several of them free (https://opencode.ai/zen)
+//   openrouter  OpenRouter: one key, hundreds of models, a good number of them free (https://openrouter.ai)
 //   openai    OpenAI (ChatGPT's models)
 //   claude    Anthropic's Claude   (claude.js)
 //   gemini    Google's Gemini      (gemini.js)
@@ -15,20 +15,20 @@ import { getState } from './store.js';
 import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, askClaude, DEFAULT_CLAUDE_MODEL } from './claude.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, askGemini, DEFAULT_MODEL as DEFAULT_GEMINI_MODEL } from './gemini.js';
 
-export const OPENCODE_BASE = 'https://opencode.ai/zen/v1';
+export const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 export const OPENAI_BASE = 'https://api.openai.com/v1';
 const TIMEOUT_MS = 180000;
 
 /** Everything the More screen needs to explain each provider: where to get a key, what it costs. */
 export const PROVIDERS = {
-  opencode: {
-    name: 'OpenCode Zen',
-    store: 'tickfit:opencode',
-    defaultModel: 'big-pickle',
-    keyUrl: 'https://opencode.ai/zen',
-    docsUrl: 'https://opencode.ai/docs/zen/',
-    steps: ['Open opencode.ai/zen and sign in (GitHub or Google).', 'Go to API Keys and create a key.', 'Paste it here and tap Save. TickFit then lists the models, with the free ones marked.'],
-    cost: 'Has free models (marked Free below). Others are paid per use from your OpenCode balance. Free models may use what you send to improve the model.',
+  openrouter: {
+    name: 'OpenRouter',
+    store: 'tickfit:openrouter',
+    defaultModel: '', // none fixed: the free models change often, so one is picked from the live list (pickModel)
+    keyUrl: 'https://openrouter.ai/settings/keys',
+    docsUrl: 'https://openrouter.ai/docs/quickstart',
+    steps: ['Open openrouter.ai and sign in (Google, GitHub or email).', 'Go to Settings > Keys, tap Create key (you can set a spending limit) and copy it.', 'Paste it here and tap Save. TickFit lists every model, with the free ones marked, and picks a free one to start.'],
+    cost: 'Free models (marked Free) cost nothing but have a daily limit, which is larger once you have added some credit. The others are paid per use from your OpenRouter credit. Some free models keep what you send to improve themselves.',
   },
   openai: {
     name: 'ChatGPT (OpenAI)',
@@ -56,7 +56,14 @@ export const PROVIDERS = {
     cost: 'Has a free tier with daily limits. On the free tier Google may use what you send to improve its products.',
   },
 };
-export const PROVIDER_IDS = ['opencode', 'openai', 'claude', 'gemini'];
+export const PROVIDER_IDS = ['openrouter', 'openai', 'claude', 'gemini'];
+
+// OpenCode Zen was offered in 2.1 to 2.3 and is replaced by OpenRouter: forget its key, it is no use any more
+try {
+  localStorage.removeItem('tickfit:opencode');
+} catch {
+  /* no storage here */
+}
 
 // ----- keys and models, one storage slot per provider -----
 
@@ -112,13 +119,31 @@ export function activeProvider(settings = getState().settings || {}) {
 
 // ----- the model list (for the dropdown) -----
 
-/** Free OpenCode models: their ids end in "-free", plus a few named ones. Pure. */
-export const isFreeModel = (id) => /(^|[-_:])free$/i.test(id) || ['big-pickle'].includes(String(id).toLowerCase());
+/** Free OpenRouter models: ids ending in ":free", or both prices "0". Pure. */
+export function isFreeModel(id, pricing) {
+  if (/:free$/i.test(String(id))) return true;
+  return !!pricing && Number(pricing.prompt) === 0 && Number(pricing.completion) === 0 && pricing.prompt !== undefined && pricing.completion !== undefined;
+}
 
-/** "claude-sonnet-4-5" -> "claude", "qwen3.6-plus-free" -> "qwen". Pure. */
+/** Who makes it: "meta-llama/llama-3.3-70b-instruct:free" -> "meta-llama", "claude-sonnet-4-5" -> "claude". Pure. */
 export function modelFamily(id) {
-  const m = String(id).toLowerCase().replace(/^models\//, '').match(/^[a-z]+/);
+  const s = String(id).toLowerCase().replace(/^models\//, '');
+  if (s.includes('/')) return s.split('/')[0] || 'other';
+  const m = s.match(/^[a-z]+/);
   return m ? m[0] : 'other';
+}
+
+// Free models worth starting with, best first (matched against the live list, so a missing one is just skipped)
+const STARTERS = [/deepseek.*(v3|chat|r1)/i, /llama-3\.3-70b/i, /qwen.*(72b|235b|max|plus|qwen3)/i, /gemini.*flash/i, /mistral.*(small|medium|nemo)/i, /gemma/i];
+
+/** A sensible free model from a normalised list, for when none is chosen yet. Null if none are free. Pure. */
+export function pickModel(models) {
+  const free = (models || []).filter((m) => m.free && !/^openrouter\//.test(m.id));
+  for (const re of STARTERS) {
+    const hit = free.find((m) => re.test(m.id));
+    if (hit) return hit.id;
+  }
+  return free.length ? free[0].id : null;
 }
 
 /**
@@ -136,9 +161,9 @@ export function filterModels(models, { free = false, family = '', text = '' } = 
 export function normalizeModels(id, json) {
   let list = [];
   if (id === 'gemini') list = ((json && json.models) || []).filter((m) => !m.supportedGenerationMethods || m.supportedGenerationMethods.includes('generateContent')).map((m) => ({ id: String(m.name || '').replace(/^models\//, ''), name: m.displayName || '' }));
-  else list = ((json && json.data) || []).map((m) => ({ id: String(m.id || ''), name: m.display_name || m.name || '' }));
+  else list = ((json && json.data) || []).map((m) => ({ id: String(m.id || ''), name: m.display_name || m.name || '', pricing: m.pricing }));
   if (id === 'openai') list = list.filter((m) => /^(gpt|o\d|chatgpt)/i.test(m.id) && !/(audio|realtime|tts|transcribe|image|search|embedding)/i.test(m.id));
-  return list.filter((m) => m.id).map((m) => ({ ...m, free: id === 'opencode' ? isFreeModel(m.id) : false, family: modelFamily(m.id) }));
+  return list.filter((m) => m.id).map(({ pricing, ...m }) => ({ ...m, free: id === 'openrouter' ? isFreeModel(m.id, pricing) : false, family: modelFamily(m.id) }));
 }
 
 /** Ask the provider which models this key can use. Throws a friendly Error. */
@@ -146,7 +171,7 @@ export async function listModels(id) {
   const { key } = getConfig(id);
   if (!key) throw new Error('Save a key first.');
   const req = {
-    opencode: [`${OPENCODE_BASE}/models`, { headers: { Authorization: `Bearer ${key}` } }],
+    openrouter: [`${OPENROUTER_BASE}/models`, { headers: { Authorization: `Bearer ${key}` } }],
     openai: [`${OPENAI_BASE}/models`, { headers: { Authorization: `Bearer ${key}` } }],
     claude: ['https://api.anthropic.com/v1/models?limit=100', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } }],
     gemini: ['https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': key } }],
@@ -176,6 +201,9 @@ export function retryAtFrom(headers, attempt = 0, now = Date.now()) {
     const at = Date.parse(ra);
     if (!isNaN(at)) return Math.max(now + 1000, at);
   }
+  // OpenRouter sends when the limit resets, in ms since 1970 (only readable when the browser is allowed to see it)
+  const reset = Number(get('x-ratelimit-reset'));
+  if (isFinite(reset) && reset > 1e12) return Math.max(now + 1000, Math.min(reset, now + 24 * 60 * 60 * 1000));
   return now + Math.min(60 * 60 * 1000, 30000 * 2 ** attempt); // 30 s, 1 min, 2 min ... up to an hour
 }
 
@@ -202,43 +230,38 @@ async function send(url, init, attempt = 0) {
     /* not JSON */
   }
   msg = String(msg || '').slice(0, 300);
+  // OpenRouter: 402 means the credit is used up; waiting won't fix that, a free model or more credit will
+  if (res.status === 402 && url.startsWith(OPENROUTER_BASE)) throw Object.assign(new Error('Your OpenRouter credit has run out. Pick a free model in More, or add credit on openrouter.ai.'), { final: true });
   if (res.status === 429 || (res.status === 402 && QUOTA_WORDS.test(msg)) || (res.status === 403 && QUOTA_WORDS.test(msg))) throw new QuotaError(msg || 'Your AI usage limit ran out for now.', retryAtFrom(res.headers, attempt));
   if (res.status === 401 || res.status === 403) throw new Error('The key was not accepted. Check it in More.');
   if (res.status === 404) throw new Error(`That model was not found${msg ? `: ${msg}` : ''}. Pick another in More.`);
   throw new Error(`The AI said no (${res.status})${msg ? `: ${msg}` : ''}.`);
 }
 
-/** OpenAI-style chat (OpenAI, and OpenCode's chat models). */
-async function chatCompat(base, key, model, prompt, system, maxTokens, isOpenAI) {
+/** OpenAI-style chat (OpenAI and OpenRouter). */
+async function chatCompat(base, key, model, prompt, system, maxTokens, isOpenAI, extraHeaders = {}) {
   const messages = [...(system ? [{ role: 'system', content: system }] : []), { role: 'user', content: prompt }];
   const body = { model, messages };
   if (isOpenAI) body.max_completion_tokens = maxTokens;
   else body.max_tokens = maxTokens;
-  const res = await send(`${base}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify(body) });
+  const res = await send(`${base}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}`, ...extraHeaders }, body: JSON.stringify(body) });
   const data = await res.json();
+  // OpenRouter can answer 200 with an error from the model's host inside
+  if (data && data.error && !data.choices) throw new Error(`The AI said no${data.error.message ? `: ${String(data.error.message).slice(0, 200)}` : ''}.`);
   const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
   if (typeof text !== 'string' || !text.trim()) throw new Error('The AI sent an empty answer. Try again or pick another model.');
   return text;
 }
 
-/** OpenCode serves its Claude models on the Messages format, its GPT models on the Responses format. */
-async function askOpenCode(key, model, prompt, system, maxTokens) {
-  const m = model.toLowerCase();
-  if (m.startsWith('claude')) {
-    const res = await send(`${OPENCODE_BASE}/messages`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}`, 'x-api-key': key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify({ model, max_tokens: maxTokens, ...(system ? { system } : {}), messages: [{ role: 'user', content: prompt }] }) });
-    const data = await res.json();
-    const text = ((data && data.content) || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
-    if (!text.trim()) throw new Error('The AI sent an empty answer. Try again or pick another model.');
-    return text;
+/** OpenRouter: every model speaks the OpenAI chat format. With no model chosen yet, a free one is picked. */
+async function askOpenRouter(key, model, prompt, system, maxTokens) {
+  if (!model) {
+    model = pickModel(await listModels('openrouter'));
+    if (!model) throw new Error('No free model is available on OpenRouter right now. Pick one in More.');
+    saveConfig('openrouter', { key, model });
   }
-  if (m.startsWith('gpt')) {
-    const res = await send(`${OPENCODE_BASE}/responses`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}` }, body: JSON.stringify({ model, max_output_tokens: maxTokens, ...(system ? { instructions: system } : {}), input: prompt }) });
-    const data = await res.json();
-    const text = data.output_text || ((data.output || []).flatMap((o) => o.content || []).filter((c) => c.type === 'output_text').map((c) => c.text).join(''));
-    if (!text || !text.trim()) throw new Error('The AI sent an empty answer. Try again or pick another model.');
-    return text;
-  }
-  return chatCompat(OPENCODE_BASE, key, model, prompt, system, maxTokens, false);
+  // the app's name, as OpenRouter asks (it shows on their usage page)
+  return chatCompat(OPENROUTER_BASE, key, model, prompt, system, maxTokens, false, { 'X-Title': 'TickFit' });
 }
 
 /** One try with the active provider. */
@@ -250,10 +273,10 @@ async function askOnce(prompt, { system = '', maxTokens = 4000, effort = 'low' }
     if (p.id === 'claude') return await askClaude(system ? `${system}\n\n${prompt}` : prompt, { maxTokens, effort });
     if (p.id === 'gemini') return await askGemini(system ? `${system}\n\n${prompt}` : prompt, { maxTokens });
     if (p.id === 'openai') return await chatCompat(OPENAI_BASE, key, model, prompt, system, maxTokens, true);
-    return await askOpenCode(key, model, prompt, system, maxTokens);
+    return await askOpenRouter(key, model, prompt, system, maxTokens);
   } catch (e) {
     // claude.js and gemini.js throw plain Errors: spot their quota messages too
-    if (!(e instanceof QuotaError) && QUOTA_WORDS.test(String(e && e.message))) throw new QuotaError(e.message, retryAtFrom(null, attempt));
+    if (!(e instanceof QuotaError) && !(e && e.final) && QUOTA_WORDS.test(String(e && e.message))) throw new QuotaError(e.message, retryAtFrom(null, attempt));
     throw e;
   }
 }

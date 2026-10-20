@@ -17,5 +17,13 @@ let bad = 0;
 const ignore = new Set(['icons/icon-maskable.svg']);
 for (const f of found) if (!listed.includes(f) && !ignore.has(f) && existsSync(f) && !readdirSync('.', { withFileTypes: true }).some((d) => d.name === f && d.isDirectory())) { console.log('MISSING from sw.js:', f); bad++; }
 for (const f of listed) if (!existsSync(f)) { console.log('LISTED but does not exist:', f); bad++; }
-console.log(bad ? `${bad} problem(s)` : `sw.js file list OK (${listed.length} files)`);
+// Every file the service worker caches must also be published to GitHub Pages: one missing folder (fonts/ in
+// 2.0 to 2.3) made every install of the website's service worker fail, and the site lost its fonts.
+const pagesCopy = ((readFileSync('.github/workflows/pages.yml', 'utf8').match(/cp -r ([^\n]+) _site\//) || [])[1] || '').split(/\s+/);
+if (!pagesCopy.length || !pagesCopy[0]) {
+  console.log('Could not find the copy step in .github/workflows/pages.yml');
+  bad++;
+}
+for (const f of listed) if (!pagesCopy.includes(f) && !pagesCopy.includes(f.split('/')[0])) { console.log('CACHED by sw.js but not published by pages.yml:', f); bad++; }
+console.log(bad ? `${bad} problem(s)` : `sw.js file list OK (${listed.length} files), and pages.yml publishes all of them`);
 process.exit(bad ? 1 : 0);

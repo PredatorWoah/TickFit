@@ -2,6 +2,7 @@
 //   * version number and version code
 //   * Health Connect: Android 8.0+, and only the permission to read steps
 //   * the vibrate permission (the rest timer buzzes)
+//   * updates from inside the app: the permission to hand a downloaded update to Android's installer
 //   * TickFit's launcher icon (normal, round and adaptive) and a dark launch screen
 //   * the six home screen widgets: their Java code and resources from android-app/native (plus their Bento
 //     look, made by bento.mjs), the manifest
@@ -41,7 +42,7 @@ edit(gradle, /versionCode\s+\d+/, `versionCode ${versionCode}`, 'set versionCode
 edit(gradle, /versionName\s+"[^"]*"/, `versionName "${versionName}"`, 'set versionName');
 
 // ----- permissions
-edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n    <!-- the daily automatic backup into Documents/TickFit: only Android 10 and older need these -->\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <!-- the rest timer alert has to fire on the second, also with the screen off (granted by itself on Android 13+) -->\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <!-- the progress photo camera inside the app (only used while you take a photo) -->\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />', 'add the vibrate permission');
+edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n    <!-- the daily automatic backup into Documents/TickFit: only Android 10 and older need these -->\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <!-- the rest timer alert has to fire on the second, also with the screen off (granted by itself on Android 13+) -->\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <!-- the progress photo camera inside the app (only used while you take a photo) -->\n    <uses-permission android:name="android.permission.CAMERA" />\n    <!-- updating from inside the app: Android still shows its own install screen and asks once to allow it -->\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />', 'add the vibrate permission');
 
 // ----- steps from Health Connect (the Health plugin, see js/steps.js)
 // Health Connect needs Android 8.0 or newer, so the app does too.
@@ -67,6 +68,7 @@ edit(
     @Override
     protected void onCreate(android.os.Bundle savedInstanceState) {
         registerPlugin(TickFitWidgetPlugin.class); // the home screen widgets' bridge (android-app/native)
+        registerPlugin(TickFitUpdatePlugin.class); // updates from inside the app (android-app/native)
         super.onCreate(savedInstanceState);
     }
 

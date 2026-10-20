@@ -28,6 +28,7 @@ import { startReminders } from './reminders.js';
 import { startSteps } from './steps.js';
 import { aiEnabled } from './llm.js';
 import { backTarget } from './backnav.js';
+import { autoCheck, pendingUpdate, initUpdater } from './updater.js';
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -163,6 +164,7 @@ function draw() {
   } else {
     renderHome(root, plan, view.date, gotoDate, actions);
     showBackupNudge();
+    showUpdateNudge();
   }
 
   syncAiButton(s, plan);
@@ -203,6 +205,26 @@ function tuckOnScroll() {
       anchor = y;
     },
     { passive: true }
+  );
+}
+
+/** Android app: a note on Today when the daily check found a new version. Later hides it until the app restarts. */
+let updateLater = false;
+function showUpdateNudge() {
+  const rel = pendingUpdate();
+  if (!rel || updateLater) return;
+  root.prepend(
+    h(
+      'div',
+      { class: 'nudge upd-nudge', role: 'region', 'aria-label': 'New version' },
+      h('p', {}, h('b', {}, `TickFit ${rel.version} is ready. `), 'Update right here: your data stays.'),
+      h(
+        'div',
+        { class: 'nudge-actions' },
+        h('button', { class: 'btn primary', type: 'button', onclick: () => import('./updateui.js').then((m) => m.openUpdateSheet(rel)) }, 'Update'),
+        h('button', { class: 'btn', type: 'button', onclick: () => ((updateLater = true), draw()) }, 'Later')
+      )
+    )
   );
 }
 
@@ -278,6 +300,11 @@ function start() {
   startRestAlerts(); // Android app: rest timer alerts with the screen off
   setTimeout(startReminders, 1500); // Android app: workout, water and meal reminders (rescheduled when you leave)
   setTimeout(() => startSteps(() => (view.screen === 'today' || view.screen === 'more') && draw()), 1200); // Android app: steps from Health Connect
+  // Android app: a new version, at most one look a day (More > App version), shown as a note on Today
+  if (isNative()) {
+    initUpdater(); // a found update survives a restart; an installed one is tidied away
+    setTimeout(() => autoCheck().then((rel) => rel && view.screen === 'today' && draw()), 6000);
+  }
   // opened from a friend's shared plan link (#plan=...): offer to add it
   const incoming = () => handleIncomingPlan(() => show('today'));
   setTimeout(incoming, 300);

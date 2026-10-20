@@ -63,6 +63,7 @@ for (const [cls, key] of [...PULSE, ...PULSE.map(([c, k]) => [c + 'Bento', k + '
   ok(customize.includes(`['${cls}', '${key}']`), `${cls} is added to the manifest`);
 }
 ok(/registerPlugin\(TickFitWidgetPlugin\.class\)/.test(customize), 'the widget plugin is registered in MainActivity');
+ok(/registerPlugin\(TickFitUpdatePlugin\.class\)/.test(customize) && /REQUEST_INSTALL_PACKAGES/.test(customize), 'the in-app updater is registered, with the permission to hand updates to the installer');
 ok(/@CapacitorPlugin\(name = "TickFitWidget"\)/.test(java) && /nativePlugin\('TickFitWidget'\)/.test(readFileSync('js/widgets.js', 'utf8')), 'plugin name matches on both sides');
 ok(/PendingIntent\.FLAG_IMMUTABLE/.test(java) && !/FLAG_MUTABLE/.test(java), 'widget taps use immutable PendingIntents');
 

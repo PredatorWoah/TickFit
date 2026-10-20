@@ -963,3 +963,11 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 .home-card, .bn-tile { transition: transform 0.2s var(--ease), background-color 0.25s var(--ease); }
 /* Arena: the quarters' bars glide, and the scoreboard numbers tick over (fx.js countTo) */
 .ar-q-bar i { transition: width 0.8s var(--ease); }
+/* the model makers: one row you swipe sideways (OpenRouter lists dozens) */
+.ai-fams { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -2px; padding: 2px; }
+.ai-fams .pick-chip { flex: none; }
+/* the new version sheet (Android app) */
+.upd-notes { margin: 6px 0 12px; padding-left: 20px; line-height: 1.45; }
+.upd-notes li + li { margin-top: 4px; }
+.upd-bar { margin: 4px 0 8px; }
+.upd-nudge { border-color: var(--accent); }

@@ -1,13 +1,13 @@
 // aisettings.js
 // The "AI helpers" card in More. Everything AI is optional: one tick switches it all on or off, and the app
-// works the same without it. With it on, the person picks a provider (OpenCode Zen, OpenAI, Claude or Gemini),
+// works the same without it. With it on, the person picks a provider (OpenRouter, OpenAI, Claude or Gemini),
 // follows the steps (with links) to get a key, pastes it, and picks a model from the list the provider sends
-// back: OpenCode marks its free models, and the list can be filtered by free, by family and by name.
+// back: OpenRouter marks its free models, and the list can be filtered by free, by maker and by name.
 
 import { h, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getState, setSetting } from './store.js';
-import { PROVIDERS, PROVIDER_IDS, getConfig, saveConfig, clearKey, hasKey, aiEnabled, activeProvider, listModels, filterModels } from './llm.js';
+import { PROVIDERS, PROVIDER_IDS, getConfig, saveConfig, clearKey, hasKey, aiEnabled, activeProvider, listModels, filterModels, pickModel } from './llm.js';
 
 const modelCache = {}; // provider id -> [{ id, name, free, family }] fetched this session
 
@@ -16,7 +16,7 @@ export function aiCard(again) {
   const settings = getState().settings;
   const on = aiEnabled(settings) || (settings.aiOn === true && !PROVIDER_IDS.some(hasKey));
   const active = activeProvider(settings);
-  const shown = PROVIDERS[settings.aiShow] ? settings.aiShow : (active && active.id) || 'opencode';
+  const shown = PROVIDERS[settings.aiShow] ? settings.aiShow : (active && active.id) || 'openrouter';
 
   const master = h(
     'label',
@@ -71,8 +71,10 @@ export function aiCard(again) {
       )
     )
   );
+  // 2.1 to 2.3 offered OpenCode Zen, now OpenRouter: say so to anyone who had picked it
+  if ((settings.aiProvider === 'opencode' || settings.aiShow === 'opencode') && !hasKey('openrouter')) card.append(h('p', { class: 'msg' }, 'OpenCode Zen has been replaced by OpenRouter: one key for hundreds of models, many of them free. Its old key was removed from this phone; add an OpenRouter key below.'));
   card.append(providerBlock(shown, again));
-  if (active) card.append(h('p', { class: 'hint ai-inuse' }, h('b', {}, 'In use: '), `${active.name}, model ${active.model}.`));
+  if (active) card.append(h('p', { class: 'hint ai-inuse' }, inUseText(active)));
   return card;
 }
 
@@ -120,6 +122,8 @@ function providerBlock(id, again) {
   return block;
 }
 
+const inUseText = (a) => [h('b', {}, 'In use: '), `${a.name}, ${a.model ? `model ${a.model}` : 'a free model (picked when the list loads)'}.`];
+
 /** The model dropdown: fetched from the provider, with filters. */
 async function drawModels(id, host, again) {
   const cfg = getConfig(id);
@@ -134,20 +138,28 @@ async function drawModels(id, host, again) {
       models = [];
     }
   }
-  let free = id === 'opencode' && models.some((m) => m.free);
+  // no model chosen yet (a new OpenRouter key): start on a good free one
+  if (!getConfig(id).model && pickModel(models)) {
+    saveConfig(id, { key: getConfig(id).key, model: pickModel(models) });
+    refreshInUse(host);
+  }
+  let free = id === 'openrouter' && models.some((m) => m.free);
   let family = '';
   let text = '';
-  const families = [...new Set(models.map((m) => m.family))].sort();
   const select = h('select', { class: 'text-input ai-model-select', 'aria-label': 'Model' });
   const count = h('span', { class: 'ai-count' });
   const typed = h('input', { class: 'text-input', type: 'text', autocomplete: 'off', spellcheck: false, value: cfg.model, 'aria-label': 'Model name' });
   const freeBtn = h('button', { type: 'button', class: 'pick-chip' });
-  const famRow = h('div', { class: 'pick-chips', role: 'group', 'aria-label': 'Model family' });
+  const famRow = h('div', { class: 'pick-chips ai-fams', role: 'group', 'aria-label': 'Who makes the model' });
   const search = h('input', { class: 'pick-search', type: 'search', placeholder: 'Search models', 'aria-label': 'Search models', oninput: (e) => ((text = e.target.value), fill()) });
 
   function fill() {
     freeBtn.setAttribute('aria-pressed', String(free));
     freeBtn.textContent = free ? 'Free only' : 'All prices';
+    // only the makers that have models under the other filters (OpenRouter has dozens)
+    const families = [...new Set(filterModels(models, { free, text }).map((m) => m.family))].sort();
+    if (family && !families.includes(family)) family = '';
+    famRow.hidden = families.length < 2;
     famRow.replaceChildren(...['', ...families].map((f) => h('button', { type: 'button', class: 'pick-chip', 'aria-pressed': String(f === family), onclick: () => ((family = f), fill()) }, f || 'All')));
     const list = filterModels(models, { free, family, text });
     const current = getConfig(id).model;
@@ -160,9 +172,7 @@ async function drawModels(id, host, again) {
   select.onchange = () => {
     saveConfig(id, { key: getConfig(id).key, model: select.value });
     typed.value = select.value;
-    const inUse = host.closest('.ai-card')?.querySelector('.ai-inuse');
-    const now = activeProvider();
-    if (inUse && now) inUse.replaceChildren(h('b', {}, 'In use: '), `${now.name}, model ${now.model}.`);
+    refreshInUse(host);
     toast(`Using ${select.value}`);
   };
 
@@ -170,8 +180,8 @@ async function drawModels(id, host, again) {
   if (models.length) {
     status.textContent = '';
     parts.push(
-      h('div', { class: 'ai-filter-row' }, id === 'opencode' && models.some((m) => m.free) ? freeBtn : null, count),
-      families.length > 1 ? famRow : null,
+      h('div', { class: 'ai-filter-row' }, id === 'openrouter' && models.some((m) => m.free) ? freeBtn : null, count),
+      famRow,
       search,
       h('label', { class: 'f' }, h('span', {}, 'Model'), select)
     );
@@ -188,4 +198,11 @@ async function drawModels(id, host, again) {
     h('button', { class: 'btn small ghost', type: 'button', onclick: () => (delete modelCache[id], drawModels(id, host, again)) }, 'Refresh the list')
   );
   host.replaceChildren(status, ...parts.filter(Boolean));
+}
+
+/** Update the "In use" line under the card after the model changes. */
+function refreshInUse(host) {
+  const line = host.closest('.ai-card')?.querySelector('.ai-inuse');
+  const now = activeProvider();
+  if (line && now) line.replaceChildren(...inUseText(now));
 }
