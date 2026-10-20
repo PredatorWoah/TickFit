@@ -1,0 +1,143 @@
+/* arena.css
+   Arena, the default look: your day is a match. Deep navy, scoreboard yellow, a red "live" dot, tall stadium
+   numbers (Big Shoulders Display) and monospace labels (IBM Plex Mono). The colours are the defaults in
+   styles.css section 1; this layer changes shapes and adds Arena's own pieces (home.js arenaHome, the
+   workout's score strip and play by play, the shot clock rest). Long names wrap, numbers never do. */
+
+/* ----- type: stadium numbers and scoreboard labels ----- */
+:root[data-style='arena'] :is(.page-title, .date-main, .wk-title) { text-transform: uppercase; font-weight: 900; letter-spacing: 0.01em; }
+:root[data-style='arena'] .page-title { font-size: 42px; line-height: 1; }
+:root[data-style='arena'] .date-main { font-size: 54px; line-height: 0.92; }
+:root[data-style='arena'] .wk-title { font-size: 40px; line-height: 0.98; }
+:root[data-style='arena'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { font-family: var(--font-mono); letter-spacing: 0.12em; font-weight: 700; font-size: 12px; }
+:root[data-style='arena'] .sec-title { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: 0.02em; text-transform: uppercase; }
+:root[data-style='arena'] .sheet-title { font-family: var(--font-display); font-weight: 800; font-size: 28px; letter-spacing: 0.01em; text-transform: uppercase; }
+:root[data-style='arena'] :is(.ring-pct, .stat-value, .meter-val, .water-val, .sum-hero-num, .set-in, .clock.big, .rest-clock) { font-weight: 900; letter-spacing: 0; }
+:root[data-style='arena'] .stat-value, :root[data-style='arena'] .meter-val, :root[data-style='arena'] .water-val { font-size: 38px; }
+:root[data-style='arena'] .set-in { font-size: 34px; }
+:root[data-style='arena'] .sum-hero-num { font-size: 68px; }
+:root[data-style='arena'] :is(.pill, .wk-meta, .ex-target, .hc-text span, .tile-sub, .stat-label, .date-sub) { font-family: var(--font-mono); font-size: 13px; }
+:root[data-style='arena'] .wk-meta { text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ----- no glow: a stadium at night is flat navy with lit boards ----- */
+:root[data-style='arena'] body::before { background: radial-gradient(90% 30% at 50% -8%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%); }
+:root[data-style='arena'] :is(.card, .tile, .ex, .home-card, .notes-card) { background-image: none; }
+:root[data-style='arena'] .btn.primary { background-image: none; box-shadow: none; font-family: var(--font-display); font-weight: 900; font-size: 18px; letter-spacing: 0.05em; text-transform: uppercase; }
+:root[data-style='arena'] .btn.primary.big { min-height: 62px; font-size: 22px; letter-spacing: 0.06em; }
+:root[data-style='arena'] .cta { box-shadow: none; }
+
+/* ----- week strip: a fixture list ----- */
+:root[data-style='arena'] .chip { border-radius: 14px; background: var(--surface); }
+:root[data-style='arena'] .chip .dow { font-family: var(--font-mono); }
+:root[data-style='arena'] .chip .dnum { font-family: var(--font-display); font-size: 24px; font-weight: 800; }
+:root[data-style='arena'] .chip.sel { background: var(--accent); color: var(--accent-ink); }
+:root[data-style='arena'] .chip.sel .dow { color: var(--accent-ink); }
+:root[data-style='arena'] .plan-chip, :root[data-style='arena'] .steps-pill { border-radius: 12px; font-family: var(--font-mono); font-size: 13px; }
+
+/* ----- Today: the scoreboard ----- */
+.ar-kicker { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 6px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--muted); }
+.ar-streak { display: inline-flex; align-items: center; gap: 5px; color: var(--accent-text); white-space: nowrap; }
+.ar-score { margin: 14px 0 10px; padding: 16px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); }
+.ar-teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 8px; }
+.ar-team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ar-team.right { align-items: flex-end; text-align: right; }
+.ar-team small { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); overflow-wrap: anywhere; }
+.ar-big { font-family: var(--font-display); font-size: 80px; font-weight: 900; line-height: 0.88; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ar-big.you { color: var(--accent-text); }
+.ar-vs { padding-bottom: 12px; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--muted); }
+.ar-line { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 12px; border-radius: 12px; background: var(--bg); font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.ar-line-text { min-width: 0; overflow-wrap: anywhere; }
+.ar-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--muted); }
+.ar-dot.on { background: var(--live); animation: blink 1.4s ease-in-out infinite; }
+.ar-score .day-title { margin-top: 4px; font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; }
+
+.ar-quarters { display: grid; gap: 8px; margin: 0 0 10px; }
+.ar-quarters.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ar-quarters.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ar-q { min-width: 0; padding: 10px 10px 12px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.ar-q small { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-q-num { font-family: var(--font-display); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-q-num b { font-size: 30px; font-weight: 900; }
+.ar-q-num span { font-size: 16px; font-weight: 800; color: var(--muted); }
+.ar-quarters.n4 { gap: 6px; }
+.ar-quarters.n4 .ar-q { padding: 9px 8px 11px; }
+.ar-quarters.n4 .ar-q-num b { font-size: 24px; }
+.ar-quarters.n4 .ar-q-num span { font-size: 12px; }
+.ar-q-bar { height: 4px; border-radius: 2px; background: var(--surface-3); overflow: hidden; }
+.ar-q-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.4s var(--ease); }
+
+.ar-replay { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; padding: 11px 13px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); font-family: var(--font-mono); font-size: 13px; line-height: 1.45; }
+.ar-replay .icon { color: var(--accent-text); margin-top: 1px; }
+.ar-replay span { min-width: 0; overflow-wrap: anywhere; }
+
+.ar-lineup-host { margin: 4px 0 12px; }
+.ar-sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 8px 2px 8px; }
+.ar-sec-title { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: 0.02em; color: var(--text); text-transform: uppercase; }
+.ar-sec-head span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ar-lineup { list-style: none; margin: 0 0 12px; padding: 4px 0; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); }
+.ar-player { width: 100%; min-height: 52px; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 6px 14px; background: none; border: 0; color: inherit; text-align: left; font: inherit; }
+.ar-lineup li + li .ar-player { border-top: 1px solid var(--line); }
+.ar-no { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--accent-text); display: grid; place-items: center start; }
+.ar-name { font-weight: 600; overflow-wrap: anywhere; line-height: 1.25; }
+.ar-sets { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.ar-lineup li.done .ar-name { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.ar-kick { gap: 10px; }
+.ar-rest { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.ar-rest b { font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: 0.02em; }
+.ar-rest span { color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+
+/* the meal and workout cards in Arena colours */
+:root[data-style='arena'] .meal-card .bar-fill, :root[data-style='arena'] .meter-fill { background: var(--eat); }
+:root[data-style='arena'] .meal-card .hc-next b { color: var(--eat); }
+:root[data-style='arena'] .tile.done .check { background: var(--eat); border-color: var(--eat); color: #031424; }
+:root[data-style='arena'] .tile .time, :root[data-style='arena'] .tile-prog { color: var(--eat); font-family: var(--font-mono); }
+:root[data-style='arena'] .tile.water .round.primary { background: var(--water); border-color: var(--water); color: #0d0730; }
+:root[data-style='arena'] .tile.water .bar-fill { background: var(--water); }
+:root[data-theme='light'][data-style='arena'] .tile.done .check, :root[data-theme='light'][data-style='arena'] .tile.water .round.primary { color: #ffffff; }
+
+/* ----- Workout: the score strip and play by play ----- */
+:root[data-style='arena'] .wk-progress { display: none; } /* the strip says it better */
+.ar-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 0 0 12px; border-radius: 16px; overflow: hidden; background: var(--line); border: 1px solid var(--line); }
+.ar-cell { min-width: 0; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 2px; }
+.ar-cell small { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--muted); }
+.ar-cell b { font-family: var(--font-display); font-size: 28px; font-weight: 900; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-cell:last-child b { color: var(--accent-text); }
+.ar-feed { list-style: none; margin: 0; padding: 4px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); }
+.ar-feed li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 10px 0; font-family: var(--font-mono); font-size: 13px; }
+.ar-feed li + li { border-top: 1px solid var(--line); }
+.ar-feed-text { overflow-wrap: anywhere; }
+.ar-feed-num { font-weight: 700; white-space: nowrap; }
+.ar-feed-tag { grid-column: 1 / -1; justify-self: start; padding: 2px 8px; border-radius: 6px; background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+.ar-feed li.empty { grid-template-columns: 1fr; color: var(--muted); }
+:root[data-style='arena'] .ex { border-radius: 18px; }
+:root[data-style='arena'] .ex-badge { border-radius: 10px; font-family: var(--font-display); font-size: 20px; font-weight: 900; }
+:root[data-style='arena'] .ex.open { border-color: var(--accent); }
+:root[data-style='arena'] .set-n { font-family: var(--font-display); font-size: 22px; font-weight: 900; }
+:root[data-style='arena'] .set-check { border-radius: 14px; }
+:root[data-style='arena'] .last-time { font-family: var(--font-mono); font-size: 13px; }
+:root[data-style='arena'] .wk-bar { border-radius: 18px; border-color: var(--line); background: var(--surface); }
+:root[data-style='arena'] .live-dot { background: var(--live); }
+
+/* ----- Rest: a shot clock ----- */
+:root[data-style='arena'] .rest-bar { border: 1px solid var(--line); background: var(--surface); padding: 8px 10px; gap: 12px; }
+:root[data-style='arena'] .rest-ring { display: block; flex: none; width: 58px; height: 58px; transform: rotate(-90deg); }
+.rest-ring-track, .rest-ring-fill { fill: none; stroke-width: 5; }
+.rest-ring-track { stroke: var(--surface-3); }
+.rest-ring-fill { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: calc(var(--left, 1) * 100) 100; transition: stroke-dasharray 0.25s linear; }
+:root[data-style='arena'] .rest-title { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 1; color: var(--muted); }
+:root[data-style='arena'] .rest-clock { font-size: 40px; line-height: 1; }
+:root[data-style='arena'] .rest-bar.done { background: var(--accent); color: var(--accent-ink); }
+:root[data-style='arena'] .rest-bar.done .rest-title { color: var(--accent-ink); }
+
+/* ----- tab bar: the scoreboard footer, every label in mono ----- */
+:root[data-style='arena'] #nav { border-radius: 20px; background: #070a12; border-color: #1b2438; }
+:root[data-theme='light'][data-style='arena'] #nav { background: #0a0e18; border-color: #0a0e18; }
+:root[data-style='arena'] .tab { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8f99b0; }
+:root[data-style='arena'] .tab.active { color: #ffc23d; }
+:root[data-style='arena'] .tab.active::after { content: ''; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: #ffc23d; }
+:root[data-style='arena'] .tab { position: relative; }
+:root[data-style='arena'] .tab::before { display: none; }
+
+/* photos: the date like a scoreboard caption */
+:root[data-style='arena'] .ph-mark b { text-transform: uppercase; font-size: 24px; font-family: var(--font-display); font-weight: 900; }
+:root[data-style='arena'] .ph-side .ph-mark b { font-size: 17px; }

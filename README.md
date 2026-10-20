@@ -1,28 +1,28 @@
 # TickFit
 
-**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, and let it tell you when to go heavier. Track personal records, calories, weight, body measurements, progress photos and steps. Get a grocery list for the week, swap meals, scan packets, and share a plan with a friend as a QR code. Two looks to choose from, **Pulse** and **Bento**, plus a website, an Android app with reminders and home screen widgets. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
+**A free, open-source gym and meal tracker that lives on your phone.** Turn any workout and meal plan into a daily checklist, log every set, and let it tell you when to go heavier. Track personal records, calories, weight, body measurements, progress photos and steps. Get a grocery list for the week, swap meals, scan packets, and share a plan with a friend as a QR code. Three looks that each feel like their own app: **Arena** (your day is a match), **Deck** (one card at a time) and **Bento** (soft tiles), plus a website, an Android app with reminders and home screen widgets. **No account, no backend, no tracking, no subscription.** Everything stays on your device and it works fully offline.
 
 **[Open the web app](https://predatorwoah.github.io/TickFit/)** · **[Download the Android app](https://github.com/PredatorWoah/TickFit/releases/latest)** · [Privacy](PRIVACY.md) · [Contribute](CONTRIBUTING.md)
 
 > Built to share with friends so nobody has to pay for a fitness app. Plain HTML, CSS and JavaScript with no build step, so anyone can read it, fork it and change it.
 
 <p>
-  <img src="docs/screenshots/today.png" alt="Pulse look, Today: three rings for Move, Eat and Water, and an orange Continue workout button with the live time" width="240">
-  <img src="docs/screenshots/workout.png" alt="Pulse look, Workout: last time's numbers, big weight and reps boxes, a running clock" width="240">
-  <img src="docs/screenshots/meals.png" alt="Pulse look, Meals: calorie and protein meters and meal tick tiles in cyan" width="240">
+  <img src="docs/screenshots/today.png" alt="Arena look, Today: a scoreboard of you today against last week, quarters for train, eat and water, and the line-up" width="240">
+  <img src="docs/screenshots/workout.png" alt="Arena look, Workout: a score strip, the open exercise with big weight and reps boxes, and play by play" width="240">
+  <img src="docs/screenshots/rest-arena.png" alt="Arena look, rest: a shot clock ring counting down" width="240">
 </p>
 <p>
-  <img src="docs/screenshots/today-bento.png" alt="Bento look, Today: a yellow progress ring tile, a pink workout tile and thick black outlines" width="240">
-  <img src="docs/screenshots/progress-bento.png" alt="Bento look, Progress: streak tiles and the weekly summary" width="240">
-  <img src="docs/screenshots/look.png" alt="More, Look: switch between Pulse and Bento, and pick dark, light or match phone" width="240">
+  <img src="docs/screenshots/today-deck.png" alt="Deck look, Today: the next thing to do as one big orange card, with Later and Continue" width="240">
+  <img src="docs/screenshots/setcard-deck.png" alt="Deck look, Workout: the next set as a card with the barbell drawn, the weight huge and reps to tap" width="240">
+  <img src="docs/screenshots/today-bento.png" alt="Bento look, Today: pastel tiles for the day ring, streak, workout, meals, water and weight" width="240">
 </p>
-<p><em>Top: the Pulse look. Bottom: the Bento look, and the switch in More.</em></p>
+<p><em>Top: Arena, the default. Bottom: Deck, and the redesigned Bento. Switch any time in More > Look.</em></p>
 
 ## What it does
 
 ### Train
 
-- **Today:** a calm summary. In Pulse, three rings show **Move** (sets, orange), **Eat** (calories, cyan) and **Water** (violet) at a glance; in Bento, one big ring on a yellow tile. Plus your streak, a week strip with completion dots, one big **Start workout** button (it shows the live time while you train), your meals at a glance and water. Tap the day title to jump to any day of the plan.
+- **Today, three ways:** **Arena** is a scoreboard: you today against the same day last week, four quarters (train, eat, water, steps), a replay tip from last time, the line-up and one big **Kick off**. **Deck** shows only the next thing to do as one big card: swipe it right (or tap the button) to tick it, left for later, with Undo. **Bento** is a grid of soft tiles: the day ring, streak, workout, meals, water and weight. Every look has the week strip with completion dots; tap the day title to jump to any day of the plan.
 - **Workout mode:** one screen, no pop-ups. Every exercise is listed, the one you are on is open with a row for each set and big weight and reps boxes. Tick a set and the next exercise opens by itself. A clock runs while you train (it even starts on your first ticked set), and **Finish workout** shows your time, sets and total weight lifted. Boxes are pre-filled from the last time you did that exercise ("Last time (Sep 27): 3 sets of 22.5 × 10").
 - **Rest timer:** starts by itself after each finished set (you can switch that off), with +15s, skip, beep and vibration. It sits at the top of the screen and pushes the page down instead of covering it. In the Android app it also alerts you with a notification when the screen is off or you switched apps.
 - **Go heavier hints:** hit the top of the rep range on every set last time? The exercise says "Try 42.5 kg today" with a one-tap **Use 42.5 kg**. Fell short? It tells you to stay and chase the reps.
@@ -83,9 +83,10 @@
 - **Share your workout:** after **Finish workout**, **Share this workout** makes a picture in your look (time, sets, kg lifted, calories, a desi comparison, top sets, new bests) for Instagram stories or WhatsApp.
 
 <p>
-  <img src="docs/screenshots/share-plan.png" alt="Share a plan as a QR code or a link" width="220">
-  <img src="docs/screenshots/share-card-pulse.png" alt="Workout picture in the Pulse look" width="270">
-  <img src="docs/screenshots/share-card-bento.png" alt="Workout picture in the Bento look" width="270">
+  <img src="docs/screenshots/share-plan.png" alt="Share a plan as a QR code or a link" width="180">
+  <img src="docs/screenshots/share-card-arena.png" alt="Workout picture in the Arena look" width="200">
+  <img src="docs/screenshots/share-card-deck.png" alt="Workout picture in the Deck look" width="200">
+  <img src="docs/screenshots/share-card-bento.png" alt="Workout picture in the Bento look" width="200">
 </p>
 
 ### Your data, kept safe
@@ -99,7 +100,7 @@
 
 ### Two looks
 
-- **Two looks, one tap apart** (More > Look): **Pulse**, dark and sporty: three rings for Move (orange), Eat (cyan) and Water (violet), tall condensed numbers and a pill tab bar, and **Bento**, bright cream blocks with thick black outlines in pink, yellow and blue. Each has dark, light and match-my-phone themes. The fonts are bundled with the app (SIL Open Font License, see `fonts/`), so nothing is fetched from font services. Smooth, quick animations (screens glide in, ticks pop, progress fills up, light haptics in the Android app) that switch off if your phone is set to reduce motion. Works offline after the first load.
+- **Three looks, one tap apart** (More > Look), each laid out its own way, not just recoloured: **Arena** (deep navy, scoreboard yellow, stadium numbers, monospace labels, a shot clock for rest and a play by play of your sets), **Deck** (solid colour cards, wide heavy type, a big card for each set with the barbell drawn, and a full screen rest that drains as it runs) and **Bento** (pastel tiles, rounded type, pill buttons, no outlines). Each has dark, light and match-my-phone themes, and the workout picture and home screen widgets follow too. The fonts are bundled with the app (SIL Open Font License, see `fonts/`), so nothing is fetched from font services. Smooth, quick animations that switch off if your phone is set to reduce motion. Works offline after the first load.
 
 ## Privacy
 
@@ -110,11 +111,11 @@ Everything stays on your device. There is no server to send anything to. See [PR
 1. **Open the app.** First time, pick how to start: **Build a plan for me**, **I already have a plan**, or **Just show me around** (a 4 week sample).
 2. **Train.** On **Today** tap **Start workout**. Tick each set as you do it. When you finish an exercise the next one opens. Tap **Finish workout** for your summary.
 3. **Eat.** Tick meals off on the **Meals** tab, and tap **+** on the water tile through the day.
-4. **Check your progress** on the **Progress** tab, and use **More** to switch between Pulse and Bento, manage plans, backups and settings.
+4. **Check your progress** on the **Progress** tab, and use **More** to switch between Arena, Deck and Bento, manage plans, backups and settings.
 
 ### Install it on your phone
 
-- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). A complete app with everything inside it, so it works with no internet, plus twelve **home screen widgets**: six kinds, each in a Pulse and a Bento version you pick from the widget list (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
+- **Android app (APK):** download the latest from the [Releases page](https://github.com/PredatorWoah/TickFit/releases/latest). A complete app with everything inside it, so it works with no internet, plus twelve **home screen widgets**: six kinds, each in an Arena and a Bento version you pick from the widget list (day rings, today, next exercise with a live clock, water with a + button, streak and week, weight lifted). How it is made: [docs/ANDROID.md](docs/ANDROID.md).
 - **iPhone (Safari):** Share button, then **Add to Home Screen**.
 - **Android (Chrome):** menu, then **Install app** (or **Add to Home screen**).
 

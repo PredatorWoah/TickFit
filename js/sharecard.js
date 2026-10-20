@@ -1,6 +1,6 @@
 // sharecard.js
 // A picture of today's workout to share (Instagram story, WhatsApp...), drawn on the phone in your look:
-// Pulse (dark, orange) or Bento (cream blocks). 1080 x 1350 pixels.
+// Arena (a full-time scoreboard), Deck (colour cards) or Bento (pastel tiles). 1080 x 1350 pixels.
 
 import { liftFact } from './lift.js';
 
@@ -43,16 +43,20 @@ function wrap(g, text, maxW) {
   return lines;
 }
 
-/** Draw the card. Returns a PNG Blob. */
-export async function drawCard(lines, style = 'pulse') {
+// Each look's colours and fonts for the picture (the same as css/arena.css, deck.css, bento.css).
+const LOOKS = {
+  arena: { bg: '#0a0e18', ink: '#e8ecf5', muted: '#8f99b0', accent: '#ffc23d', mark: '#1a1200', display: '"Big Shoulders Display"', dWeight: 900, num: '"Big Shoulders Display"', nWeight: 900, body: '"IBM Plex Sans"', label: '"IBM Plex Mono"', upper: true, tiles: [['#121a2b', '#e8ecf5'], ['#121a2b', '#e8ecf5'], ['#121a2b', '#ffc23d'], ['#121a2b', '#e8ecf5']], fact: ['#1c1608', '#ffc23d'] },
+  deck: { bg: '#e9ecf1', ink: '#101114', muted: '#4b505a', accent: '#ff5a1f', mark: '#101114', display: 'Archivo', dWeight: 900, num: 'Archivo', nWeight: 900, body: 'Archivo', label: 'Archivo', upper: true, wide: true, tiles: [['#ff5a1f', '#101114'], ['#00a884', '#101114'], ['#ffffff', '#101114'], ['#2e5bff', '#ffffff']], fact: ['#101114', '#ffffff'] },
+  bento: { bg: '#f4f4f0', ink: '#1d1d1b', muted: '#5e5e58', accent: '#5b45e0', mark: '#ffffff', display: 'Fredoka', dWeight: 600, num: 'Fredoka', nWeight: 600, body: 'Figtree', label: 'Figtree', upper: false, tiles: [['#e2dafc', '#1d1d1b'], ['#cdeedd', '#1d1d1b'], ['#ffd9c4', '#1d1d1b'], ['#d2e7fb', '#1d1d1b']], fact: ['#fbecb0', '#1d1d1b'] },
+};
+
+/** Draw the card in a look ('arena', 'deck' or 'bento'). Returns a PNG Blob. */
+export async function drawCard(lines, style = 'arena') {
   const W = 1080;
   const H = 1350;
-  const bento = style === 'bento';
-  const display = bento ? '"Space Grotesk"' : '"Barlow Condensed"';
-  const num = bento ? '"Space Mono"' : '"Barlow Condensed"';
-  const body = bento ? '"Space Grotesk"' : 'Manrope';
+  const L = LOOKS[style] || LOOKS.arena;
   try {
-    await Promise.all([document.fonts.load(`800 120px ${display}`), document.fonts.load(`700 80px ${num}`), document.fonts.load(`700 40px ${body}`)]);
+    await Promise.all([document.fonts.load(`${L.dWeight} 120px ${L.display}`), document.fonts.load(`${L.nWeight} 80px ${L.num}`), document.fonts.load(`700 40px ${L.body}`), document.fonts.load(`700 30px ${L.label}`)]);
   } catch {
     /* system fonts then */
   }
@@ -60,56 +64,43 @@ export async function drawCard(lines, style = 'pulse') {
   c.width = W;
   c.height = H;
   const g = c.getContext('2d');
-  const ink = bento ? '#111111' : '#f3f5f8';
-  const muted = bento ? '#4d4636' : '#8b93a3';
-  const accent = bento ? '#ff4f8b' : '#ff6a2b';
+  const wide = (on) => {
+    if ('fontStretch' in g) g.fontStretch = on && L.wide ? 'expanded' : 'normal';
+  };
   const block = (x, y, w, h, fill, r = 36) => {
     g.beginPath();
     g.roundRect(x, y, w, h, r);
-    if (bento) {
-      g.fillStyle = '#111';
-      g.save();
-      g.translate(10, 10);
-      g.fill();
-      g.restore();
-    }
     g.fillStyle = fill;
     g.fill();
-    if (bento) {
-      g.lineWidth = 6;
-      g.strokeStyle = '#111';
-      g.stroke();
-    }
   };
 
   // background
-  if (bento) {
-    g.fillStyle = '#fff4dc';
-    g.fillRect(0, 0, W, H);
-    g.fillStyle = 'rgba(17,17,17,0.09)';
-    for (let y = 30; y < H; y += 44) for (let x = 30; x < W; x += 44) g.fillRect(x, y, 4, 4);
-  } else {
-    g.fillStyle = '#07090d';
-    g.fillRect(0, 0, W, H);
-    const glow = g.createRadialGradient(W * 0.2, 0, 0, W * 0.2, 0, 900);
-    glow.addColorStop(0, 'rgba(255,106,43,0.35)');
-    glow.addColorStop(1, 'rgba(255,106,43,0)');
+  g.fillStyle = L.bg;
+  g.fillRect(0, 0, W, H);
+  if (style === 'arena') {
+    const glow = g.createRadialGradient(W * 0.5, 0, 0, W * 0.5, 0, 800);
+    glow.addColorStop(0, 'rgba(255,194,61,0.16)');
+    glow.addColorStop(1, 'rgba(255,194,61,0)');
     g.fillStyle = glow;
     g.fillRect(0, 0, W, H);
   }
 
-  // header
-  g.fillStyle = muted;
-  g.font = `700 36px ${body}`;
-  g.fillText(lines.date.toUpperCase(), 80, 130);
-  g.fillStyle = ink;
-  g.font = `800 ${bento ? 96 : 120}px ${display}`;
-  const titleLines = wrap(g, bento ? lines.title : lines.title.toUpperCase(), W - 160).slice(0, 2);
-  titleLines.forEach((t, i) => g.fillText(t, 80, 250 + i * (bento ? 100 : 118)));
-  let y = 250 + (titleLines.length - 1) * (bento ? 100 : 118);
+  // header: the date, then the title (wide and in capitals for Arena and Deck)
+  g.fillStyle = L.muted;
+  g.font = `700 34px ${L.label}`;
+  g.fillText((style === 'arena' ? `FULL TIME · ${lines.date}` : lines.date).toUpperCase(), 80, 130);
+  g.fillStyle = L.ink;
+  wide(true);
+  const titleSize = style === 'arena' ? 128 : style === 'deck' ? 92 : 100;
+  const lead = Math.round(titleSize * 0.96);
+  g.font = `${L.dWeight} ${titleSize}px ${L.display}`;
+  const titleLines = wrap(g, L.upper ? lines.title.toUpperCase() : lines.title, W - 160).slice(0, 2);
+  titleLines.forEach((t, i) => g.fillText(t, 80, 250 + i * lead));
+  wide(false);
+  let y = 250 + (titleLines.length - 1) * lead;
   if (lines.records) {
-    g.fillStyle = accent;
-    g.font = `800 42px ${body}`;
+    g.fillStyle = style === 'bento' ? L.accent : style === 'deck' ? '#c43c06' : L.accent;
+    g.font = `800 42px ${L.body}`;
     g.fillText(lines.records, 80, y + 64);
     y += 64;
   }
@@ -118,53 +109,55 @@ export async function drawCard(lines, style = 'pulse') {
   // four stat tiles
   const tw = (W - 160 - 30) / 2;
   const th = 210;
-  const fills = bento ? ['#ffd23f', '#ff4f8b', '#ffffff', '#3d5afe'] : ['#12151c', '#12151c', '#12151c', '#12151c'];
   lines.stats.forEach(([value, label], i) => {
     const x = 80 + (i % 2) * (tw + 30);
     const ty = y + Math.floor(i / 2) * (th + 30);
-    block(x, ty, tw, th, fills[i]);
-    const onBlue = bento && i === 3;
-    g.fillStyle = onBlue ? '#ffffff' : bento ? '#111' : i === 2 ? accent : ink;
-    g.font = `700 ${value.length > 6 ? 76 : 96}px ${num}`;
-    g.fillText(value, x + 36, ty + 120);
-    g.fillStyle = onBlue ? '#ffffff' : bento ? '#111' : muted;
-    g.font = `700 34px ${body}`;
-    g.fillText(label, x + 36, ty + 172);
+    const [fill, text] = L.tiles[i] || L.tiles[0];
+    block(x, ty, tw, th, fill, style === 'bento' ? 48 : 36);
+    g.fillStyle = text;
+    wide(true);
+    g.font = `${L.nWeight} ${value.length > 6 ? 80 : 104}px ${L.num}`;
+    g.fillText(value, x + 36, ty + 122);
+    wide(false);
+    g.fillStyle = text;
+    g.globalAlpha = style === 'arena' && i !== 2 ? 0.7 : 0.85;
+    g.font = `700 34px ${L.label}`;
+    g.fillText(style === 'arena' ? label.toUpperCase() : label, x + 36, ty + 174);
+    g.globalAlpha = 1;
   });
   y += 2 * th + 30 + 60;
 
   // the fun fact
   if (lines.fact) {
-    g.font = `700 40px ${body}`;
+    g.font = `700 40px ${L.body}`;
     const fl = wrap(g, lines.fact, W - 220).slice(0, 2);
-    block(80, y, W - 160, 70 + fl.length * 52, bento ? '#ffffff' : 'rgba(255,106,43,0.14)');
-    g.fillStyle = bento ? '#111' : '#ff8a52';
+    block(80, y, W - 160, 70 + fl.length * 52, L.fact[0], style === 'bento' ? 48 : 36);
+    g.fillStyle = L.fact[1];
     fl.forEach((t, i) => g.fillText(t, 116, y + 78 + i * 52));
     y += 70 + fl.length * 52 + 40;
   }
 
-  // top sets and records
-  g.fillStyle = muted;
-  g.font = `800 30px ${body}`;
-  // as many top sets as fit above the footer
+  // top sets: as many as fit above the footer
+  g.fillStyle = L.muted;
+  g.font = `800 30px ${L.label}`;
   const room = Math.floor((H - 150 - (y + 70)) / 56) + 1;
   const best = lines.best.slice(0, Math.max(0, room));
   if (best.length) {
-    g.fillText('TOP SETS', 80, y + 10);
-    g.fillStyle = ink;
-    g.font = `700 40px ${body}`;
+    g.fillText(style === 'arena' ? 'TOP SCORERS' : 'TOP SETS', 80, y + 10);
+    g.fillStyle = L.ink;
+    g.font = `700 40px ${L.body}`;
     best.forEach((t, i) => g.fillText(t, 80, y + 70 + i * 56));
   }
 
   // footer
-  g.fillStyle = muted;
-  g.font = `700 32px ${body}`;
+  g.fillStyle = L.muted;
+  g.font = `700 32px ${L.body}`;
   g.fillText('Tracked with TickFit · free, no account', 80, H - 70);
-  g.fillStyle = accent;
+  g.fillStyle = L.accent;
   g.beginPath();
   g.arc(W - 110, H - 82, 26, 0, Math.PI * 2);
   g.fill();
-  g.strokeStyle = bento ? '#111' : '#1a0a00';
+  g.strokeStyle = L.mark;
   g.lineWidth = 7;
   g.beginPath();
   g.moveTo(W - 122, H - 82);

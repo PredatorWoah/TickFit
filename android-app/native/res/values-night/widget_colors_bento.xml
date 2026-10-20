@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Home screen widget colours for the Bento look, dark theme. -->
+<!-- Home screen widget colours for the Bento look: soft pastel tiles, no outlines. The Bento layouts and drawables are made
+     from the Arena ones when the app is built (android-app/scripts/bento.mjs), with every tf_ colour swapped for its tb_ twin. Dark theme. -->
 <resources>
-    <color name="tb_surface">#16140F</color>
-    <color name="tb_surface2">#221F18</color>
-    <color name="tb_track">#3B3527</color>
-    <color name="tb_text">#F5ECD6</color>
-    <color name="tb_muted">#C2B89F</color>
-    <color name="tb_accent">#FF4F8B</color>
-    <color name="tb_accent_ink">#111111</color>
-    <color name="tb_accent_text">#FF7AA8</color>
-    <color name="tb_accent_soft">#99FF4F8B</color>
-    <color name="tb_chip">#FFD23F</color>
-    <color name="tb_chip_text">#111111</color>
-    <color name="tb_water">#5C76FF</color>
-    <color name="tb_water_ink">#FFFFFF</color>
-    <color name="tb_eat">#8FA2FF</color>
-    <color name="tb_track_move">#3B3527</color>
-    <color name="tb_track_eat">#3B3527</color>
-    <color name="tb_track_water">#3B3527</color>
-    <color name="tb_lime">#FFD23F</color>
-    <color name="tb_lime_ink">#111111</color>
-    <color name="tb_lime_track">#33111111</color>
-    <color name="tb_ink">#F5ECD6</color>
+    <color name="tb_surface">#1E1E1E</color>
+    <color name="tb_surface2">#262624</color>
+    <color name="tb_track">#33332F</color>
+    <color name="tb_text">#F1F0EA</color>
+    <color name="tb_muted">#A9A8A0</color>
+    <color name="tb_accent">#A594FF</color>
+    <color name="tb_accent_ink">#14102E</color>
+    <color name="tb_accent_text">#B9ABFF</color>
+    <color name="tb_accent_soft">#99A594FF</color>
+    <color name="tb_chip">#3F3718</color>
+    <color name="tb_chip_text">#F1F0EA</color>
+    <color name="tb_water">#7FB2FF</color>
+    <color name="tb_water_ink">#0B1A2E</color>
+    <color name="tb_eat">#5FD39B</color>
+    <color name="tb_track_move">#2C2550</color>
+    <color name="tb_track_eat">#1F3B2F</color>
+    <color name="tb_track_water">#1B3247</color>
+    <color name="tb_lime">#1F3B2F</color>
+    <color name="tb_lime_ink">#F1F0EA</color>
+    <color name="tb_lime_track">#33F1F0EA</color>
+    <color name="tb_ink">#33332F</color>
 </resources>

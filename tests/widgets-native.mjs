@@ -35,7 +35,7 @@ allXml.push(...generated.map((g) => 'generated:' + g.path));
 const missingXml = allXml.flatMap((f) => [...xmlText(f).matchAll(/@(drawable|color|layout|string|xml)\/(\w+)/g)].filter(([, k, n]) => !pools[k].has(n)).map(([x]) => `${x} in ${f}`));
 ok(missingXml.length === 0, 'every @resource the XML names exists ' + missingXml.join(' '));
 ok([...colors].every((c) => night.has(c)) && [...night].every((c) => colors.has(c)), 'light and dark themes define the same colours');
-ok([...pulse].every((c) => bentoColors.has('tb_' + c.slice(3))) && [...bentoColors].every((c) => pulse.has('tf_' + c.slice(3))), 'Pulse (tf_) and Bento (tb_) define the same colours');
+ok([...pulse].every((c) => bentoColors.has('tb_' + c.slice(3))) && [...bentoColors].every((c) => pulse.has('tf_' + c.slice(3))), 'Arena (tf_) and Bento (tb_) define the same colours');
 ok(generated.some((g) => g.path === 'layout/widget_today_bento.xml') && generated.every((g) => !/@color\/tf_/.test(g.text)), 'every widget layout gets a Bento twin, with no Pulse colours left in it');
 ok(/views\(c, s, R\.layout\./.test(java) && !/new RemoteViews\(c\.getPackageName\(\), R\.layout\.widget_(?!message)/.test(java), 'every widget picks its layout through the look (views())');
 

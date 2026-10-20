@@ -8,7 +8,7 @@
 //     plans:    [ { id, name, startDate, days: [...] } ],
 //     progress: { [planId]: { "2026-10-04": { ticks, weights, waterMl, notes } } },
 //     bodyLog:  { "2026-10-04": 72.4 },   // body weight in kg, one per day
-//     settings: { theme: "dark", style: "pulse", lang: "en" }
+//     settings: { theme: "dark", style: "arena", lang: "en" }
 //   }
 
 import { todayStr } from './dates.js';
@@ -35,6 +35,8 @@ export function load() {
       // Plans made before 1.7.0 with exercise options: their earlier days showed as rest days (nothing to tick),
       // so from 1.6.1 on they'd count as missed. Mark where the suggested lists began (see stats.js pctFor).
       for (const p of state.plans || []) if (p.library && !p.suggestFrom) p.suggestFrom = todayStr();
+      // 2.0.0: the Pulse look became Arena
+      if (state.settings.style === 'pulse') state.settings.style = 'arena';
     }
   } catch (e) {
     // Corrupted data or storage blocked. Keep a copy of the bad data so nothing is lost silently.

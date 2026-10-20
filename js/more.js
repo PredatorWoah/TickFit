@@ -8,7 +8,7 @@ import { getState, getActivePlan, setSetting, importBackup, looksLikeBackup, isS
 import { restorePhotos } from './photos.js';
 import { runAutoBackup, AUTO_FOLDER } from './autobackup.js';
 import { prepareRestAlert } from './restalert.js';
-import { applyTheme } from './theme.js';
+import { applyTheme, resolveStyle, naturalTheme } from './theme.js';
 import { getGeminiConfig, saveGeminiConfig, clearGeminiKey, DEFAULT_MODEL } from './gemini.js';
 import { getClaudeConfig, saveClaudeConfig, clearClaudeKey, DEFAULT_CLAUDE_MODEL } from './claude.js';
 import { activeAI } from './aiassist.js';
@@ -220,13 +220,13 @@ export function renderMore(root, actions) {
     exportBlock()
   );
 
-  // ----- appearance: the look (Pulse or Bento) and the theme -----
-  const style = settings.style === 'bento' ? 'bento' : 'pulse';
-  const naturalTheme = (st) => (st === 'bento' ? 'light' : 'dark');
+  // ----- appearance: the look (Arena, Deck or Bento) and the theme -----
+  const style = resolveStyle(settings.style);
   const currentTheme = settings.theme || naturalTheme(style);
   const styleButtons = [
-    ['pulse', 'Pulse', 'Dark, bold, orange'],
-    ['bento', 'Bento', 'Bright blocks, thick lines'],
+    ['arena', 'Arena', 'A scoreboard: your day is a match'],
+    ['deck', 'Deck', 'One big card at a time, swipe it off'],
+    ['bento', 'Bento', 'Soft tiles in a tidy grid'],
   ].map(([id, name, about]) =>
     h(
       'button',

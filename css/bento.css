@@ -1,0 +1,183 @@
+/* bento.css
+   Bento, redesigned in 2.0: a lunch box of soft tiles. Pastel blocks (mint, lilac, peach, butter, sky) on a
+   warm white table, no outlines and no hard shadows, big round corners, pill buttons, rounded numbers
+   (Fredoka) and a friendly sans (Figtree). Today is a real tile grid (home.js bentoHome). */
+
+:root[data-style='bento'] {
+  --bg: #f4f4f0;
+  --surface: #ffffff;
+  --surface-2: #ecece6;
+  --surface-3: #e0e0d8;
+  --line: rgba(29, 29, 27, 0.07);
+  --text: #1d1d1b;
+  --muted: #5e5e58;
+  --accent: #5b45e0;
+  --accent-ink: #ffffff;
+  --accent-text: #4a35c8;
+  --danger: #b91c1c;
+  --warn: #8a5a00;
+  --eat: #1f8a5b;
+  --water: #2f6fd0;
+  --mint: #cdeedd;
+  --lilac: #e2dafc;
+  --peach: #ffd9c4;
+  --butter: #fbecb0;
+  --sky: #d2e7fb;
+  --on-tile: #1d1d1b;
+  --radius: 28px;
+  --radius-sm: 20px;
+  --lift: none;
+  --font: 'Figtree', var(--base-font);
+  --font-display: 'Fredoka', var(--font);
+  --font-num: 'Fredoka', var(--font);
+  --font-mono: 'Figtree', var(--base-font);
+  color-scheme: light;
+}
+:root[data-style='bento'][data-theme='dark'] {
+  --bg: #141414;
+  --surface: #1e1e1e;
+  --surface-2: #262624;
+  --surface-3: #33332f;
+  --line: rgba(255, 255, 255, 0.07);
+  --text: #f1f0ea;
+  --muted: #a9a8a0;
+  --accent: #a594ff;
+  --accent-ink: #14102e;
+  --accent-text: #b9abff;
+  --danger: #ff8a8a;
+  --warn: #ffc44d;
+  --eat: #5fd39b;
+  --water: #7fb2ff;
+  --mint: #1f3b2f;
+  --lilac: #2c2550;
+  --peach: #4a2c20;
+  --butter: #3f3718;
+  --sky: #1b3247;
+  --on-tile: #f1f0ea;
+  color-scheme: dark;
+}
+
+/* ----- type and shapes: soft, round, no lines ----- */
+:root[data-style='bento'] body::before { display: none; }
+:root[data-style='bento'] :is(.page-title, .date-main, .wk-title, .sheet-title, .sec-title) { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; }
+:root[data-style='bento'] .date-main { font-size: 44px; line-height: 1; }
+:root[data-style='bento'] .wk-title { font-size: 32px; }
+:root[data-style='bento'] .sec-title { font-size: 22px; }
+:root[data-style='bento'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { font-weight: 800; letter-spacing: 0.06em; color: var(--muted); }
+:root[data-style='bento'] :is(.ring-pct, .stat-value, .meter-val, .water-val, .sum-hero-num, .set-in, .clock.big, .rest-clock, .dnum, .bn-num) { font-family: var(--font-num); font-weight: 600; letter-spacing: -0.02em; }
+:root[data-style='bento'] :is(.card, .tile, .ex, .home-card, .notes-card, .stat, .plan, .option, .callout, .empty-card, .done-card, .live, .date-bar-title) { border-color: transparent; background-image: none; box-shadow: none; }
+:root[data-style='bento'] .btn { border-radius: 999px; border-color: transparent; background: var(--surface-2); font-weight: 700; }
+:root[data-style='bento'] .btn.primary { background: var(--text); background-image: none; color: var(--bg); box-shadow: none; border-color: var(--text); }
+:root[data-style='bento'] .btn.ghost { background: transparent; }
+:root[data-style='bento'] .cta { box-shadow: none; }
+:root[data-style='bento'] :is(.icon-btn, .round, .pick-btn, .pick-chip, .chipbtn, .seg button, .daydiet button, .plan-chip, .steps-pill) { border-color: transparent; border-radius: 999px; }
+:root[data-style='bento'] .round.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+:root[data-style='bento'] :is(.seg button, .chipbtn, .pick-chip, .daydiet button)[aria-pressed='true'] { background: var(--lilac); color: var(--on-tile); border-color: transparent; }
+:root[data-style='bento'] :is(.f input, .f textarea, .text-input, .date-input, .notes, .pick-search, .pick-add input, .set-in, .notes-edit, .weight-field input) { border-color: transparent; background: var(--surface-2); border-radius: 18px; }
+:root[data-style='bento'] .pill { background: var(--butter); color: var(--on-tile); }
+:root[data-style='bento'] .streak { background: var(--butter); color: var(--on-tile); }
+
+/* week strip: round pebbles, the open day in lilac */
+:root[data-style='bento'] .chip { border-radius: 999px; width: 50px; min-height: 70px; background: var(--surface); }
+:root[data-style='bento'] .chip.is-today:not(.sel) { border-color: var(--text); }
+:root[data-style='bento'] .chip.sel { background: var(--lilac); color: var(--on-tile); border-color: transparent; }
+:root[data-style='bento'] .dot.full, :root[data-style='bento'] .chip.sel .dot.full { background: var(--accent); }
+:root[data-style='bento'] .dot.part, :root[data-style='bento'] .chip.sel .dot.part { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* ----- Today: the tile grid ----- */
+.bn-head .date-sub { margin-top: 2px; }
+.bn-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0 6px; }
+.bn-tile { min-width: 0; padding: 16px; border-radius: 28px; background: var(--surface); color: var(--on-tile); display: flex; flex-direction: column; gap: 8px; }
+.bn-tile.wide { grid-column: 1 / -1; }
+.bn-tile.t-ring { background: var(--lilac); align-items: flex-start; }
+.bn-tile.t-streak { background: var(--butter); justify-content: space-between; }
+.bn-tile.t-workout { background: var(--peach); }
+.bn-tile.t-meals { background: var(--mint); }
+.bn-tile.t-water { background: var(--sky); }
+.bn-tile .icon { color: var(--on-tile); }
+.bn-tile-head { display: flex; align-items: center; gap: 8px; }
+.bn-tile-head b { font-family: var(--font-display); font-size: 20px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.bn-sub { margin: 0; font-size: 14px; font-weight: 600; opacity: 0.8; }
+.bn-list { margin: 0; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.bn-num { font-size: 40px; line-height: 1; }
+.bn-of { font-size: 15px; font-weight: 700; opacity: 0.75; }
+.t-streak span { font-size: 14px; font-weight: 700; }
+.bn-ring-text { min-width: 0; }
+.bn-ring-text .day-title { font-family: var(--font-display); font-weight: 600; font-size: 18px; min-height: 40px; }
+.bn-ring-text .day-title span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.bn-ring-text .hero-status { margin: 0; color: var(--on-tile); opacity: 0.8; font-weight: 600; }
+.t-ring .ring-track { stroke: color-mix(in srgb, var(--on-tile) 12%, transparent); stroke-width: 9; }
+.t-ring .ring-fill { stroke: var(--accent); stroke-width: 9; }
+.t-ring .ring-sub { color: var(--on-tile); }
+.bn-tile.t-water { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; }
+.bn-tile.t-water .bn-tile-head { grid-column: 1 / -1; }
+.bn-water-btns { display: flex; gap: 8px; }
+.bn-water-btns .round { background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--on-tile); }
+.bn-water-btns .round.primary { background: var(--text); color: var(--bg); }
+.bn-tile .btn.primary { margin-top: 4px; }
+.bn-tile .pick-btn { background: color-mix(in srgb, var(--surface) 65%, transparent); align-self: flex-start; }
+/* the meals card and the weight tile sitting inside tiles */
+.bn-tile.t-meals .hc-top { margin-bottom: 4px; }
+.bn-tile.t-meals .hc-icon { background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--on-tile); border-radius: 999px; }
+.bn-tile.t-meals .hc-text span, .bn-tile.t-meals .hc-next { color: var(--on-tile); opacity: 0.85; }
+.bn-tile.t-meals .bar { background: color-mix(in srgb, var(--on-tile) 12%, transparent); }
+.bn-tile.t-meals .bar-fill { background: var(--eat); }
+.bn-tile.t-meals .btn { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.bn-tile.t-weight { padding: 0; background: transparent; }
+.bn-tile.t-weight .tile { height: 100%; min-height: 0; border-radius: 28px; background: var(--surface); }
+
+/* ----- other screens: pastel tiles ----- */
+:root[data-style='bento'] .home-card.wk-card { background: var(--peach); }
+:root[data-style='bento'] .meal-card { background: var(--mint); }
+:root[data-style='bento'] .hc-icon { background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text); border-radius: 999px; }
+:root[data-style='bento'] .tile { border-radius: 24px; }
+:root[data-style='bento'] .tile.done { background: var(--mint); }
+:root[data-style='bento'] .check { border-radius: 999px; border-color: var(--surface-3); }
+:root[data-style='bento'] .tile.done .check { background: var(--text); border-color: var(--text); color: var(--bg); }
+:root[data-style='bento'] .tile .time, :root[data-style='bento'] .tile-prog { color: var(--eat); }
+:root[data-style='bento'] .tile.water { background: var(--sky); }
+:root[data-style='bento'] .tile.water .round { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+:root[data-style='bento'] .tile.water .round.primary { background: var(--text); color: var(--bg); }
+:root[data-style='bento'] .bar, :root[data-style='bento'] .m-bar { height: 12px; background: var(--surface-3); }
+:root[data-style='bento'] .meter-fill { background: var(--eat); }
+:root[data-style='bento'] .ex { border-radius: 26px; }
+:root[data-style='bento'] .ex.open { background: var(--lilac); color: var(--on-tile); }
+:root[data-style='bento'] .ex.open .set-in { background: var(--surface); }
+:root[data-style='bento'] .ex-badge { background: var(--surface-2); }
+:root[data-style='bento'] .ex.open .ex-badge { background: var(--surface); }
+:root[data-style='bento'] .ex.done .ex-badge { background: var(--mint); color: var(--on-tile); }
+:root[data-style='bento'] .set-check { border-radius: 999px; border-color: var(--surface-3); }
+:root[data-style='bento'] .set-check.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+:root[data-style='bento'] .set-row.done .set-in { opacity: 0.55; }
+:root[data-style='bento'] .last-time { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+:root[data-style='bento'] .stat:nth-child(4n + 1) { background: var(--lilac); }
+:root[data-style='bento'] .stat:nth-child(4n + 2) { background: var(--mint); }
+:root[data-style='bento'] .stat:nth-child(4n + 3) { background: var(--peach); }
+:root[data-style='bento'] .stat:nth-child(4n) { background: var(--sky); }
+:root[data-style='bento'] .stat :is(.stat-label, .stat-icon) { color: var(--on-tile); }
+:root[data-style='bento'] .done-card { background: var(--mint); }
+:root[data-style='bento'] .done-badge { background: var(--text); color: var(--bg); }
+:root[data-style='bento'] .plan.active, :root[data-style='bento'] .option.sel { background: var(--lilac); }
+:root[data-style='bento'] .pick-row.on { background: var(--lilac); border-color: transparent; }
+:root[data-style='bento'] .style-opt { border-color: transparent; }
+:root[data-style='bento'] .style-opt[aria-pressed='true'] { background: var(--lilac); color: var(--on-tile); }
+:root[data-style='bento'] .ex.in-superset { border-left: 6px solid var(--accent); }
+
+/* ----- bars, rest and the tab bar: floating pills ----- */
+:root[data-style='bento'] .wk-bar { background: var(--text); color: var(--bg); border-color: transparent; border-radius: 999px; }
+:root[data-style='bento'] .wk-bar .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+:root[data-style='bento'] .rest-bar { background: var(--lilac); color: var(--on-tile); border: 0; border-radius: 999px; padding: 8px 10px 8px 22px; box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.35); }
+:root[data-style='bento'] .rest-bar .btn { background: color-mix(in srgb, var(--surface) 75%, transparent); }
+:root[data-style='bento'] .rest-bar.done { background: var(--mint); color: var(--on-tile); }
+:root[data-style='bento'] .sheet { border-radius: 32px 32px 0 0; }
+:root[data-style='bento'] .toast { border-radius: 999px; }
+:root[data-style='bento'] .toast-undo { border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+:root[data-style='bento'] #nav { border-radius: 999px; border-color: transparent; background: var(--surface); padding: 6px; gap: 4px; box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.35); }
+:root[data-style='bento'] .tab { height: 54px; border-radius: 999px; }
+:root[data-style='bento'] .tab::before { display: none; }
+:root[data-style='bento'] .tab.active { background: var(--lilac); color: var(--on-tile); }
+
+/* photos: the date on a round butter sticker */
+:root[data-style='bento'] .ph-slide, :root[data-style='bento'] .ph-big { border-radius: 28px; }
+:root[data-style='bento'] .ph-mark { left: 10px; right: auto; bottom: 10px; align-items: flex-start; padding: 6px 12px; border-radius: 999px; background: var(--butter); color: var(--on-tile); text-shadow: none; }
+:root[data-style='bento'] .ph-mark b { font-family: var(--font-num); font-size: 16px; font-weight: 600; }
