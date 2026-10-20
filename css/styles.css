@@ -1088,3 +1088,9 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .measure-now small { font-size: 13px; color: var(--muted); }
 .measure-sub { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
 .measure-in { display: grid; grid-template-columns: 80px 1fr auto; gap: 10px; align-items: center; margin: 0 0 8px; font-weight: 700; }
+
+/* ----- Plan sharing ----- */
+.qr-box { display: grid; place-items: center; margin: 4px 0 12px; }
+.qr-svg { width: min(280px, 80vw); padding: 10px; border-radius: 18px; background: #fff; }
+.qr-svg svg { display: block; width: 100%; height: auto; }
+:root[data-style='bento'] .qr-svg { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }

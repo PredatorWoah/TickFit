@@ -5,6 +5,7 @@ import { h, clear, copyText, toast } from './dom.js';
 import { icon } from './icons.js';
 import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting, snapshot, restoreSnapshot } from './store.js';
 import { parsePlanText } from './parser.js';
+import { openPlanShare } from './shareui.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
 import { activeAI, convertPlanWithAI } from './aiassist.js';
@@ -91,6 +92,7 @@ export function renderPlans(root, actions) {
             canMergeInto(p.id) &&
             h('button', { class: 'btn', type: 'button', onclick: () => openMergeSheet({ toId: p.id, onDone: actions.refresh }) }, icon('plus', 18), 'Bring in progress'),
           h('button', { class: 'btn', type: 'button', onclick: () => actions.show('edit', { planId: p.id }) }, 'Edit'),
+          h('button', { class: 'btn', type: 'button', onclick: () => openPlanShare(p) }, icon('upload', 18), 'Share'),
           h(
             'button',
             {

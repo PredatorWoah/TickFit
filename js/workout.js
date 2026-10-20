@@ -14,6 +14,8 @@ import { openBackupSheet } from './backupui.js';
 import { loggedDayCount } from './safety.js';
 import { getState, savePlans, setSetting } from './store.js';
 import { suggestNext, platesPerSide, warmupSets, bestBefore, isRecord, supersetGroups } from './gym.js';
+import { cardLines, drawCard } from './sharecard.js';
+import { shareImage } from './shareimg.js';
 import { exerciseBurn, singleBurn, bodyWeightKg, burnFactor } from './burn.js';
 import { openAdjustSheet } from './adjustui.js';
 import { exerciseProgress, plannedSets, repsTarget, lastPerformance, formatSets } from './stats.js';
@@ -92,6 +94,31 @@ export function renderWorkout(root, plan, date, goto) {
     setTimeout(() => openBackupSheet(() => {}, { title: 'Save your progress', intro: 'Nice work. Your workout is saved on this phone. A quick backup keeps it safe if you lose the phone or switch to a new one.', notNow: true }), 380);
   }
 
+  /** A picture of this workout for Instagram, WhatsApp... (sharecard.js) */
+  async function shareWorkout(s, burn) {
+    const rec = ctx.rec();
+    const best = [];
+    let records = 0;
+    for (const w of day.workout) {
+      const done = ((rec.sets && rec.sets[w.id]) || []).filter((x) => x.done && x.w > 0 && x.r > 0);
+      if (!done.length) continue;
+      const top = done.reduce((a, b) => (b.w > a.w || (b.w === a.w && b.r > a.r) ? b : a));
+      best.push({ name: w.exercise, w: top.w, r: top.r });
+      const before = bestBefore(plan, ctx.records(), date, w.exercise);
+      if (done.some((x) => isRecord(x, before))) records++;
+    }
+    best.sort((a, b) => b.w - a.w);
+    const minutes = burn.adjustedMinutes ? burn.minutes : Math.round(workoutMs(rec) / 60000);
+    const lines = cardLines({ label: day.label, dateText: fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }), minutes, s, kcal: burn.kcal, best, records });
+    try {
+      const blob = await drawCard(lines, document.documentElement.getAttribute('data-style') === 'bento' ? 'bento' : 'pulse');
+      const how = await shareImage(blob, `tickfit-workout-${date}.png`, 'My workout');
+      if (how === 'downloaded') toast('Picture saved to Downloads');
+    } catch {
+      toast('Could not make the picture');
+    }
+  }
+
   function openSummary() {
     const s = workoutSummary(day, ctx.rec());
     const burn = exerciseBurn(day, ctx.rec(), bodyWeightKg(getState().settings, getState().bodyLog, todayStr()), burnFactor(getState().settings));
@@ -107,6 +134,7 @@ export function renderWorkout(root, plan, date, goto) {
             burn.kcal > 0 && h('div', { class: 'burn-total' }, h('b', {}, `${burn.adjustedKcal ? '' : '~'}${burn.kcal} kcal`), burn.adjustedKcal ? ' burnt (your number)' : ' burnt (estimate)', burn.cardioKcal > 0 && h('span', {}, ` · cardio ${burn.cardioMinutes} min, ~${burn.cardioKcal} kcal`)),
             burn.items.length > 0 && h('ul', { class: 'burn-list' }, burn.items.map((i) => h('li', {}, h('span', {}, i.name), h('span', {}, `~${i.kcal} kcal`)))),
             s.exercisesDone < s.exercisesTotal && h('p', { class: 'hint' }, `${s.exercisesTotal - s.exercisesDone} exercise${s.exercisesTotal - s.exercisesDone === 1 ? '' : 's'} not finished. You can still tick them off later.`),
+            h('button', { class: 'btn wide', type: 'button', onclick: () => shareWorkout(s, burn) }, icon('upload', 18), 'Share this workout'),
             h('button', { class: 'btn small wide', type: 'button', onclick: () => { skipPrompt = true; close(); setTimeout(() => openAdjustSheet({ plan, date, onDone: () => ctx.goto(date) }), 380); } }, icon('edit', 18), 'Edit time and calories'),
             h('button', { class: 'btn primary wide big', type: 'button', onclick: close }, 'Done'),
           ].filter(Boolean)
