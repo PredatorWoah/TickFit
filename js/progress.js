@@ -10,6 +10,8 @@ import { periodRange, shiftAnchor, summarize } from './summary.js';
 import { bodyWeightKg, burnFactor } from './burn.js';
 import { openEditDaysSheet } from './adjustui.js';
 import { photosCard } from './photosui.js';
+import { recordsCard, openLiftChart } from './prui.js';
+import { measureCard } from './measureui.js';
 import { weightCard, openWeightSheet } from './weightui.js';
 import { formatDelta } from './weight.js';
 import { liftFact } from './lift.js';
@@ -56,8 +58,7 @@ export function renderProgress(root, plan, goto) {
     ),
     h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`),
     summaryCard(root, plan, records, today, goto),
-    weightCard(() => renderProgress(root, plan, goto)),
-    photosCard()
+    ...[recordsCard(plan, records, today), weightCard(() => renderProgress(root, plan, goto)), measureCard(() => renderProgress(root, plan, goto)), photosCard()].filter(Boolean)
   );
 
   // ----- calendar -----
@@ -281,7 +282,7 @@ function summaryCard(root, plan, records, today, goto) {
           h(
             'li',
             { class: 'lift rich' },
-            h('span', { class: 'lift-name' }, l.name),
+            h('button', { class: 'lift-name link-like', type: 'button', onclick: () => openLiftChart(plan, records, today, l.name), 'aria-label': `${l.name}: show the chart` }, l.name),
             h('span', { class: 'lift-now' }, `${l.now} kg`, l.reps ? h('small', {}, ` × ${l.reps}`) : null),
             chip(l),
             h('small', { class: 'lift-sub' }, subLine(l))

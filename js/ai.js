@@ -56,7 +56,8 @@ SCHEMA
           "rest": string,               // optional, e.g. "90s"
           "weight": string,             // optional target, e.g. "20 kg" or "bodyweight"
           "notes": string,              // optional
-          "video": string               // optional link, ONLY if the document contains a real URL
+          "video": string,              // optional link, ONLY if the document contains a real URL
+          "superset": string            // optional, the same letter (e.g. "A") on exercises done back to back
         }
       ],
       "meals": [                        // required, can be []

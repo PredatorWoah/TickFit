@@ -4,6 +4,7 @@
 // The countdown is based on an END TIME, not on counting ticks, so it stays correct
 // even if the phone throttles the page while the screen is dimmed.
 
+import { restChanged } from './restalert.js';
 import { h } from './dom.js';
 import { getState } from './store.js';
 
@@ -79,6 +80,7 @@ function beep() {
 }
 
 export function stopRest() {
+  restChanged(null);
   clearInterval(interval);
   interval = null;
   if (bar) bar.remove();
@@ -106,11 +108,12 @@ export function startRest(seconds, label) {
     'div',
     { class: 'rest-bar', role: 'timer' },
     h('div', { class: 'rest-info' }, title, clock),
-    h('button', { class: 'btn small', onclick: () => ((endAt += 15000), (finished = false), bar.classList.remove('done'), tick()) }, '+15s'),
+    h('button', { class: 'btn small', onclick: () => ((endAt += 15000), (finished = false), bar.classList.remove('done'), restChanged(endAt, label), tick()) }, '+15s'),
     h('button', { class: 'btn small', onclick: stopRest }, 'Skip')
   );
   document.body.append(bar);
   document.body.classList.add('has-rest');
+  restChanged(endAt, label); // the Android app alerts from a notification if the screen goes off (restalert.js)
 
   function tick() {
     if (!bar) return;
@@ -123,7 +126,8 @@ export function startRest(seconds, label) {
     bar.classList.add('done');
     if (!finished) {
       finished = true;
-      if (soundOn()) {
+      // back in the app long after the end: the phone's notification already told you, so stay quiet
+      if (soundOn() && Date.now() - endAt < 3000) {
         beep();
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
       }

@@ -37,7 +37,7 @@ The "Form video" button simply opens a link (your own, or a YouTube search for t
 
 ## Progress photos
 
-Photos you take or pick on the Progress tab stay on this device. They are never uploaded. The backup sheet has a tick box to put them inside the backup file (it gets bigger, about 0.1 to 0.3 MB per photo); you can also save single photos with **Save a copy**. Delete one by tapping it, then **Delete**. In the Android app, taking a photo opens your phone's own camera app, and TickFit never asks for the camera permission itself.
+Photos you take or pick on the Progress tab stay on this device. They are never uploaded. The backup sheet has a tick box to put them inside the backup file (it gets bigger, about 0.1 to 0.3 MB per photo); you can also save single photos with **Save a copy**. Delete one by tapping it, then **Delete**. Taking a photo uses the camera inside TickFit (the Android app asks for the camera permission the first time). The picture goes straight into the on-device photo database; nothing is uploaded. If the camera can't be used, TickFit opens your phone's own camera app instead.
 
 ## Backups
 

@@ -13,6 +13,7 @@
 
 import { todayStr } from './dates.js';
 import { validWeight, cleanLog } from './weight.js';
+import { cleanMeasureLog, validCm } from './measure.js';
 import { mergeProgress } from './merge.js';
 
 const KEY = 'tickfit:v1';
@@ -210,6 +211,7 @@ export function importBackup(obj, validatePlan) {
     plans,
     progress,
     bodyLog: cleanLog(obj.data.bodyLog),
+    measureLog: cleanMeasureLog(obj.data.measureLog),
     activePlanId: ids.has(obj.data.activePlanId) ? obj.data.activePlanId : plans[0] ? plans[0].id : null,
     settings: { ...defaults().settings, ...(obj.data.settings || {}) },
   };
@@ -258,6 +260,18 @@ export function markBackedUp() {
 
 export function snoozeBackupNudge(untilDate) {
   state.settings.backupSnoozeUntil = untilDate;
+  save();
+}
+
+// ----- body measurements (cm) -----
+
+/** Save the measurements for a date: { waist: 84, ... }. Blank or odd values are left out; an empty day is removed. */
+export function setMeasurements(date, values) {
+  if (!state.measureLog) state.measureLog = {};
+  const day = {};
+  for (const [k, v] of Object.entries(values || {})) if (validCm(v) !== null) day[k] = validCm(v);
+  if (Object.keys(day).length) state.measureLog[date] = day;
+  else delete state.measureLog[date];
   save();
 }
 

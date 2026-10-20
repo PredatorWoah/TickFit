@@ -10,6 +10,7 @@ import { openSheet } from './sheet.js';
 import { getState } from './store.js';
 import { todayStr, toStr, diffDays, isValidStr } from './dates.js';
 import { isNative, nativePlugin } from './platform.js';
+import { openGhostCamera, cameraSupported } from './camera.js';
 import { listPhotos, addPhoto, deletePhoto, setPhotoDate, withWatermark, binPhoto, unbinPhoto, emptyBin } from './photos.js';
 
 const urls = new Map(); // photo id -> object URL, made once per photo and reused across redraws
@@ -117,7 +118,36 @@ export function photosCard() {
     const add = h(
       'div',
       { class: 'btn-row ph-add' },
-      h('button', { class: 'btn primary', type: 'button', onclick: () => camera.click() }, icon('camera', 20), 'Take a photo'),
+      h(
+        'button',
+        {
+          class: 'btn primary',
+          type: 'button',
+          onclick: () => {
+            // the ghost camera (your last photo faintly on top); the phone's camera app if it can't open
+            if (!cameraSupported()) return camera.click();
+            const last = photos[photos.length - 1];
+            openGhostCamera({
+              ghostUrl: last ? urlFor(last) : null,
+              onShot: async (blob) => {
+                try {
+                  const photo = await addPhoto(new File([blob], 'camera.jpg', { type: 'image/jpeg' }), todayStr());
+                  toast('Photo saved');
+                  draw(photo.id);
+                } catch (e) {
+                  toast(e.message || 'Could not save that photo');
+                }
+              },
+              onFail: () => {
+                toast('Camera not available here, opening your camera app');
+                camera.click();
+              },
+            });
+          },
+        },
+        icon('camera', 20),
+        'Take a photo'
+      ),
       h('button', { class: 'btn', type: 'button', onclick: () => gallery.click() }, icon('image', 20), 'From gallery')
     );
     card.replaceChildren(head);
@@ -261,8 +291,34 @@ function openCompare(photos, bodyLog) {
       const side = (p, label) => h('figure', { class: 'ph-side' }, h('div', { class: 'ph-big' }, h('img', { src: urlFor(p), alt: `${label}: ${photoDate(p.date)}` }), h('span', { class: 'ph-mark' }, h('b', {}, photoDate(p.date)), h('small', {}, photoNote(p, first, bodyLog) || label))));
       const a = bodyLog[first.date];
       const b = bodyLog[last.date];
+      // Side by side, or a slider that wipes from the first photo to the latest one
+      const sideBySide = h('div', { class: 'ph-compare' }, side(first, 'First'), side(last, 'Latest'));
+      const range = h('input', { type: 'range', min: 0, max: 100, value: 50, class: 'ph-wipe-range', 'aria-label': 'Slide between the first and the latest photo' });
+      const top = h('img', { class: 'ph-wipe-top', src: urlFor(first), alt: `First: ${photoDate(first.date)}` });
+      const wipe = h(
+        'div',
+        { class: 'ph-wipe', hidden: true },
+        h('div', { class: 'ph-big' }, h('img', { src: urlFor(last), alt: `Latest: ${photoDate(last.date)}` }), top, h('span', { class: 'ph-wipe-line' }), h('span', { class: 'ph-wipe-tag left' }, photoDate(first.date)), h('span', { class: 'ph-wipe-tag right' }, photoDate(last.date))),
+        range
+      );
+      const line = wipe.querySelector('.ph-wipe-line');
+      const setWipe = () => {
+        top.style.clipPath = `inset(0 ${100 - range.value}% 0 0)`;
+        line.style.left = `${range.value}%`;
+      };
+      range.addEventListener('input', setWipe);
+      setWipe();
+      const modes = h('div', { class: 'seg', role: 'group', 'aria-label': 'How to compare' });
+      const setMode = (m) => {
+        sideBySide.hidden = m !== 'side';
+        wipe.hidden = m !== 'wipe';
+        modes.replaceChildren(...[['side', 'Side by side'], ['wipe', 'Slider']].map(([id, name]) => h('button', { type: 'button', 'aria-pressed': String(m === id), onclick: () => setMode(id) }, name)));
+      };
+      setMode('wipe');
       body.append(
-        h('div', { class: 'ph-compare' }, side(first, 'First'), side(last, 'Latest')),
+        modes,
+        sideBySide,
+        wipe,
         h('p', { class: 'hint' }, `${days} day${days === 1 ? '' : 's'} apart${typeof a === 'number' && typeof b === 'number' ? `, ${Math.abs(Math.round((b - a) * 10) / 10)} kg ${b < a ? 'down' : b > a ? 'up' : 'the same'}` : ''}.`)
       );
     },

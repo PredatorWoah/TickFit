@@ -362,6 +362,8 @@ function validateExercise(w, where, j, used, errors, warnings) {
     rest,
     notes: str(w.notes),
     video,
+    // Optional superset: exercises next to each other with the same letter are done back to back
+    ...(/^[A-Za-z0-9]{1,3}$/.test(str(w.superset ?? w.group)) ? { superset: str(w.superset ?? w.group).toUpperCase() } : {}),
   };
 }
 
