@@ -172,15 +172,37 @@ function draw() {
 function syncAiButton(screen, plan) {
   let btn = document.getElementById('ai-fab');
   const want = plan && aiEnabled() && ['today', 'workout', 'meals', 'progress'].includes(screen);
+  document.body.classList.toggle('has-fab', !!want);
   if (!want) return btn && btn.remove();
   if (!btn) {
     btn = h('button', { id: 'ai-fab', class: 'ai-fab', type: 'button', 'aria-label': 'Ask AI' }, icon('sparkle', 24));
     document.body.append(btn);
+    tuckOnScroll();
   }
+  btn.classList.remove('tucked');
   btn.onclick = async () => {
     const { openAssistant } = await import('./assistantui.js');
     openAssistant({ plan: getActivePlan(), date: view.date || todayStr(), onChange: draw });
   };
+}
+
+/** The Ask AI button slides away while you scroll down (so it never sits on what you read) and back on the way up. */
+let tuckWatch = false;
+function tuckOnScroll() {
+  if (tuckWatch) return;
+  tuckWatch = true;
+  let anchor = scrollY;
+  addEventListener(
+    'scroll',
+    () => {
+      const btn = document.getElementById('ai-fab');
+      const y = scrollY;
+      if (!btn || Math.abs(y - anchor) < 24) return;
+      btn.classList.toggle('tucked', y > anchor && y > 60);
+      anchor = y;
+    },
+    { passive: true }
+  );
 }
 
 /** A gentle, dismissible reminder to back up, shown on Today only when there is real progress to lose. */

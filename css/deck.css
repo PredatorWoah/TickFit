@@ -52,7 +52,7 @@
 :root[data-style='deck'] .wk-title { font-size: 30px; line-height: 1; text-transform: uppercase; }
 :root[data-style='deck'] .sec-title { font-size: 19px; text-transform: uppercase; }
 :root[data-style='deck'] .sheet-title { font-size: 22px; }
-:root[data-style='deck'] h2:not(.sec-title):not(.sheet-title):not(.cal-title):not(.dk-title) { font-weight: 800; letter-spacing: 0.08em; }
+:root[data-style='deck'] h2:not(.sec-title):not(.sheet-title):not(.cal-title):not(.tour-title):not(.dk-title) { font-weight: 800; letter-spacing: 0.08em; }
 :root[data-style='deck'] :is(.ring-pct, .stat-value, .meter-val, .water-val, .sum-hero-num, .set-in, .clock.big, .rest-clock, .dnum) { font-stretch: 112%; font-weight: 900; letter-spacing: -0.02em; }
 :root[data-style='deck'] body::before { display: none; }
 :root[data-style='deck'] :is(.card, .tile, .ex, .home-card, .notes-card, .stat, .plan, .option) { border-color: transparent; background-image: none; }
@@ -79,9 +79,13 @@
 :root[data-theme='dark'] .dk-segs i.on { background: #ffffff; }
 .dk-stack { position: relative; display: grid; margin: 18px 0 12px; }
 .dk-stack > * { grid-area: 1 / 1; }
-.dk-back { border-radius: 30px; min-height: 260px; pointer-events: none; }
-.dk-back.b1 { transform: translateY(-10px) scale(0.95) rotate(-3deg); }
-.dk-back.b2 { transform: translateY(-18px) scale(0.9) rotate(4deg); }
+.dk-back { border-radius: 30px; min-height: 260px; pointer-events: none; filter: brightness(0.82); }
+.dk-back.b1 { transform: translateY(-11px) scale(0.94); }
+.dk-back.b2 { transform: translateY(-21px) scale(0.88); filter: brightness(0.66); }
+/* a new top card rises from where the card behind it was */
+@keyframes dk-rise { from { transform: translateY(-11px) scale(0.94); filter: brightness(0.82); } to { transform: none; filter: none; } }
+.dk-card.dk-in { animation: dk-rise 0.42s var(--spring) backwards; } /* backwards only: a finished animation must never hold the transform a drag sets */
+.dk-head .head-side { display: flex; align-items: center; gap: 8px; flex: none; }
 .dk-card { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; min-height: 300px; padding: 22px; border-radius: 30px; color: #101114; box-shadow: 0 18px 40px -20px rgba(16, 17, 20, 0.45); touch-action: pan-y; user-select: none; -webkit-user-select: none; transition: transform 0.25s var(--ease); }
 .dk-card.dragging { transition: none; cursor: grabbing; }
 .dk-card.flying { transition: transform 0.18s ease-in; }
@@ -98,7 +102,7 @@
 .dk-lines li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 2px solid rgba(16, 17, 20, 0.18); }
 .dk-lines li:last-child { border-bottom: 0; }
 .dk-lines li span:first-child { min-width: 0; overflow-wrap: anywhere; }
-.dk-lines li span:last-child { flex: none; }
+.dk-lines li span:last-child:not(:first-child) { flex: none; } /* the sets column; a line with only text must still wrap */
 .dk-lines li.done span:first-child { text-decoration: line-through; opacity: 0.6; }
 .dk-lines li.more { opacity: 0.75; }
 .k-water .dk-lines li { border-color: rgba(255, 255, 255, 0.3); }

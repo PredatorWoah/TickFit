@@ -63,7 +63,7 @@
 :root[data-style='bento'] .date-main { font-size: 44px; line-height: 1; }
 :root[data-style='bento'] .wk-title { font-size: 32px; }
 :root[data-style='bento'] .sec-title { font-size: 22px; }
-:root[data-style='bento'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { font-weight: 800; letter-spacing: 0.06em; color: var(--muted); }
+:root[data-style='bento'] h2:not(.sec-title):not(.sheet-title):not(.cal-title):not(.tour-title) { font-weight: 800; letter-spacing: 0.06em; color: var(--muted); }
 :root[data-style='bento'] :is(.ring-pct, .stat-value, .meter-val, .water-val, .sum-hero-num, .set-in, .clock.big, .rest-clock, .dnum, .bn-num) { font-family: var(--font-num); font-weight: 600; letter-spacing: -0.02em; }
 :root[data-style='bento'] :is(.card, .tile, .ex, .home-card, .notes-card, .stat, .plan, .option, .callout, .empty-card, .done-card, .live, .date-bar-title) { border-color: transparent; background-image: none; box-shadow: none; }
 :root[data-style='bento'] .btn { border-radius: 999px; border-color: transparent; background: var(--surface-2); font-weight: 700; }
