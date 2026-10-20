@@ -11,6 +11,7 @@ import { bodyWeightKg, burnFactor } from './burn.js';
 import { openEditDaysSheet } from './adjustui.js';
 import { photosCard } from './photosui.js';
 import { recordsCard, openLiftChart } from './prui.js';
+import { measureCard } from './measureui.js';
 import { weightCard, openWeightSheet } from './weightui.js';
 import { formatDelta } from './weight.js';
 import { liftFact } from './lift.js';
@@ -57,7 +58,7 @@ export function renderProgress(root, plan, goto) {
     ),
     h('p', { class: 'hint' }, `A day counts toward your streak when you finish at least ${STREAK_MIN_PCT}% of it.`),
     summaryCard(root, plan, records, today, goto),
-    ...[recordsCard(plan, records, today), weightCard(() => renderProgress(root, plan, goto)), photosCard()].filter(Boolean)
+    ...[recordsCard(plan, records, today), weightCard(() => renderProgress(root, plan, goto)), measureCard(() => renderProgress(root, plan, goto)), photosCard()].filter(Boolean)
   );
 
   // ----- calendar -----
