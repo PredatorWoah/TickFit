@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07090d">
   <!-- Privacy by construction: the browser itself refuses to talk to anyone except this site,
        plus Google's Gemini API (only used if YOU add your own key in More > AI helper). -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://generativelanguage.googleapis.com https://world.openfoodfacts.org; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://generativelanguage.googleapis.com https://world.openfoodfacts.org https://opencode.ai https://api.openai.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <script src="js/theme-boot.js"></script>
   <meta name="description" content="TickFit: a free, offline gym and meal checklist. No account, no tracking.">
   <title>TickFit</title>
@@ -83,6 +83,8 @@
   <link rel="modulepreload" href="js/reminders.js">
   <link rel="modulepreload" href="js/steps.js">
   <link rel="modulepreload" href="js/csv.js">
+  <link rel="modulepreload" href="js/llm.js">
+  <link rel="modulepreload" href="js/aisettings.js">
 </head>
 <body>
   <main id="app"></main>

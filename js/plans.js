@@ -234,7 +234,7 @@ export function renderImport(root, actions) {
     },
   });
 
-  // Optional: convert with the person's own Claude or Gemini key (set in More).
+  // Optional: convert with the person's own AI key (AI helpers in More).
   const ai = activeAI();
   const geminiBtn = ai
     ? h(
