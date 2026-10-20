@@ -196,7 +196,7 @@ function arenaHome(root, ctx, actions) {
           return h('li', { class: done ? 'done' : '' }, h('button', { type: 'button', class: 'ar-player', onclick: a.go, 'aria-label': `${w.exercise}${done ? ', done' : ''}. Open the workout` }, h('span', { class: 'ar-no' }, done ? icon('check', 18) : String(i + 1).padStart(2, '0')), h('span', { class: 'ar-name' }, w.exercise), h('span', { class: 'ar-sets' }, w.reps ? `${plannedSets(w)} × ${w.reps}` : `${plannedSets(w)} sets`)));
         })
       ),
-      h('button', { class: 'btn primary wide big ar-kick' + (a.live ? ' split' : ''), type: 'button', onclick: a.go }, icon(a.state === 'finished' ? 'check' : 'play', 22), h('span', {}, a.state === 'finished' ? 'Full time · view' : a.label === 'Start workout' ? 'Kick off' : 'Back in the game'), a.live && h('span', { class: 'cta-chip', 'aria-hidden': 'true' }, a.live)),
+      h('button', { class: 'btn primary wide big ar-kick' + (a.live ? ' split' : ''), type: 'button', onclick: a.go, 'aria-label': a.label }, icon(a.state === 'finished' ? 'check' : 'play', 22), h('span', {}, a.state === 'finished' ? 'Full time · view' : a.label === 'Start workout' ? 'Kick off' : 'Back in the game'), a.live && h('span', { class: 'cta-chip', 'aria-hidden': 'true' }, a.live)),
       pickButton(ctx, 'workout')
     );
   };
