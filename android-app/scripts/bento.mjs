@@ -1,11 +1,11 @@
 // bento.mjs
-// Every home screen widget comes twice in the widget list, a Pulse one and a Bento one. The Pulse layouts,
+// Every home screen widget comes twice in the widget list, a Arena one and a Bento one. The Arena layouts,
 // drawables and provider info in android-app/native/res are the only ones written by hand; this makes the Bento
 // twin of each one ("widget_ring" -> "widget_ring_bento", "widget_ring_info" -> "widget_ring_bento_info"):
 //
 //   * every @color/tf_x becomes @color/tb_x  (the Bento palette, values/widget_colors_bento.xml)
 //   * every @drawable/x becomes @drawable/x_bento
-//   * big numbers use a monospace font instead of the condensed one (Bento's Space Mono feel)
+//   * big numbers use the plain rounded system font instead of the condensed one (Bento's soft feel)
 //
 // A drawable that already has a hand-written "_bento" file (the outlined blocks) is left alone.
 // TickFitWidgets.java's Bento widgets (RingBento and so on) pick the Bento files by name.
@@ -18,7 +18,7 @@ const swap = (xml) =>
   xml
     .replace(/@color\/tf_(\w+)/g, '@color/tb_$1')
     .replace(/@drawable\/(\w+)/g, (m, name) => (name.endsWith('_bento') ? m : `@drawable/${name}_bento`))
-    .replace(/android:fontFamily="sans-serif-condensed"/g, 'android:fontFamily="monospace"');
+    .replace(/android:fontFamily="sans-serif-condensed"/g, 'android:fontFamily="sans-serif-medium"');
 
 /**
  * @param resDir  android-app/native/res

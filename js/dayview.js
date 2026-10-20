@@ -194,37 +194,6 @@ export function ring(size = 72) {
   };
 }
 
-/**
- * Pulse's day rings: three rings inside each other, one per goal (outside in: Move, Eat, Water).
- * set([pctMove, pctEat, pctWater]) with null for a goal the day does not have (its ring stays empty).
- */
-export function tripleRing(size = 140) {
-  const rings = [46, 34, 22].map((r, i) => {
-    const len = 2 * Math.PI * r;
-    const fill = svgCircle(`tri-fill tri-${i}`, 55, r);
-    fill.style.strokeDasharray = String(len);
-    fill.style.strokeDashoffset = String(len);
-    return { len, track: svgCircle(`tri-track tri-${i}`, 55, r), fill };
-  });
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 110 110');
-  svg.setAttribute('class', 'ring-svg');
-  for (const r of rings) svg.append(r.track, r.fill);
-  const el = h('div', { class: 'ring tri', role: 'img', style: `width:${size}px;height:${size}px` }, svg);
-  return {
-    el,
-    set(values) {
-      const names = ['Move', 'Eat', 'Water'];
-      values.forEach((v, i) => {
-        const pct = v === null ? 0 : Math.max(0, Math.min(100, v));
-        rings[i].fill.style.strokeDashoffset = String(rings[i].len * (1 - pct / 100));
-        rings[i].fill.classList.toggle('none', v === null);
-      });
-      el.setAttribute('aria-label', values.map((v, i) => `${names[i]} ${v === null ? 'not planned' : Math.round(v) + ' percent'}`).join(', '));
-    },
-  };
-}
-
 /** A big, tappable tile that ticks one item (a meal or a supplement). */
 export function tickTile(ctx, id, titleNodes, sub, extra) {
   const hit = h(

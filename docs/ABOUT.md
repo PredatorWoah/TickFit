@@ -4,7 +4,7 @@ Click the gear next to **About** on the repo's front page.
 
 **Description** (max 350 characters):
 
-> Free, open-source gym and meal tracker. Daily workout and meal checklist, set-by-set logging, PRs, plate math, grocery lists, meal swaps, barcode scan, progress photos, steps and reminders. No account, no backend, no tracking: everything stays on your phone and works offline. Web app (PWA) and Android app.
+> Free, open-source gym and meal tracker in three looks: Arena (a scoreboard), Deck (one card at a time) and Bento (soft tiles). Set-by-set logging, PRs, plate math, grocery lists, barcode scan, photos, steps, reminders. No account, no backend, no tracking: everything stays on your phone and works offline. Web app and Android app.
 
 **Website:** `https://predatorwoah.github.io/TickFit/`
 

@@ -19,7 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * TickFit's home screen widgets: six of them, each in the Pulse look and again in the Bento look. Each one
+ * TickFit's home screen widgets: six of them, each in the Arena look and again in the Bento look. Each one
  * only places text and numbers that the app already worked out (js/widgetdata.js), so the logic lives in one
  * place and is tested there.
  *
@@ -33,7 +33,7 @@ import org.json.JSONObject;
  * Tapping a widget opens the app on the right screen. Nothing here can crash the home screen: a problem
  * shows a small "Open TickFit" message instead.
  *
- * Pulse widgets use the layouts as written, with three rings for Move, Eat and Water. The Bento widgets
+ * Arena widgets use the layouts as written, with three rings for Move, Eat and Water. The Bento widgets
  * (RingBento and so on) use the "_bento" twin of each layout, drawable and colour, which
  * android-app/scripts/bento.mjs makes when the app is built. The person picks either from the widget list.
  */
@@ -54,7 +54,7 @@ public final class TickFitWidgets {
     public abstract static class Base extends AppWidgetProvider {
         abstract RemoteViews build(Context c, JSONObject s);
 
-        /** Which look this widget is drawn in. Each widget comes twice in the widget list: Pulse and Bento. */
+        /** Which look this widget is drawn in. Each widget comes twice in the widget list: Arena and Bento. */
         boolean bentoLook() {
             return false;
         }
@@ -65,7 +65,7 @@ public final class TickFitWidgets {
                 JSONObject s = WidgetStore.snapshot(c);
                 if (s == null) return message(c, bento, "Open TickFit once to set up this widget");
                 if (!WidgetStore.today().equals(s.optString("date"))) return message(c, bento, "Tap to load today in TickFit");
-                s.put("style", bento ? "bento" : "pulse"); // the drawing code below reads the look from here
+                s.put("style", bento ? "bento" : "arena"); // the drawing code below reads the look from here
                 return build(c, s);
             } catch (Exception e) {
                 return message(c, bento, "Tap to open TickFit");
@@ -256,7 +256,7 @@ public final class TickFitWidgets {
     private static RemoteViews message(Context c, boolean bento, String text) {
         JSONObject look = new JSONObject();
         try {
-            look.put("style", bento ? "bento" : "pulse");
+            look.put("style", bento ? "bento" : "arena");
         } catch (org.json.JSONException ignored) {
             // cannot happen with a plain string
         }
@@ -273,7 +273,7 @@ public final class TickFitWidgets {
         return s != null && "bento".equals(s.optString("style"));
     }
 
-    /** The Bento twin of a layout or drawable ("widget_ring" -> "widget_ring_bento"), or the Pulse one if missing. */
+    /** The Bento twin of a layout or drawable ("widget_ring" -> "widget_ring_bento"), or the Arena one if missing. */
     private static int twin(Context c, JSONObject s, int id, String type) {
         if (!bento(s)) return id;
         try {
@@ -293,7 +293,7 @@ public final class TickFitWidgets {
         return twin(c, s, id, "drawable");
     }
 
-    /** A colour from the look's palette: tf_x for Pulse, tb_x for Bento (each with its own dark version). */
+    /** A colour from the look's palette: tf_x for Arena, tb_x for Bento (each with its own dark version). */
     private static int color(Context c, JSONObject s, int id) {
         if (bento(s)) {
             try {
@@ -301,7 +301,7 @@ public final class TickFitWidgets {
                 int other = c.getResources().getIdentifier(name, "color", c.getPackageName());
                 if (other != 0) return c.getColor(other);
             } catch (RuntimeException ignored) {
-                // fall back to the Pulse colour
+                // fall back to the Arena colour
             }
         }
         return c.getColor(id);
@@ -340,7 +340,7 @@ public final class TickFitWidgets {
         return b;
     }
 
-    /** Pulse's three rings as a picture, outside in: Move (orange), Eat (cyan), Water (violet). -1 = not today. */
+    /** Arena's three rings as a picture, outside in: Move (yellow), Eat (blue), Water (violet). -1 = not today. */
     private static Bitmap tripleRingBitmap(Context c, JSONObject s, int sizeDp, int[] pcts) {
         float density = Math.min(3f, c.getResources().getDisplayMetrics().density);
         int px = Math.max(16, Math.round(sizeDp * density));
@@ -381,12 +381,12 @@ public final class TickFitWidgets {
     private static void ringInto(Context c, RemoteViews v, JSONObject s, int sizeDp, boolean longSub) {
         int[] n = ringNumbers(s);
         if (bento(s)) {
-            // Bento: one bold ring with a big % and "5 of 9" in the middle (the layout starts small, for Pulse)
+            // Bento: one bold ring with a big % and "5 of 9" in the middle (the layout starts small, for Arena)
             v.setImageViewBitmap(R.id.w_ring, ringBitmap(c, s, sizeDp, n[2]));
             v.setTextViewTextSize(R.id.w_pct, android.util.TypedValue.COMPLEX_UNIT_SP, sizeDp >= 110 ? 24 : 21);
             v.setViewVisibility(R.id.w_sub, View.VISIBLE);
         } else {
-            // Pulse: the day's % sits small in the middle of the three rings, the rings say the rest
+            // Arena: the day's % sits small in the middle of the three rings, the rings say the rest
             v.setImageViewBitmap(R.id.w_ring, tripleRingBitmap(c, s, sizeDp, ringPcts(s)));
             v.setTextViewTextSize(R.id.w_pct, android.util.TypedValue.COMPLEX_UNIT_SP, sizeDp >= 110 ? 15 : 13);
             v.setViewVisibility(R.id.w_sub, View.GONE);

@@ -24,6 +24,8 @@ import { parseRestSeconds, startRest } from './timer.js';
 import { fromStr, todayStr } from './dates.js';
 import { haptic } from './platform.js';
 import { createCtx, dateBar, pickButton, LOCALE } from './dayview.js';
+import { lookOf } from './theme.js';
+import { deckTitleSize } from './home.js';
 
 let clockTimer = null; // the 1 second tick for the running clock
 
@@ -111,7 +113,7 @@ export function renderWorkout(root, plan, date, goto) {
     const minutes = burn.adjustedMinutes ? burn.minutes : Math.round(workoutMs(rec) / 60000);
     const lines = cardLines({ label: day.label, dateText: fromStr(date).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' }), minutes, s, kcal: burn.kcal, best, records });
     try {
-      const blob = await drawCard(lines, document.documentElement.getAttribute('data-style') === 'bento' ? 'bento' : 'pulse');
+      const blob = await drawCard(lines, lookOf());
       const how = await shareImage(blob, `tickfit-workout-${date}.png`, 'My workout');
       if (how === 'downloaded') toast('Picture saved to Downloads');
     } catch {
@@ -218,12 +220,13 @@ export function renderWorkout(root, plan, date, goto) {
 
   // ----- the exercises -----
   let openId = (nextExercise(day, ctx.rec()) || {}).id || null; // the one that is open (one at a time)
+  let stayPut = false; // set while the Deck set card ticks a set, so the page doesn't scroll away from the card
   const items = new Map(); // exercise id -> { li, setOpen(bool) }
 
   function setOpenExercise(id, scroll) {
     openId = id;
     for (const [exId, item] of items) item.setOpen(exId === id);
-    if (id && scroll) {
+    if (id && scroll && !stayPut) {
       const li = items.get(id).li;
       setTimeout(() => li.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
     }
@@ -256,6 +259,45 @@ export function renderWorkout(root, plan, date, goto) {
     let warmOpen = false;
 
     const save = () => ctx.change((r) => saveRows(r, w, rows));
+
+    /** Tick (or untick) set i: rest timer, PR cheer, supersets and moving on to the next exercise. */
+    function toggleSet(i) {
+      const s = rows[i];
+      const best = timed ? null : bestBefore(plan, ctx.records(), date, w.exercise);
+      s.done = !s.done;
+      popIndex = s.done ? i : -1;
+      if (s.done) haptic();
+      // The first ticked set starts the workout clock, so you never have to press Start.
+      if (s.done && sessionState(ctx.rec()) === 'idle') ctx.change((r) => startSession(r));
+      save();
+      // A new personal best? (by estimated 1 rep max, against every earlier session)
+      if (s.done && !timed && isRecord(s, best)) {
+        haptic('success');
+        toast(`🏆 New personal best: ${w.exercise} ${s.w} kg × ${s.r}`, { ms: 3500 });
+      }
+      const autoRest = getState().settings.autoRest !== false;
+      if (s.done && group) {
+        // Superset: go straight to the next exercise of the group; rest only after the last one
+        const members = day.workout.slice(group.first, group.last + 1);
+        const unfinished = (x) => { const p = exerciseProgress(x, ctx.rec()); return p.done < p.total; };
+        const idx = number - 1;
+        const after = idx < group.last ? members.slice(idx + 1 - group.first).concat(members.slice(0, idx - group.first)) : members;
+        const nextInGroup = after.find(unfinished);
+        if (idx === group.last && nextInGroup && restSecs && autoRest) startRest(restSecs, `${group.letter} round done`);
+        drawBody();
+        const next = nextInGroup || nextExercise(day, ctx.rec());
+        if (next && next.id !== w.id) setOpenExercise(next.id, true);
+        else if (!next) setOpenExercise(null, true);
+        return;
+      }
+      if (s.done && restSecs && i < rows.length - 1 && autoRest) startRest(restSecs, `${w.exercise}, set ${i + 1} done`);
+      drawBody();
+      // Finished every set? Close this one and open the next exercise.
+      if (s.done && rows.every((x) => x.done)) {
+        const next = nextExercise(day, ctx.rec());
+        setOpenExercise(next ? next.id : null, true);
+      }
+    }
 
     function drawBody() {
       clear(body);
@@ -291,41 +333,7 @@ export function renderWorkout(root, plan, date, goto) {
             role: 'checkbox',
             'aria-checked': String(s.done),
             'aria-label': `Set ${i + 1} done`,
-            onclick: () => {
-              s.done = !s.done;
-              popIndex = s.done ? i : -1;
-              if (s.done) haptic();
-              // The first ticked set starts the workout clock, so you never have to press Start.
-              if (s.done && sessionState(ctx.rec()) === 'idle') ctx.change((r) => startSession(r));
-              save();
-              // A new personal best? (by estimated 1 rep max, against every earlier session)
-              if (s.done && !timed && isRecord(s, best)) {
-                haptic('success');
-                toast(`🏆 New personal best: ${w.exercise} ${s.w} kg × ${s.r}`, { ms: 3500 });
-              }
-              const autoRest = getState().settings.autoRest !== false;
-              if (s.done && group) {
-                // Superset: go straight to the next exercise of the group; rest only after the last one
-                const members = day.workout.slice(group.first, group.last + 1);
-                const unfinished = (x) => { const p = exerciseProgress(x, ctx.rec()); return p.done < p.total; };
-                const idx = number - 1;
-                const after = idx < group.last ? members.slice(idx + 1 - group.first).concat(members.slice(0, idx - group.first)) : members;
-                const nextInGroup = after.find(unfinished);
-                if (idx === group.last && nextInGroup && restSecs && autoRest) startRest(restSecs, `${group.letter} round done`);
-                drawBody();
-                const next = nextInGroup || nextExercise(day, ctx.rec());
-                if (next && next.id !== w.id) setOpenExercise(next.id, true);
-                else if (!next) setOpenExercise(null, true);
-                return;
-              }
-              if (s.done && restSecs && i < rows.length - 1 && autoRest) startRest(restSecs, `${w.exercise}, set ${i + 1} done`);
-              drawBody();
-              // Finished every set? Close this one and open the next exercise.
-              if (s.done && rows.every((x) => x.done)) {
-                const next = nextExercise(day, ctx.rec());
-                setOpenExercise(next ? next.id : null, true);
-              }
-            },
+            onclick: () => toggleSet(i),
           },
           icon('check', 26)
         );
@@ -451,6 +459,24 @@ export function renderWorkout(root, plan, date, goto) {
           drawBody();
         }
       },
+      // for the Deck set card: the sets as they are now, and ticking one exactly like its own check button
+      peek() {
+        if (!rows) rows = rowsFor(ctx.rec(), w, last());
+        return { w, rows, timed, label, hint: timed ? null : suggestNext(w, last()) };
+      },
+      tickSet(i, kg, reps) {
+        if (!rows) rows = rowsFor(ctx.rec(), w, last());
+        if (i === rows.length && rows.length) rows.push({ ...rows[rows.length - 1], done: false }); // one more set than saved
+        if (!rows[i] || rows[i].done) return;
+        if (kg !== undefined) rows[i].w = kg;
+        if (reps !== undefined) rows[i].r = reps;
+        stayPut = true;
+        try {
+          toggleSet(i);
+        } finally {
+          stayPut = false;
+        }
+      },
     });
 
     ctx.refreshers.push(() => {
@@ -487,10 +513,109 @@ export function renderWorkout(root, plan, date, goto) {
     ctx.goto(date);
   }
 
+  const look = lookOf();
+  const lookTop = look === 'deck' ? setCard() : look === 'arena' ? arenaStrip() : null;
+  if (lookTop) stateArea.after(lookTop);
   root.append(h('ul', { class: 'exlist' }, day.workout.map((w, i) => exerciseItem(w, i + 1))));
+  if (look === 'arena') root.append(playByPlay());
 
   ctx.refresh();
   setOpenExercise(openId, false);
+
+  // ----- Arena: the scoreboard strip and the play by play -----
+  function arenaStrip() {
+    const cell = (name) => {
+      const v = h('b', {});
+      return { el: h('div', { class: 'ar-cell' }, h('small', {}, name), v), v };
+    };
+    const play = cell('PLAY');
+    const sets = cell('SETS');
+    const kg = cell('KG MOVED');
+    const el = h('div', { class: 'ar-strip', role: 'group', 'aria-label': 'Score' }, play.el, sets.el, kg.el);
+    ctx.refreshers.push(() => {
+      const rec = ctx.rec();
+      const s = workoutSummary(day, rec);
+      const next = nextExercise(day, rec);
+      play.v.textContent = `${next ? day.workout.indexOf(next) + 1 : day.workout.length} / ${day.workout.length}`;
+      sets.v.textContent = `${s.setsDone} / ${s.setsTotal}`;
+      kg.v.textContent = s.volumeKg ? s.volumeKg.toLocaleString() : '0';
+    });
+    return el;
+  }
+  function playByPlay() {
+    const list = h('ol', { class: 'ar-feed' });
+    const el = h('section', { class: 'sec ar-feed-sec' }, h('div', { class: 'sec-head' }, h('h2', { class: 'sec-title' }, 'Play by play')), list);
+    ctx.refreshers.push(() => {
+      const rec = ctx.rec();
+      const plays = [];
+      day.workout.forEach((w) => {
+        const best = bestBefore(plan, ctx.records(), date, w.exercise);
+        ((rec.sets && rec.sets[w.id]) || []).forEach((x, i) => {
+          if (x && x.done) plays.push({ text: `${w.exercise} · set ${i + 1}`, num: x.w > 0 && x.r > 0 ? `${x.w} × ${x.r}` : x.r > 0 ? `${x.r} reps` : 'done', pr: x.w > 0 && x.r > 0 && isRecord(x, best) });
+        });
+      });
+      list.replaceChildren(...(plays.length ? plays.reverse().slice(0, 8).map((p) => h('li', { class: p.pr ? 'pr' : '' }, h('span', { class: 'ar-feed-text' }, p.text), h('span', { class: 'ar-feed-num' }, p.num), p.pr ? h('span', { class: 'ar-feed-tag' }, 'NEW PR') : null)) : [h('li', { class: 'empty' }, h('span', {}, 'No sets yet. Kick off with the first one.'))]));
+    });
+    return el;
+  }
+
+  // ----- Deck: the next set as one big card -----
+  function setCard() {
+    const host = h('section', { class: 'dk-setcard-host', 'aria-label': 'Next set' });
+    let kg = null; // what the card shows; reset whenever the set changes
+    let reps = null;
+    let key = '';
+    const draw = () => {
+      const rec = ctx.rec();
+      const next = nextExercise(day, rec);
+      if (!next) {
+        host.replaceChildren(h('div', { class: 'dk-card k-clear dk-setcard' }, h('span', { class: 'dk-tag' }, 'DECK FINISHED'), h('h2', { class: 'dk-title' }, 'Every set done'), h('p', { class: 'dk-foot' }, sessionState(rec) === 'active' ? 'Tap Finish workout below to see your summary.' : 'Nice work.')));
+        return;
+      }
+      const item = items.get(next.id);
+      const p = item.peek();
+      let i = p.rows.findIndex((x) => !x.done);
+      if (i < 0) i = p.rows.length; // every saved set is done but the exercise isn't: offer one more
+      const row = p.rows[i] || { ...(p.rows[p.rows.length - 1] || {}), done: false };
+      const setsShown = Math.max(p.rows.length, i + 1, plannedSets(next));
+      const nowKey = `${next.id}:${i}`;
+      if (nowKey !== key) {
+        key = nowKey;
+        kg = row.w ?? (p.hint ? p.hint.kg : null);
+        reps = row.r ?? repsTarget(next.reps);
+      }
+      const step = kg !== null && kg < 10 ? 1 : 2.5;
+      const plates = !p.timed && kg > 0 ? platesPerSide(kg, barKg()) : null;
+      const target = repsTarget(next.reps) || reps || 10;
+      const choices = [...new Set([target - 2, target - 1, target, target + 1, target + 2].filter((n) => n > 0))];
+      if (reps !== null && !choices.includes(reps)) choices.push(reps), choices.sort((a, b) => a - b);
+      host.replaceChildren(
+        h(
+          'div',
+          { class: 'dk-card k-workout dk-setcard' },
+          h('div', { class: 'dk-setcard-top' }, h('span', { class: 'dk-tag' }, `SET ${i + 1} OF ${setsShown}`), p.label && h('span', { class: 'dk-small' }, `${day.workout.indexOf(next) + 1} of ${day.workout.length}`)),
+          h('h2', { class: 'dk-title', style: `font-size:${deckTitleSize(next.exercise, 32)}px` }, next.exercise),
+          p.timed
+            ? h('p', { class: 'dk-big' }, next.reps)
+            : [
+                plates && plates.plates.length > 0 && h('div', { class: 'dk-bar', role: 'img', 'aria-label': `Each side: ${plates.plates.join(' + ')} kg` }, [...plates.plates].reverse().map((x) => h('i', { class: `dkp p${String(x).replace('.', '_')}` })), h('b', {}), plates.plates.map((x) => h('i', { class: `dkp p${String(x).replace('.', '_')}` }))),
+                plates && plates.plates.length > 0 && h('p', { class: 'dk-small center' }, `Each side: ${plates.plates.join(' + ')} kg`),
+                h(
+                  'div',
+                  { class: 'dk-weight' },
+                  h('button', { class: 'round', type: 'button', 'aria-label': `${step} kilogram${step === 1 ? '' : 's'} less`, onclick: () => ((kg = Math.max(0, Math.round(((kg || 0) - step) * 100) / 100)), draw()) }, icon('minus', 22)),
+                  h('span', { class: 'dk-big' }, kg === null ? '–' : String(kg), h('small', {}, ' kg')),
+                  h('button', { class: 'round', type: 'button', 'aria-label': `${step} kilogram${step === 1 ? '' : 's'} more`, onclick: () => ((kg = Math.round(((kg || 0) + step) * 100) / 100), draw()) }, icon('plus', 22))
+                ),
+                h('div', { class: 'dk-reps', role: 'group', 'aria-label': 'Reps done' }, choices.map((n) => h('button', { type: 'button', 'aria-pressed': String(n === reps), onclick: () => ((reps = n), draw()) }, String(n)))),
+              ],
+          h('button', { class: 'btn primary wide big dk-done-set', type: 'button', onclick: () => item.tickSet(i, p.timed ? undefined : kg, p.timed ? undefined : reps) }, icon('check', 22), p.timed ? 'Done' : kg ? `Done: ${kg} kg × ${reps ?? '?'}` : `Done: ${reps ?? '?'} reps`)
+        )
+      );
+    };
+    ctx.refreshers.push(draw);
+    return host;
+  }
 }
 
 const barKg = () => {

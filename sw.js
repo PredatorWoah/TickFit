@@ -11,7 +11,7 @@
 // CACHE_VERSION when you want everyone's cache rebuilt. (vendor/pdfjs is deliberately NOT listed: it is
 // big, so it is cached the first time someone uploads a PDF instead.) `node tests/check-sw.mjs` checks the list.
 
-const CACHE_VERSION = 'tickfit-v17';
+const CACHE_VERSION = 'tickfit-v18';
 const NETWORK_TIMEOUT_MS = 3000;
 
 const APP_FILES = [
@@ -19,14 +19,20 @@ const APP_FILES = [
   'index.html',
   'manifest.webmanifest',
   'css/styles.css',
-  'fonts/barlow-condensed-latin-700-normal.woff2',
-  'fonts/barlow-condensed-latin-800-normal.woff2',
-  'fonts/manrope-latin-500-normal.woff2',
-  'fonts/manrope-latin-700-normal.woff2',
-  'fonts/manrope-latin-800-normal.woff2',
-  'fonts/space-grotesk-latin-500-normal.woff2',
-  'fonts/space-grotesk-latin-700-normal.woff2',
-  'fonts/space-mono-latin-700-normal.woff2',
+  'css/arena.css',
+  'css/deck.css',
+  'css/bento.css',
+  'fonts/archivo-latin-wdth-normal.woff2',
+  'fonts/big-shoulders-display-latin-800-normal.woff2',
+  'fonts/big-shoulders-display-latin-900-normal.woff2',
+  'fonts/figtree-latin-500-normal.woff2',
+  'fonts/figtree-latin-700-normal.woff2',
+  'fonts/figtree-latin-800-normal.woff2',
+  'fonts/fredoka-latin-wght-normal.woff2',
+  'fonts/ibm-plex-mono-latin-600-normal.woff2',
+  'fonts/ibm-plex-mono-latin-700-normal.woff2',
+  'fonts/ibm-plex-sans-latin-500-normal.woff2',
+  'fonts/ibm-plex-sans-latin-700-normal.woff2',
   'js/app.js',
   'js/backup.js',
   'js/aiassist.js',

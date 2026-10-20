@@ -1,68 +1,75 @@
 /* styles.css
-   Phone first, bold and sporty, in two looks you can switch in More: Pulse (the default) and Bento.
-   Section 1 holds the Pulse colours and fonts; section 12 re-skins everything for Bento.
+   Phone first and bold, in three looks you can switch in More. This file holds everything they share, with
+   Arena's colours and fonts as the defaults; each look then has its own layer, scoped to its data-style:
+     css/arena.css  Arena (the default)  a scoreboard: deep navy, scoreboard yellow, tall stadium numbers
+     css/deck.css   Deck                 one big card at a time: solid colour cards, wide heavy type
+     css/bento.css  Bento                soft pastel tiles in a grid, rounded type, no outlines
 
    Sections: 1 tokens and fonts  2 base  3 buttons and forms  4 Today  5 Workout  6 Meals and tiles
              7 sheets and timers  8 Progress  9 Plans, welcome, editor, builder  10 nav, toast
-             (then smaller feature blocks)  11 Pulse touches  12 Bento */
+             (then smaller feature blocks) */
 
 /* ---------- 1. tokens ---------- */
-/* Two looks, switched in More (data-style on <html>, set by js/theme-boot.js and js/theme.js):
-     Pulse (the default)  dark and sporty: deep navy, hot orange, tall condensed numbers
-     Bento                bright blocks: cream paper, thick black outlines, pink / yellow / blue
-   Each look has a dark and a light theme (data-theme). The Pulse tokens are here; Bento's are in section 12.
-   Fonts are bundled in fonts/ (SIL Open Font License), so nothing is fetched from anyone else. */
-@font-face { font-family: 'Manrope'; font-weight: 500; font-display: swap; src: url('../fonts/manrope-latin-500-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Manrope'; font-weight: 600 700; font-display: swap; src: url('../fonts/manrope-latin-700-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Manrope'; font-weight: 800 900; font-display: swap; src: url('../fonts/manrope-latin-800-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Barlow Condensed'; font-weight: 600 700; font-display: swap; src: url('../fonts/barlow-condensed-latin-700-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Barlow Condensed'; font-weight: 800 900; font-display: swap; src: url('../fonts/barlow-condensed-latin-800-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Space Grotesk'; font-weight: 400 500; font-display: swap; src: url('../fonts/space-grotesk-latin-500-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Space Grotesk'; font-weight: 600 900; font-display: swap; src: url('../fonts/space-grotesk-latin-700-normal.woff2') format('woff2'); }
-@font-face { font-family: 'Space Mono'; font-weight: 400 900; font-display: swap; src: url('../fonts/space-mono-latin-700-normal.woff2') format('woff2'); }
+/* Fonts are bundled in fonts/ (SIL Open Font License), so nothing is fetched from anyone else. */
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 400 500; font-display: swap; src: url('../fonts/ibm-plex-sans-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-weight: 600 900; font-display: swap; src: url('../fonts/ibm-plex-sans-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 400 600; font-display: swap; src: url('../fonts/ibm-plex-mono-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-weight: 700 900; font-display: swap; src: url('../fonts/ibm-plex-mono-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Big Shoulders Display'; font-weight: 600 800; font-display: swap; src: url('../fonts/big-shoulders-display-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Big Shoulders Display'; font-weight: 900; font-display: swap; src: url('../fonts/big-shoulders-display-latin-900-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; src: url('../fonts/archivo-latin-wdth-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Fredoka'; font-weight: 300 700; font-display: swap; src: url('../fonts/fredoka-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-weight: 400 500; font-display: swap; src: url('../fonts/figtree-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-weight: 600 700; font-display: swap; src: url('../fonts/figtree-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-weight: 800 900; font-display: swap; src: url('../fonts/figtree-latin-800-normal.woff2') format('woff2'); }
 
+/* Arena, dark (the default look and theme) */
 :root {
-  --bg: #07090d;
-  --surface: #12151c;
-  --surface-2: #1b1f29;
-  --surface-3: #232835;
-  --line: rgba(255, 255, 255, 0.07);
-  --text: #f3f5f8;
-  --muted: #8b93a3;
-  --accent: #ff6a2b;
-  --accent-ink: #1a0a00;
-  --accent-text: #ff8a52; /* the accent when it is used for text on the page */
+  --bg: #0a0e18;
+  --surface: #121a2b;
+  --surface-2: #18223a;
+  --surface-3: #22304b;
+  --line: rgba(143, 153, 176, 0.16);
+  --text: #e8ecf5;
+  --muted: #8f99b0;
+  --accent: #ffc23d;
+  --accent-ink: #1a1200;
+  --accent-text: #ffc23d; /* the accent when it is used for text on the page */
   --danger: #ff7a7a;
   --warn: #ffc44d;
-  --water: #a78bfa;
-  --eat: #2ec4ff;
-  --radius: 24px;
-  --radius-sm: 16px;
+  --water: #9b8cff;
+  --eat: #59b8ff;
+  --live: #ff4d3d;
+  --radius: 20px;
+  --radius-sm: 14px;
   --tap: 56px;
   --nav-h: 66px;
   --nav-lift: 10px; /* the tab bar floats this far above the bottom edge */
   --base-font: 'Noto Sans', 'Noto Sans Devanagari', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font: 'Manrope', var(--base-font);
-  --font-display: 'Barlow Condensed', var(--font); /* big titles */
-  --font-num: 'Barlow Condensed', var(--font); /* big numbers */
+  --font: 'IBM Plex Sans', var(--base-font);
+  --font-display: 'Big Shoulders Display', var(--font); /* big titles */
+  --font-num: 'Big Shoulders Display', var(--font); /* big numbers */
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace; /* labels and small numbers */
   color-scheme: dark;
 }
 
+/* Arena, light */
 :root[data-theme='light'] {
-  --bg: #f4f2ee;
+  --bg: #eef1f6;
   --surface: #ffffff;
-  --surface-2: #efebe4;
-  --surface-3: #e3ddd2;
-  --line: rgba(0, 0, 0, 0.08);
-  --text: #12151c;
-  --muted: #5b6270;
-  --accent: #e8590c;
-  --accent-ink: #ffffff;
-  --accent-text: #b8420a;
+  --surface-2: #e4e9f2;
+  --surface-3: #d5dce8;
+  --line: rgba(10, 14, 24, 0.1);
+  --text: #0a0e18;
+  --muted: #4e5870;
+  --accent: #ffc23d;
+  --accent-ink: #1a1200;
+  --accent-text: #8a5d00;
   --danger: #b91c1c;
   --warn: #92400e;
-  --water: #6d28d9;
-  --eat: #0369a1;
+  --water: #5b3fd6;
+  --eat: #0b62b8;
+  --live: #d92d1f;
   color-scheme: light;
 }
 
@@ -228,7 +235,8 @@ details.callout summary { min-height: 48px; display: flex; align-items: center; 
 details.callout p { margin: 0 0 12px; white-space: pre-line; }
 
 .sec { margin: 26px 0 0; }
-.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 4px 10px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin: 0 4px 10px; }
+.sec-head > * { min-width: 0; overflow-wrap: anywhere; }
 .sec-title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; text-transform: none; color: var(--text); }
 
 /* ---------- 5. Workout mode ---------- */
@@ -352,6 +360,8 @@ details.callout p { margin: 0 0 12px; white-space: pre-line; }
 .rest-title { font-size: 13px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rest-clock { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; letter-spacing: -0.02em; }
 @keyframes pulse { 50% { transform: scale(1.03); } }
+.rest-btns { display: flex; gap: 8px; flex: none; }
+.rest-ring, .rest-hide { display: none; } /* Arena shows the ring, Deck the Hide button (arena.css, deck.css) */
 
 /* ---------- 8. Progress ---------- */
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -718,268 +728,28 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .lib-row .btn { flex: none; }
 .lib-row .btn[disabled] { opacity: 1; color: var(--accent); background: transparent; border-color: transparent; }
 
-/* =====================================================================
-   11. Pulse touches (the default look). Most of Pulse is just the tokens in
-   section 1; these are the few places it differs in shape.
-   ===================================================================== */
-:root:not([data-style='bento']) .page-title,
-:root:not([data-style='bento']) .date-main,
-:root:not([data-style='bento']) .wk-title { text-transform: uppercase; font-weight: 800; letter-spacing: 0.005em; }
-:root:not([data-style='bento']) .page-title { font-size: 40px; }
-:root:not([data-style='bento']) .date-main { font-size: 50px; line-height: 0.95; }
-:root:not([data-style='bento']) .wk-title { font-size: 38px; line-height: 1; }
-:root:not([data-style='bento']) h2:not(.sec-title):not(.sheet-title):not(.cal-title) { letter-spacing: 0.14em; font-weight: 800; }
-:root:not([data-style='bento']) .ring-pct { font-size: 38px; font-weight: 800; letter-spacing: 0; }
-:root:not([data-style='bento']) .stat-value, :root:not([data-style='bento']) .meter-val, :root:not([data-style='bento']) .water-val { font-size: 36px; letter-spacing: 0; }
-:root:not([data-style='bento']) .set-in { font-size: 32px; letter-spacing: 0; }
-:root:not([data-style='bento']) .sum-hero-num { font-size: 66px; letter-spacing: 0; }
-:root:not([data-style='bento']) .clock.big, :root:not([data-style='bento']) .rest-clock { font-size: 38px; letter-spacing: 0; }
-:root:not([data-style='bento']) .hero-card { border-color: var(--line); background: var(--surface); }
-:root:not([data-style='bento']) .ring-fill { stroke-width: 8; }
-:root:not([data-style='bento']) .ring-track { stroke-width: 8; }
-:root:not([data-style='bento']) .streak { background: color-mix(in srgb, var(--accent) 16%, var(--bg)); color: var(--accent-text); }
-:root:not([data-style='bento']) .streak span { color: inherit; }
-:root:not([data-style='bento']) .chip.sel { box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--accent) 80%, transparent); }
-:root:not([data-style='bento']) #nav { justify-content: space-between; align-items: center; padding: 8px; border-radius: 28px; }
-:root:not([data-style='bento']) .tab { flex: 0 0 48px; height: 48px; border-radius: 22px; }
-:root:not([data-style='bento']) .tab::before { display: none; }
-/* only the open tab shows its name, in an orange pill; the others are icons (their names stay readable to screen readers) */
-:root:not([data-style='bento']) .tab:not(.active) > span:not(.tab-dot) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-:root:not([data-style='bento']) .tab.active { flex: 0 0 auto; flex-direction: row; gap: 6px; padding: 0 16px; background: var(--accent); color: var(--accent-ink); font-size: 14px; font-weight: 800; }
-:root:not([data-style='bento']) .tab.active > svg { transform: none; }
-:root:not([data-style='bento']) .tab-dot { top: 4px; left: 30px; }
-
-/* Pulse colour code: orange = Move (workout), cyan = Eat (meals), violet = Water */
-.tri-card { flex-wrap: wrap; gap: 4px 16px; }
-.tri-head { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.tri-head .hero-status { margin: 0 0 6px; font-size: 14px; }
-.tri-track, .tri-fill { fill: none; stroke-width: 10; }
-.tri-fill { stroke-linecap: round; transition: stroke-dashoffset 0.8s var(--ease); }
-.tri-fill.none { stroke-linecap: butt; }
-.tri-track.tri-0 { stroke: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
-.tri-track.tri-1 { stroke: color-mix(in srgb, var(--eat) 18%, var(--surface)); }
-.tri-track.tri-2 { stroke: color-mix(in srgb, var(--water) 20%, var(--surface)); }
-.tri-fill.tri-0 { stroke: var(--accent); }
-.tri-fill.tri-1 { stroke: var(--eat); }
-.tri-fill.tri-2 { stroke: var(--water); }
-.ring.tri.complete .ring-svg { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 55%, transparent)); }
-.tri-legend { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 10px; }
-.tri-row small { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; }
-.tri-move small { color: var(--accent-text); }
-.tri-eat small { color: var(--eat); }
-.tri-water small { color: var(--water); }
-.tri-num { font-family: var(--font-num); font-size: 26px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.tri-num span { color: var(--muted); }
 .btn.split { justify-content: space-between; padding: 0 10px 0 22px; }
 .cta-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 16px; background: rgba(0, 0, 0, 0.14); font-family: var(--font-num); font-size: 22px; font-variant-numeric: tabular-nums; }
-:root[data-style='bento'] .cta-chip { background: transparent; border: 2px solid currentColor; font-size: 18px; padding: 6px 10px; border-radius: 10px; }
-:root:not([data-style='bento']) .meal-card .bar-fill { background: var(--eat); }
-:root:not([data-style='bento']) .meal-card .hc-next b { color: var(--eat); }
-:root:not([data-style='bento']) .wk-card .hc-icon { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
-:root:not([data-style='bento']) .tile.done .check { background: var(--eat); border-color: var(--eat); color: #00141c; }
-:root:not([data-style='bento']) .tile .time, :root:not([data-style='bento']) .tile-prog { color: var(--eat); }
-:root:not([data-style='bento']) .meter-fill { background: var(--eat); }
-:root:not([data-style='bento']) .tile.water .round.primary { background: var(--water); border-color: var(--water); color: #12082a; }
-:root:not([data-style='bento']) .tile.water .bar-fill.complete { background: var(--water); }
-:root:not([data-style='bento']) .stat:nth-child(3n + 2) .stat-icon { color: var(--eat); }
-:root:not([data-style='bento']) .stat:nth-child(3n) .stat-icon { color: var(--water); }
-:root[data-theme='light']:not([data-style='bento']) .tile.done .check { color: #ffffff; }
-:root[data-theme='light']:not([data-style='bento']) .tile.water .round.primary { color: #ffffff; }
 
 /* The Look picker in More */
-.style-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 14px; }
-.style-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; min-height: 112px; text-align: left; border-radius: var(--radius-sm); border: 2px solid var(--line); background: var(--surface-2); color: var(--text); }
+.style-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 6px 0 14px; }
+.style-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; padding: 10px; min-height: 120px; text-align: left; border-radius: var(--radius-sm); border: 2px solid var(--line); background: var(--surface-2); color: var(--text); }
 .style-opt[aria-pressed='true'] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
-.style-opt b { font-size: 17px; }
-.style-opt small { color: var(--muted); font-size: 13px; line-height: 1.3; }
+.style-opt b { font-size: 16px; }
+.style-opt small { color: var(--muted); font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
 .style-swatch { display: flex; gap: 4px; margin-bottom: 6px; }
-.style-swatch i { width: 22px; height: 22px; border-radius: 7px; }
-.style-pulse .style-swatch i:nth-child(1) { background: #07090d; border: 1px solid #3a404e; }
-.style-pulse .style-swatch i:nth-child(2) { background: #ff6a2b; }
-.style-pulse .style-swatch i:nth-child(3) { background: #2ec4ff; border-radius: 50%; }
-.style-bento .style-swatch i { border: 2px solid #111; }
-.style-bento .style-swatch i:nth-child(1) { background: #ff4f8b; }
-.style-bento .style-swatch i:nth-child(2) { background: #ffd23f; }
-.style-bento .style-swatch i:nth-child(3) { background: #3d5afe; }
+.style-swatch i { width: 18px; height: 18px; border-radius: 6px; }
+.style-arena .style-swatch i:nth-child(1) { background: #0a0e18; border: 1px solid #3a4560; }
+.style-arena .style-swatch i:nth-child(2) { background: #ffc23d; }
+.style-arena .style-swatch i:nth-child(3) { background: #ff4d3d; border-radius: 50%; }
+.style-deck .style-swatch i:nth-child(1) { background: #ff5a1f; }
+.style-deck .style-swatch i:nth-child(2) { background: #00a884; }
+.style-deck .style-swatch i:nth-child(3) { background: #2e5bff; }
+.style-bento .style-swatch i { border-radius: 50%; }
+.style-bento .style-swatch i:nth-child(1) { background: #bfead3; }
+.style-bento .style-swatch i:nth-child(2) { background: #dcd2ff; }
+.style-bento .style-swatch i:nth-child(3) { background: #ffd2bc; }
 .sub-h { margin-top: 4px; }
-
-/* =====================================================================
-   12. Bento. Cream paper, thick outlines, hard offset shadows, colour blocks.
-   Everything is scoped to [data-style='bento'], so Pulse never sees it.
-   ===================================================================== */
-:root[data-style='bento'] {
-  --bg: #fff4dc;
-  --surface: #ffffff;
-  --surface-2: #fffaf0;
-  --surface-3: #f3e6c8;
-  --line: #111111;
-  --ink: #111111; /* outlines and hard shadows */
-  --on-block: #111111; /* text on the pink / yellow blocks */
-  --text: #111111;
-  --muted: #4d4636;
-  --accent: #ff4f8b;
-  --accent-ink: #111111;
-  --accent-text: #b5124f;
-  --yellow: #ffd23f;
-  --blue: #3d5afe;
-  --danger: #c81e1e;
-  --warn: #8a5a00;
-  --water: #3d5afe;
-  --eat: #3d5afe;
-  --bw: 2.5px;
-  --hard: 4px 4px 0 var(--ink);
-  --radius: 22px;
-  --radius-sm: 14px;
-  --lift: var(--hard);
-  --font: 'Space Grotesk', var(--base-font);
-  --font-display: 'Space Grotesk', var(--base-font);
-  --font-num: 'Space Mono', ui-monospace, monospace;
-  color-scheme: light;
-}
-:root[data-style='bento'][data-theme='dark'] {
-  --bg: #16140f;
-  --surface: #221f18;
-  --surface-2: #2b271e;
-  --surface-3: #3b3527;
-  --line: #f5ecd6;
-  --ink: #f5ecd6;
-  --text: #f5ecd6;
-  --muted: #c2b89f;
-  --accent-text: #ff7aa8;
-  --blue: #5c76ff;
-  --danger: #ff8a8a;
-  --warn: #ffc44d;
-  --water: #8fa2ff;
-  --eat: #8fa2ff;
-  --hard: 4px 4px 0 #000;
-  --lift: var(--hard);
-  color-scheme: dark;
-}
-
-/* paper with a faint dot grid instead of the glow */
-:root[data-style='bento'] body::before { background: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1.2px, transparent 1.4px) 0 0 / 22px 22px; }
-:root[data-style='bento'] .page-title, :root[data-style='bento'] .date-main, :root[data-style='bento'] .wk-title { font-weight: 700; letter-spacing: -0.03em; }
-:root[data-style='bento'] .date-main { font-size: 44px; }
-:root[data-style='bento'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { color: var(--text); font-weight: 700; letter-spacing: 0.08em; }
-:root[data-style='bento'] .ring-pct, :root[data-style='bento'] .stat-value, :root[data-style='bento'] .meter-val, :root[data-style='bento'] .water-val, :root[data-style='bento'] .sum-num, :root[data-style='bento'] .sum-hero-num, :root[data-style='bento'] .set-in, :root[data-style='bento'] .clock { font-weight: 700; letter-spacing: -0.04em; }
-
-/* blocks: thick outline + hard shadow, no soft gradients */
-:root[data-style='bento'] :is(.card, .tile, .ex, .home-card, .notes-card, .stat, .plan, .option, .q, .meters, .empty-card, .live, .done-card, .callout, .hero-card, .lib-row, .merge-row, .nudge, .date-bar-title, .sum-tile, .fact) {
-  border: var(--bw) solid var(--ink); box-shadow: var(--hard); background-image: none;
-}
-:root[data-style='bento'] :is(.sum-tile, .lib-row, .merge-row, .date-bar-title, .fact) { box-shadow: none; }
-:root[data-style='bento'] .callout, :root[data-style='bento'] .notes-card { border-left-width: 8px; }
-:root[data-style='bento'] .ex.open { box-shadow: 6px 6px 0 var(--accent); border-color: var(--ink); }
-
-/* Today: the coloured bento tiles */
-:root[data-style='bento'] .hero-card { background: var(--yellow); color: var(--on-block); }
-:root[data-style='bento'] .hero-card .ring-sub, :root[data-style='bento'] .hero-card .hero-status { color: var(--on-block); opacity: 0.8; }
-:root[data-style='bento'] .hero-card .hero-status.good { color: var(--on-block); opacity: 1; }
-:root[data-style='bento'] .hero-card .ring-track { stroke: #ffffff; stroke-width: 9; }
-:root[data-style='bento'] .hero-card .ring-fill { stroke: #111111; stroke-width: 9; stroke-linecap: butt; }
-:root[data-style='bento'] .ring.complete .ring-svg { filter: none; }
-:root[data-style='bento'] .wk-card { background: var(--accent); color: var(--on-block); }
-:root[data-style='bento'] .wk-card .hc-text span { color: var(--on-block); opacity: 0.8; }
-:root[data-style='bento'] .wk-card .btn:not(.primary), :root[data-style='bento'] .wk-card .pick-btn { background: #fff4dc; color: #111111; border-color: #111111; }
-:root[data-style='bento'] .wk-card .btn.primary { background: #111111; color: #fff4dc; box-shadow: 4px 4px 0 #fff4dc; }
-:root[data-style='bento'] .wk-card .hc-icon { background: #fff4dc; color: #111111; border-color: #111111; }
-:root[data-style='bento'] .hc-icon, :root[data-style='bento'] .option-icon, :root[data-style='bento'] .empty-icon, :root[data-style='bento'] .fact-icon { background: var(--yellow); color: #111111; border: 2px solid var(--ink); border-radius: 14px; }
-:root[data-style='bento'] .hc-icon.meal { background: var(--blue); color: #ffffff; }
-:root[data-style='bento'] .streak { transform: rotate(-6deg); background: var(--yellow); color: #111111; border: var(--bw) solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); }
-:root[data-style='bento'] .streak span { color: #111111; }
-:root[data-style='bento'] .plan-chip { border: 2px solid var(--ink); color: var(--text); background: var(--surface); }
-
-/* week strip */
-:root[data-style='bento'] .chip { border: 2px solid var(--ink); border-radius: 16px; background: var(--surface); }
-:root[data-style='bento'] .chip.is-today { box-shadow: 3px 3px 0 var(--ink); }
-:root[data-style='bento'] .chip.sel { background: var(--accent); color: #111111; border-color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
-:root[data-style='bento'] .dot.part { background: var(--accent); }
-:root[data-style='bento'] .dot.full { background: var(--ink); }
-:root[data-style='bento'] .chip.sel .dot.full, :root[data-style='bento'] .chip.sel .dot.part { background: #111111; }
-
-/* buttons and inputs */
-:root[data-style='bento'] .btn { border: var(--bw) solid var(--ink); border-radius: 14px; background: var(--surface); }
-:root[data-style='bento'] .btn.primary { background: var(--ink); background-image: none; border-color: var(--ink); color: var(--bg); box-shadow: 4px 4px 0 var(--accent); }
-:root[data-style='bento'] .btn.ghost { background: transparent; }
-:root[data-style='bento'] .cta { box-shadow: 4px 4px 0 var(--accent); }
-:root[data-style='bento'] :is(.icon-btn, .round, .pick-btn, .pick-move, .pick-chip, .chipbtn, .seg button, .daydiet button, .set-check, .notes-add) { border: 2px solid var(--ink); }
-:root[data-style='bento'] .round, :root[data-style='bento'] .icon-btn { border-radius: 14px; }
-:root[data-style='bento'] :is(.seg button, .chipbtn, .pick-chip, .daydiet button)[aria-pressed='true'] { background: var(--accent); border-color: var(--ink); color: #111111; box-shadow: 3px 3px 0 var(--ink); }
-:root[data-style='bento'] .round.primary { background: var(--accent); border-color: var(--ink); color: #111111; }
-:root[data-style='bento'] :is(.f input, .f textarea, .text-input, .date-input, .notes, .import-box, .pick-search, .pick-add input, .name-row input, .notes-edit, .weight-field input, .adjust-box, .set-in) { border: 2px solid var(--ink); background: var(--surface-2); }
-:root[data-style='bento'] .pick-btn .pill { background: var(--yellow); color: #111111; }
-:root[data-style='bento'] .pill { border: 1.5px solid var(--ink); background: var(--surface); color: var(--text); }
-
-/* workout */
-:root[data-style='bento'] .ex-badge { border-radius: 12px; border: 2px solid var(--ink); background: var(--surface-2); }
-:root[data-style='bento'] .ex.done .ex-badge { background: var(--accent); color: #111111; }
-:root[data-style='bento'] .set-row.done { padding: 4px; margin-left: -4px; margin-right: -4px; border-radius: 14px; background: var(--yellow); }
-:root[data-style='bento'] .set-row.done .set-in { opacity: 1; color: #111111; background: transparent; border-color: transparent; }
-:root[data-style='bento'] .set-row.done .set-n { color: #111111; }
-:root[data-style='bento'] .set-check { border-radius: 14px; color: var(--muted); }
-:root[data-style='bento'] .set-check.on { background: #111111; border-color: #111111; color: var(--yellow); }
-:root[data-style='bento'] .last-time { border: 2px dashed var(--ink); background: transparent; }
-:root[data-style='bento'] .wk-bar { background: var(--blue); color: #ffffff; border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
-:root[data-style='bento'] .rest-bar { background: var(--blue); color: #ffffff; border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
-:root[data-style='bento'] .rest-bar .btn, :root[data-style='bento'] .wk-bar .btn { background: #fff4dc; color: #111111; border-color: #111111; box-shadow: none; }
-:root[data-style='bento'] .rest-bar.done { background: var(--yellow); color: #111111; }
-:root[data-style='bento'] .live-dot { background: var(--accent); }
-
-/* meals and tiles: square ticks */
-:root[data-style='bento'] .check { border-radius: 14px; border: var(--bw) solid var(--ink); }
-:root[data-style='bento'] .tile.done .check { background: var(--yellow); border-color: var(--ink); color: #111111; }
-:root[data-style='bento'] .tile.done { background: var(--surface-2); }
-:root[data-style='bento'] .tile.water { background: var(--blue); color: #ffffff; }
-:root[data-style='bento'] .tile.water :is(.water-icon, .water-of, .tile-sub) { color: #ffffff; }
-:root[data-style='bento'] .tile.water .round { background: #fff4dc; color: #111111; border-color: #111111; }
-:root[data-style='bento'] .tile.water .bar { background: rgba(255, 255, 255, 0.25); border-color: #111111; }
-:root[data-style='bento'] .tile.water .bar-fill { background: #fff4dc; }
-:root[data-style='bento'] .tile.water .bar-fill.complete { background: var(--yellow); }
-
-/* bars: outlined tubes */
-:root[data-style='bento'] .bar, :root[data-style='bento'] .m-bar { height: 16px; border: 2px solid var(--ink); border-radius: 6px; background: var(--surface); }
-:root[data-style='bento'] .bar-fill, :root[data-style='bento'] .meter-fill, :root[data-style='bento'] .m-bar span { border-radius: 0; background: repeating-linear-gradient(90deg, var(--accent) 0 16px, var(--ink) 16px 18px); }
-:root[data-style='bento'] .wk-card .bar-fill { background: #111111; }
-
-/* progress */
-:root[data-style='bento'] .stat:nth-child(3n + 1) { background: var(--yellow); color: #111111; }
-:root[data-style='bento'] .stat:nth-child(3n + 2) { background: var(--accent); color: #111111; }
-:root[data-style='bento'] .stat:nth-child(3n + 1) :is(.stat-label, .stat-icon), :root[data-style='bento'] .stat:nth-child(3n + 2) :is(.stat-label, .stat-icon) { color: #111111; }
-:root[data-style='bento'] .stat-icon { color: var(--accent-text); }
-:root[data-style='bento'] .cal-day { border: 1.5px solid var(--ink); border-radius: 10px; }
-:root[data-style='bento'] .cal-day.is-today { border-width: 3px; }
-:root[data-style='bento'] .sum-bar { border: 2px solid var(--ink); border-radius: 6px 6px 0 0; }
-:root[data-style='bento'] .delta.up { background: var(--yellow); color: #111111; border: 1.5px solid var(--ink); }
-:root[data-style='bento'] .fact { background: var(--yellow); color: #111111; }
-:root[data-style='bento'] .fact .fact-text span { color: #111111; opacity: 0.75; }
-:root[data-style='bento'] .fact-icon { background: #ffffff; }
-:root[data-style='bento'] .share > span { background: var(--accent); }
-
-/* plans, options, pickers */
-:root[data-style='bento'] .plan.active, :root[data-style='bento'] .option.sel { background: color-mix(in srgb, var(--yellow) 45%, var(--surface)); border-color: var(--ink); }
-:root[data-style='bento'] .pick-row { border: 2px solid var(--ink); }
-:root[data-style='bento'] .pick-row.on { background: color-mix(in srgb, var(--yellow) 50%, var(--surface)); border-color: var(--ink); }
-:root[data-style='bento'] .pick-num { border: 2px solid var(--ink); border-radius: 9px; }
-:root[data-style='bento'] .pick-row.on .pick-num { background: var(--accent); color: #111111; }
-:root[data-style='bento'] .ai-block { border: 2px dashed var(--ink); }
-:root[data-style='bento'] .style-opt { border: var(--bw) solid var(--ink); }
-:root[data-style='bento'] .style-opt[aria-pressed='true'] { background: var(--yellow); color: #111111; box-shadow: var(--hard); }
-:root[data-style='bento'] .style-opt[aria-pressed='true'] small { color: #111111; }
-:root[data-style='bento'] .edited-tag { background: var(--yellow); color: #111111; border: 1.5px solid var(--ink); }
-
-/* sheets, toast, banner */
-:root[data-style='bento'] .sheet { border: var(--bw) solid var(--ink); border-bottom: 0; box-shadow: 0 -6px 0 var(--accent); }
-:root[data-style='bento'] .sheet-grab { background: var(--ink); }
-:root[data-style='bento'] .toast { background: var(--ink); color: var(--bg); border-radius: 14px; box-shadow: 4px 4px 0 var(--accent); }
-:root[data-style='bento'] .update-banner { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
-
-/* tab bar: a black slab with a pink block on the open tab */
-:root[data-style='bento'] #nav { background: #111111; border: var(--bw) solid #111111; border-radius: 20px; padding: 6px; gap: 6px; box-shadow: 4px 4px 0 var(--accent); }
-:root[data-style='bento'][data-theme='dark'] #nav { background: #000000; border-color: var(--ink); }
-:root[data-style='bento'] .tab { height: calc(var(--nav-h) - 12px); border-radius: 14px; color: #fff4dc; border: 2px solid transparent; }
-:root[data-style='bento'] .tab::before { display: none; }
-:root[data-style='bento'] .tab.active { background: var(--accent); color: #111111; border-color: #111111; }
-:root[data-style='bento'] .tab-dot { border-color: #111111; }
 
 /* ----- Progress photos (Progress screen) ----- */
 .ph-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
@@ -1003,18 +773,10 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .ph-side { margin: 0; }
 .ph-side .ph-big { margin: 0; }
 .ph-side .ph-mark b { font-size: 15px; }
-:root:not([data-style='bento']) .ph-mark b { text-transform: uppercase; font-size: 24px; }
-:root:not([data-style='bento']) .ph-side .ph-mark b { font-size: 17px; }
-/* Bento: outlined photo blocks, the date on a yellow sticker */
-:root[data-style='bento'] .ph-slide, :root[data-style='bento'] .ph-big { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
-:root[data-style='bento'] .ph-item { padding: 0 4px 4px 0; }
-:root[data-style='bento'] .ph-mark { left: 10px; right: auto; bottom: 10px; align-items: flex-start; padding: 6px 10px; border: 2px solid #111; border-radius: 10px; background: #ffd23f; color: #111; text-shadow: none; transform: rotate(-3deg); }
-:root[data-style='bento'] .ph-mark b { font-size: 16px; }
 
 /* ----- Undo in the bottom message, and the automatic backup block in More ----- */
 .toast.has-action { display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 18px; pointer-events: auto; }
 .toast-undo { min-height: 40px; padding: 0 14px; border-radius: 12px; border: 0; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 800; }
-:root[data-style='bento'] .toast-undo { background: var(--yellow); color: #111; border: 2px solid #111; }
 .auto-backup { margin: 4px 0 6px; }
 .auto-backup .check-line { font-size: 15px; }
 
@@ -1033,7 +795,6 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .ex.in-superset:not(.ss-last) { margin-bottom: -4px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
 .ex.in-superset:not(.ss-first) { border-top-left-radius: 8px; border-top-right-radius: 8px; }
 .ss-tag { display: block; padding: 8px 14px 0; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); }
-:root[data-style='bento'] .ex.in-superset { border-left-width: 8px; border-left-color: var(--accent); }
 /* plates sheet */
 .plate-in { font-size: 28px; font-weight: 800; text-align: center; font-family: var(--font-num); }
 .plates-line { font-size: 18px; font-weight: 800; margin: 6px 0; }
@@ -1093,7 +854,6 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .qr-box { display: grid; place-items: center; margin: 4px 0 12px; }
 .qr-svg { width: min(280px, 80vw); padding: 10px; border-radius: 18px; background: #fff; }
 .qr-svg svg { display: block; width: 100%; height: auto; }
-:root[data-style='bento'] .qr-svg { border: var(--bw) solid var(--ink); box-shadow: var(--hard); }
 
 /* ----- meals: grocery list, swap, barcode scanner ----- */
 .meal-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -1119,7 +879,6 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 @media (prefers-reduced-motion: reduce) { .scan-line { animation: none; } }
 .scan-type { display: flex; gap: 8px; align-items: center; }
 .scan-type input { flex: 1; min-width: 0; }
-:root[data-style='bento'] :is(.grocery-list label, .swap-row) { border: 2px solid var(--ink); }
 
 /* ----- 1.12.0: steps pill, reminder times ----- */
 .chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -1127,4 +886,3 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .steps-pill b { color: var(--text); font-weight: 800; }
 .time-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px 34px; color: var(--muted); font-size: 14px; }
 .time-input { min-height: 44px; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font-size: 16px; }
-:root[data-style='bento'] :is(.steps-pill, .time-input) { border: 2px solid var(--ink); }

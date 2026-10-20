@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Home screen widget colours for the Pulse look, light theme. values-night has the dark ones.
-     tf_eat (cyan) is meals, tf_water (violet) is water, tf_accent (orange) is the workout. tf_lime is the Lifted widget's block. -->
+<!-- Home screen widget colours for the Arena look (light theme here, values-night has the dark ones): scoreboard yellow
+     (tf_accent) is the workout, blue (tf_eat) is meals, violet (tf_water) is water. tf_lime is the Lifted widget's block. -->
 <resources>
     <color name="tf_surface">#FFFFFF</color>
-    <color name="tf_surface2">#EFEBE4</color>
-    <color name="tf_track">#E3DDD2</color>
-    <color name="tf_text">#12151C</color>
-    <color name="tf_muted">#5B6270</color>
-    <color name="tf_accent">#E8590C</color>
-    <color name="tf_accent_ink">#FFFFFF</color>
-    <color name="tf_accent_text">#B8420A</color>
-    <color name="tf_accent_soft">#8CE8590C</color>
-    <color name="tf_chip">#FCE3D3</color>
-    <color name="tf_chip_text">#B8420A</color>
-    <color name="tf_water">#6D28D9</color>
+    <color name="tf_surface2">#E4E9F2</color>
+    <color name="tf_track">#D5DCE8</color>
+    <color name="tf_text">#0A0E18</color>
+    <color name="tf_muted">#4E5870</color>
+    <color name="tf_accent">#F5B100</color>
+    <color name="tf_accent_ink">#1A1200</color>
+    <color name="tf_accent_text">#8A5D00</color>
+    <color name="tf_accent_soft">#8CF5B100</color>
+    <color name="tf_chip">#FFF0C7</color>
+    <color name="tf_chip_text">#8A5D00</color>
+    <color name="tf_water">#5B3FD6</color>
     <color name="tf_water_ink">#FFFFFF</color>
-    <color name="tf_eat">#0369A1</color>
-    <color name="tf_track_move">#FADBC8</color>
-    <color name="tf_track_eat">#CFE3EE</color>
-    <color name="tf_track_water">#E3D8F7</color>
-    <color name="tf_lime">#E8590C</color>
-    <color name="tf_lime_ink">#FFFFFF</color>
-    <color name="tf_lime_track">#40FFFFFF</color>
-    <color name="tf_ink">#E3DDD2</color>
+    <color name="tf_eat">#0B62B8</color>
+    <color name="tf_track_move">#FBEBC4</color>
+    <color name="tf_track_eat">#CFE0F2</color>
+    <color name="tf_track_water">#E1DAF7</color>
+    <color name="tf_lime">#FFC23D</color>
+    <color name="tf_lime_ink">#1A1200</color>
+    <color name="tf_lime_track">#401A1200</color>
+    <color name="tf_ink">#D5DCE8</color>
 </resources>

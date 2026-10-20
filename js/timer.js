@@ -102,14 +102,35 @@ export function startRest(seconds, label) {
     audioCtx = null;
   }
 
+  let total = seconds;
   const clock = h('div', { class: 'rest-clock', 'aria-live': 'off' }, formatClock(seconds));
   const title = h('div', { class: 'rest-title' }, 'Rest', label && h('span', {}, ` · ${label}`));
+  // Arena shows the rest as a shot clock ring; Deck fills the screen and drains it (styles in css/arena.css,
+  // css/deck.css). Both read --left, the share of the rest still to go.
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const ringSvg = document.createElementNS(svgNS, 'svg');
+  ringSvg.setAttribute('viewBox', '0 0 44 44');
+  ringSvg.setAttribute('class', 'rest-ring');
+  ringSvg.setAttribute('aria-hidden', 'true');
+  for (const cls of ['rest-ring-track', 'rest-ring-fill']) {
+    const c = document.createElementNS(svgNS, 'circle');
+    c.setAttribute('class', cls);
+    c.setAttribute('cx', '22');
+    c.setAttribute('cy', '22');
+    c.setAttribute('r', '19');
+    c.setAttribute('pathLength', '100');
+    ringSvg.append(c);
+  }
   bar = h(
     'div',
     { class: 'rest-bar', role: 'timer' },
+    ringSvg,
     h('div', { class: 'rest-info' }, title, clock),
-    h('button', { class: 'btn small', onclick: () => ((endAt += 15000), (finished = false), bar.classList.remove('done'), restChanged(endAt, label), tick()) }, '+15s'),
-    h('button', { class: 'btn small', onclick: stopRest }, 'Skip')
+    h('div', { class: 'rest-btns' },
+      h('button', { class: 'btn small', type: 'button', onclick: () => ((endAt += 15000), (total += 15), (finished = false), bar.classList.remove('done'), restChanged(endAt, label), tick()) }, '+15s'),
+      h('button', { class: 'btn small', type: 'button', onclick: stopRest }, 'Skip'),
+      h('button', { class: 'btn small rest-hide', type: 'button', onclick: (e) => (e.currentTarget.textContent = bar.classList.toggle('mini') ? 'Show' : 'Hide') }, 'Hide')
+    )
   );
   document.body.append(bar);
   document.body.classList.add('has-rest');
@@ -118,6 +139,7 @@ export function startRest(seconds, label) {
   function tick() {
     if (!bar) return;
     const left = (endAt - Date.now()) / 1000;
+    bar.style.setProperty('--left', String(Math.max(0, Math.min(1, left / total))));
     if (left > 0) {
       clock.textContent = formatClock(left);
       return;

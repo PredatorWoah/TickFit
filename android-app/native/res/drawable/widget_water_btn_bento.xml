@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bento: square blue + button -->
+<!-- Bento: a round blue + button -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <solid android:color="@color/tb_water" />
-    <stroke android:width="2dp" android:color="@color/tb_ink" />
-    <corners android:radius="12dp" />
+    <corners android:radius="20dp" />
 </shape>
