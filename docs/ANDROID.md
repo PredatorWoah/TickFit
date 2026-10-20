@@ -4,8 +4,11 @@ The Android app is a **complete app**: all of TickFit is packed inside the APK (
 
 ## What is different from the website
 
+- **Needs Android 8.0 or newer** (since 1.12.0, because Health Connect does).
 - **Separate data.** The app keeps its own saved data, apart from the website's. To move your data in either direction, use **More, Back up now** on one side and **More, Restore from a backup file** on the other.
 - **Rest alerts with the screen off:** while a rest runs and the app is hidden, a "Rest is over" notification is set for the exact second (it asks for the notification permission once; switch it off in More > Rest timer).
+- **Reminders:** **More > Reminders** sets phone notifications for your workout time (workout days only), each meal's time from the plan, and water every few hours until the day's target. The next 7 days are scheduled on the phone and refreshed whenever you leave the app, so rest days and things you already ticked are skipped.
+- **Steps from Health Connect:** **More > Steps** shows your daily steps (from Google Fit, Samsung Health, a watch...) on Today. The app can only *read step counts*: the build removes every other health permission. Android 13 and older need the free "Health Connect by Android" app; Android 14+ has it built in.
 - **Automatic daily backup** into `Documents/TickFit` (last 7 kept), on by default, in **More > Your data**. Android 10 and older ask for the storage permission once.
 - **Backups use the share sheet.** An app cannot "download" a file like a browser can, so **Back up now** opens the phone's share sheet: pick Google Drive, Files, WhatsApp or email. Some apps (like Drive's "Save to Drive" box) do not tell TickFit whether they saved the file, so TickFit then asks "Did the backup get saved?" and only updates **Last backup** when you say yes.
 - **No service worker.** Every file is already on the phone. Updates come as a new APK (see below).
