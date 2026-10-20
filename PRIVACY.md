@@ -39,6 +39,10 @@ The "Form video" button simply opens a link (your own, or a YouTube search for t
 
 Photos you take or pick on the Progress tab stay on this device. They are never uploaded. The backup sheet has a tick box to put them inside the backup file (it gets bigger, about 0.1 to 0.3 MB per photo); you can also save single photos with **Save a copy**. Delete one by tapping it, then **Delete**. Taking a photo uses the camera inside TickFit (the Android app asks for the camera permission the first time). The picture goes straight into the on-device photo database; nothing is uploaded. If the camera can't be used, TickFit opens your phone's own camera app instead.
 
+## Sharing a plan
+
+**Share** on a plan puts the plan (its name, days, exercises, meals and options) into a link and a QR code, made on your phone. Nothing is uploaded: whoever you give the link to gets the plan when they open it. Your progress, weights, notes, photos and settings are never in it. The QR code is drawn by the bundled qrcode-generator library (MIT, in `vendor/qrcode`). **Share this workout** draws a picture on your phone and hands it to your share sheet.
+
 ## Backups
 
 In the Android app, TickFit also saves an automatic backup once a day in your phone's `Documents/TickFit` folder (the last 7 are kept). It stays on your phone; it only goes elsewhere if you sync that folder yourself. Switch it off in **More > Your data**. On Android 10 and older this needs the storage permission, which the app asks for once.
