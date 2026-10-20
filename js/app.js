@@ -24,6 +24,8 @@ import { startWidgets } from './widgets.js';
 import { runAutoBackup, backupCovered } from './autobackup.js';
 import { startRestAlerts } from './restalert.js';
 import { handleIncomingPlan } from './shareui.js';
+import { startReminders } from './reminders.js';
+import { startSteps } from './steps.js';
 import { backTarget } from './backnav.js';
 
 const root = document.getElementById('app');
@@ -234,6 +236,8 @@ function start() {
   const autoBackup = () => runAutoBackup().then((made) => made && view.screen === 'more' && draw());
   setTimeout(autoBackup, 2500);
   startRestAlerts(); // Android app: rest timer alerts with the screen off
+  setTimeout(startReminders, 1500); // Android app: workout, water and meal reminders (rescheduled when you leave)
+  setTimeout(() => startSteps(() => (view.screen === 'today' || view.screen === 'more') && draw()), 1200); // Android app: steps from Health Connect
   // opened from a friend's shared plan link (#plan=...): offer to add it
   const incoming = () => handleIncomingPlan(() => show('today'));
   setTimeout(incoming, 300);

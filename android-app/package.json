@@ -15,7 +15,8 @@
     "@capacitor/filesystem": "^8.0.0",
     "@capacitor/haptics": "^8.0.0",
     "@capacitor/local-notifications": "^8.3.1",
-    "@capacitor/share": "^8.0.0"
+    "@capacitor/share": "^8.0.0",
+    "@capgo/capacitor-health": "8.11.12"
   },
   "devDependencies": {
     "sharp": "^0.34.0"

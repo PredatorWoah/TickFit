@@ -45,6 +45,8 @@ check('lookup.js sends only the food name in the URL', /search_terms=\$\{encodeU
 check('lookup.js barcode lookup only calls Open Food Facts', /BARCODE_API = 'https:\/\/world\.openfoodfacts\.org\/api\/v2\/product\/'/.test(read('js/lookup.js')));
 check('lookup.js sends only the barcode digits', /const code = cleanBarcode\(text\);[\s\S]*\$\{BARCODE_API\}\$\{code\}\.json/.test(read('js/lookup.js')) && /\^\\d\{8,14\}\$/.test(read('js/lookup.js')));
 check('lookup.js barcode lookup is opt-in too', /lookupBarcode\(text\) \{\n  if \(!lookupEnabled\(\)\) return null;/.test(read('js/lookup.js')));
+check('steps.js only asks to READ steps, nothing else', /requestAuthorization\(\{ read: \['steps'\] \}\)/.test(read('js/steps.js')) && !/write:/.test(read('js/steps.js')) && !/dataType: '(?!steps')/.test(read('js/steps.js')));
+check('the Android build keeps only the READ_STEPS health permission', /p !== 'android\.permission\.health\.READ_STEPS'/.test(read('android-app/scripts/customize.mjs')) && /tools:node="remove"/.test(read('android-app/scripts/customize.mjs')));
 check('sw.js only handles same-origin GET requests', /req\.method !== 'GET' \|\| url\.origin !== self\.location\.origin/.test(read('sw.js')));
 
 // 3. Every website named in the code is on the allow list.

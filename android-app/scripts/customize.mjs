@@ -1,5 +1,6 @@
 // Tweaks the Android project that `npx cap add android` generated:
 //   * version number and version code
+//   * Health Connect: Android 8.0+, and only the permission to read steps
 //   * the vibrate permission (the rest timer buzzes)
 //   * TickFit's launcher icon (normal, round and adaptive) and a dark launch screen
 //   * the six home screen widgets: their Java code and resources from android-app/native (plus their Bento
@@ -41,6 +42,21 @@ edit(gradle, /versionName\s+"[^"]*"/, `versionName "${versionName}"`, 'set versi
 
 // ----- permissions
 edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', '<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n    <!-- the daily automatic backup into Documents/TickFit: only Android 10 and older need these -->\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n    <!-- the rest timer alert has to fire on the second, also with the screen off (granted by itself on Android 13+) -->\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <!-- the progress photo camera inside the app (only used while you take a photo) -->\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />', 'add the vibrate permission');
+
+// ----- steps from Health Connect (the Health plugin, see js/steps.js)
+// Health Connect needs Android 8.0 or newer, so the app does too.
+edit(resolve(here, '..', 'android', 'variables.gradle'), /minSdkVersion\s*=\s*\d+/, 'minSdkVersion = 26', 'set minSdkVersion 26 for Health Connect');
+// The plugin asks for dozens of health permissions (heart rate, sleep, writing data...). TickFit only reads
+// step counts, so every other one is taken out of the app again. The list comes from the plugin itself, so a
+// plugin update can never slip a new permission in.
+const healthManifest = resolve(here, '..', 'node_modules', '@capgo', 'capacitor-health', 'android', 'src', 'main', 'AndroidManifest.xml');
+if (!existsSync(healthManifest)) throw new Error('The Health plugin is missing (npm ci?)');
+const unwanted = [...readFileSync(healthManifest, 'utf8').matchAll(/android\.permission\.health\.[A-Z_]+/g)].map((m) => m[0]).filter((p, i, all) => p !== 'android.permission.health.READ_STEPS' && all.indexOf(p) === i);
+if (unwanted.length < 10) throw new Error('Unexpected Health plugin manifest');
+edit(manifest, '<manifest xmlns:android="http://schemas.android.com/apk/res/android"', '<manifest xmlns:android="http://schemas.android.com/apk/res/android"\n    xmlns:tools="http://schemas.android.com/tools"', 'add the tools namespace');
+edit(manifest, '<uses-permission android:name="android.permission.INTERNET" />', `<uses-permission android:name="android.permission.INTERNET" />\n    <!-- steps: TickFit reads step counts from Health Connect and nothing else -->\n    <uses-permission android:name="android.permission.health.READ_STEPS" />\n${unwanted.map((p) => `    <uses-permission android:name="${p}" tools:node="remove" />`).join('\n')}`, 'keep only the steps permission');
+// Health Connect's "Privacy policy" link in its permission screen
+edit(join(res, 'values', 'strings.xml'), '</resources>', '    <string name="health_connect_privacy_policy_url">https://github.com/PredatorWoah/TickFit/blob/main/PRIVACY.md</string>\n</resources>', 'add the privacy policy link for Health Connect');
 
 // ----- the web view: no stretchy overscroll (it drags the tab bar around) and no scroll bars
 const mainActivity = resolve(here, '..', 'android', 'app', 'src', 'main', 'java', 'io', 'github', 'predatorwoah', 'tickfit', 'MainActivity.java');
