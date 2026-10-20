@@ -19,6 +19,8 @@ import { addDays, diffDays, fromStr } from './dates.js';
 import { haptic } from './platform.js';
 import { lookOf } from './theme.js';
 import { createCtx, dayName, dateText, weekStrip, ring, waterTile, section, openJump, pickButton, LOCALE } from './dayview.js';
+import { helpButton } from './tour.js';
+import { countTo, celebrate } from './fx.js';
 
 /**
  * @param root     element to fill
@@ -75,7 +77,10 @@ function workoutAction(ctx, actions) {
     actions.show('workout');
   };
   if (state === 'active') return { state, title: "Today's workout", sub: `In progress · ${s.setsDone}/${s.setsTotal} sets`, label: 'Continue workout', live: formatDuration(sessionMs(rec)), go };
-  if (state === 'finished') return { state, title: 'Workout done', sub: `Done in ${formatDuration(workoutMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`, label: 'View workout', go };
+  if (state === 'finished') {
+    const early = s.setsDone < s.setsTotal; // finished with sets left: say so, never "done"
+    return { state, early, title: early ? 'Workout ended' : 'Workout done', sub: `${early ? 'Ended after' : 'Done in'} ${formatDuration(workoutMs(rec))} · ${s.setsDone}/${s.setsTotal} sets`, label: 'View workout', go };
+  }
   if (s.setsDone > 0) return { state, title: "Today's workout", sub: `${s.setsDone}/${s.setsTotal} sets done`, label: 'Continue workout', go };
   return { state, title: "Today's workout", sub: `${day.workout.length} exercise${day.workout.length === 1 ? '' : 's'} · about ${estimateMinutes(day)} min`, label: 'Start workout', go };
 }
@@ -130,7 +135,7 @@ function arenaHome(root, ctx, actions) {
       'header',
       { class: 'home-head ar-head' },
       h('div', { class: 'ar-kicker' }, h('span', {}, kicker), streak > 0 && h('span', { class: 'ar-streak', 'aria-label': `${streak} day streak` }, icon('flame', 16), `${streak} STREAK`)),
-      h('div', { class: 'head-row' }, h('div', { class: 'head-text' }, h('h1', { class: 'date-main' }, dayName(ctx)), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => ctx.goto(ctx.today) }, 'Back to today'))),
+      h('div', { class: 'head-row' }, h('div', { class: 'head-text' }, h('h1', { class: 'date-main' }, dayName(ctx)), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => ctx.goto(ctx.today) }, 'Back to today')), helpButton()),
       h('div', { class: 'chip-row' }, planChip(ctx, actions), stepsPill(ctx)),
       weekStrip(ctx)
     )
@@ -196,7 +201,7 @@ function arenaHome(root, ctx, actions) {
           return h('li', { class: done ? 'done' : '' }, h('button', { type: 'button', class: 'ar-player', onclick: a.go, 'aria-label': `${w.exercise}${done ? ', done' : ''}. Open the workout` }, h('span', { class: 'ar-no' }, done ? icon('check', 18) : String(i + 1).padStart(2, '0')), h('span', { class: 'ar-name' }, w.exercise), h('span', { class: 'ar-sets' }, w.reps ? `${plannedSets(w)} × ${w.reps}` : `${plannedSets(w)} sets`)));
         })
       ),
-      h('button', { class: 'btn primary wide big ar-kick' + (a.live ? ' split' : ''), type: 'button', onclick: a.go, 'aria-label': a.label }, icon(a.state === 'finished' ? 'check' : 'play', 22), h('span', {}, a.state === 'finished' ? 'Full time · view' : a.label === 'Start workout' ? 'Kick off' : 'Back in the game'), a.live && h('span', { class: 'cta-chip', 'aria-hidden': 'true' }, a.live)),
+      h('button', { class: 'btn primary wide big ar-kick' + (a.live ? ' split' : ''), type: 'button', onclick: a.go, 'aria-label': a.label }, icon(a.state === 'finished' ? 'check' : 'play', 22), h('span', {}, a.state === 'finished' ? (a.early ? 'Ended early · view' : 'Full time · view') : a.label === 'Start workout' ? 'Kick off' : 'Back in the game'), a.live && h('span', { class: 'cta-chip', 'aria-hidden': 'true' }, a.live)),
       pickButton(ctx, 'workout')
     );
   };
@@ -207,14 +212,17 @@ function arenaHome(root, ctx, actions) {
   const water = waterTile(ctx);
   if (water) root.append(section('Water', null, water));
 
+  let leftBefore = null; // to cheer only when the last play is ticked here, not on opening a finished day
   ctx.refreshers.push(() => {
     const rec = ctx.rec();
     const s = dayStats(day, rec);
     const mine = s.total ? s.pct : null;
     const theirs = pctFor(plan, ctx.records(), lastDate);
-    you.textContent = mine === null ? '–' : String(mine);
-    them.textContent = theirs === null ? '–' : String(theirs);
+    countTo(you, mine === null ? '–' : String(mine));
+    countTo(them, theirs === null ? '–' : String(theirs));
     const left = s.total - s.done;
+    if (leftBefore > 0 && left === 0 && s.total) celebrate();
+    leftBefore = left;
     let text;
     if (!s.total) text = 'Rest day. No match to play.';
     else if (!left) text = theirs === null || mine >= theirs ? 'Full time. You won the day.' : 'Full time. Everything ticked.';
@@ -226,7 +234,7 @@ function arenaHome(root, ctx, actions) {
     lineDot.classList.toggle('on', left > 0 && date === ctx.today && s.total > 0);
 
     const setQ = (q, val, of, pct) => {
-      q.val.textContent = val;
+      countTo(q.val, val);
       q.of.textContent = of;
       q.fill.style.width = `${Math.max(0, Math.min(100, pct || 0))}%`;
     };
@@ -299,7 +307,7 @@ function deckHome(root, ctx, actions) {
         'div',
         { class: 'head-row' },
         h('div', { class: 'head-text' }, h('p', { class: 'date-sub' }, `${dayName(ctx)} · ${dateText(ctx)}`), h('h1', { class: 'date-main' }, count), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => ctx.goto(ctx.today) }, 'Back to today')),
-        streak > 0 && h('div', { class: 'streak', 'aria-label': `${streak} day streak` }, icon('flame', 18), h('b', {}, String(streak)))
+        h('div', { class: 'head-side' }, streak > 0 && h('div', { class: 'streak', 'aria-label': `${streak} day streak` }, icon('flame', 18), h('b', {}, String(streak))), helpButton())
       ),
       segs,
       weekStrip(ctx),
@@ -363,32 +371,47 @@ function deckHome(root, ctx, actions) {
     return [h('span', { class: 'dk-tag' }, 'UP NEXT · SUPPLEMENT'), deckTitle(c.name)];
   }
 
+  let shownTop = null; // the card on top last time, so a new one can rise into place
+  let todoBefore = null;
+  let enter = false;
+  // a card leaves sideways (by swipe or by button), then the action runs and the next card rises
+  const leave = (card, dir, act) => {
+    enter = true;
+    flyOff(card, dir, act);
+  };
+
   function draw() {
     const { todo, done } = deckCards(ctx);
     const total = todo.length + done.length;
+    if (todoBefore > 0 && !todo.length && total) celebrate();
+    todoBefore = todo.length;
     count.textContent = !total ? 'Rest day' : todo.length ? `${todo.length} card${todo.length === 1 ? '' : 's'} left` : 'All clear';
     segs.replaceChildren(...[done.length && h('i', { class: 'on', style: `flex:${done.length}` }), todo.length && h('i', { style: `flex:${todo.length}` })].filter(Boolean));
     segs.setAttribute('aria-label', `${done.length} of ${total} done`);
     clear(stack);
     clear(bar);
     if (!todo.length) {
-      stack.append(h('div', { class: 'dk-card k-clear' }, h('span', { class: 'dk-tag' }, total ? 'ALL CLEAR' : 'NOTHING PLANNED'), h('h2', { class: 'dk-title' }, total ? 'Deck finished' : 'Rest day'), h('p', { class: 'dk-foot' }, total ? `${done.length} card${done.length === 1 ? '' : 's'} done today. See you tomorrow.` : 'Nothing to tick today. Rest is part of the plan.'), !total && pickButton(ctx, 'workout')));
+      shownTop = null;
+      stack.append(h('div', { class: 'dk-card k-clear' + (enter ? ' dk-in' : '') }, h('span', { class: 'dk-tag' }, total ? 'ALL CLEAR' : 'NOTHING PLANNED'), h('h2', { class: 'dk-title' }, total ? 'Deck finished' : 'Rest day'), h('p', { class: 'dk-foot' }, total ? `${done.length} card${done.length === 1 ? '' : 's'} done today. See you tomorrow.` : 'Nothing to tick today. Rest is part of the plan.'), !total && pickButton(ctx, 'workout')));
     } else {
       const top = todo[0];
       // the two cards behind are only a picture of what is coming: they can't be touched
       todo.slice(1, 3).reverse().forEach((c, i, arr) => stack.append(h('div', { class: `dk-back ${colorOf(c)} b${arr.length - i}`, 'aria-hidden': 'true' })));
       const card = h('div', { class: `dk-card ${colorOf(top)}`, role: 'group', 'aria-label': `${top.name}. Swipe right for done, left for later` }, ...cardBody(top).filter(Boolean), h('span', { class: 'dk-hint right', 'aria-hidden': 'true' }, top.kind === 'workout' ? 'START' : top.kind === 'water' ? '+1 GLASS' : 'DONE'), h('span', { class: 'dk-hint left', 'aria-hidden': 'true' }, 'LATER'));
       stack.append(card);
+      if (enter || (shownTop !== null && shownTop !== top.id)) card.classList.add('dk-in');
+      enter = false;
+      shownTop = top.id;
       const primary = top.kind === 'workout' ? { 'Start workout': 'Start', 'Continue workout': 'Continue', 'View workout': 'View' }[workoutAction(ctx, actions).label] : top.kind === 'water' ? '+1 glass' : top.kind === 'meal' ? 'Ate it' : 'Taken';
       const doPrimary = () => (top.kind === 'workout' ? workoutAction(ctx, actions).go() : tickCard(top));
       bar.append(
         ...[
-          h('button', { class: 'btn dk-later', type: 'button', disabled: todo.length < 2, onclick: () => sendBack(top) }, icon('back', 18), 'Later'),
-          h('button', { class: 'btn primary dk-go', type: 'button', onclick: doPrimary }, primary, icon('chevron-right', 18)),
+          h('button', { class: 'btn dk-later', type: 'button', disabled: todo.length < 2, onclick: () => leave(card, 'left', () => sendBack(top)) }, icon('back', 18), 'Later'),
+          h('button', { class: 'btn primary dk-go', type: 'button', onclick: () => (top.kind === 'workout' ? doPrimary() : leave(card, 'right', doPrimary)) }, primary, icon('chevron-right', 18)),
           top.kind === 'workout' && pickButton(ctx, 'workout'),
         ].filter(Boolean)
       );
-      swipeable(card, { right: doPrimary, left: todo.length > 1 ? () => sendBack(top) : null });
+      swipeable(card, { right: doPrimary, left: todo.length > 1 ? () => sendBack(top) : null }, () => (enter = true));
     }
     doneRow.replaceChildren(...done.map((c) => h('li', { class: colorOf(c) }, icon('check', 14), h('span', {}, c.name))));
     doneRow.hidden = !done.length;
@@ -401,7 +424,15 @@ function deckHome(root, ctx, actions) {
  * it must travel far enough, and the tap that ends a drag is swallowed so nothing on the card gets pressed
  * by accident.
  */
-function swipeable(card, { right, left }) {
+/** Send a card off the side of the screen, then run `act`. */
+function flyOff(card, dir, act) {
+  if (card.classList.contains('flying')) return;
+  card.classList.add('flying');
+  card.style.transform = `translateX(${dir === 'right' ? 130 : -130}%) rotate(${dir === 'right' ? 12 : -12}deg)`;
+  setTimeout(act, 180);
+}
+
+function swipeable(card, { right, left }, onFly) {
   const LIMIT = 110;
   let id = null;
   let sx = 0;
@@ -435,8 +466,11 @@ function swipeable(card, { right, left }) {
     dx = mx;
     if ((dx < 0 && !left) || (dx > 0 && !right)) dx /= 4; // that way does nothing: resist
     card.style.transform = `translateX(${dx}px) rotate(${dx / 24}deg)`;
+    const was = card.classList.contains('go-right') || card.classList.contains('go-left');
     card.classList.toggle('go-right', dx > LIMIT * 0.6 && !!right);
     card.classList.toggle('go-left', dx < -LIMIT * 0.6 && !!left);
+    const is = card.classList.contains('go-right') || card.classList.contains('go-left');
+    if (is && !was) haptic(); // a small buzz when letting go would count
   });
   const end = (e) => {
     if (e.pointerId !== id) return;
@@ -446,9 +480,8 @@ function swipeable(card, { right, left }) {
     setTimeout(() => (swallow = false), 350);
     const act = dx > LIMIT ? right : dx < -LIMIT ? left : null;
     if (!act) return reset();
-    card.style.transform = `translateX(${dx > 0 ? 130 : -130}%) rotate(${dx > 0 ? 12 : -12}deg)`;
-    card.classList.add('flying');
-    setTimeout(act, 180);
+    onFly && onFly();
+    flyOff(card, dx > 0 ? 'right' : 'left', act);
   };
   card.addEventListener('pointerup', end);
   card.addEventListener('pointercancel', (e) => {
@@ -470,7 +503,7 @@ function bentoHome(root, ctx, actions) {
     h(
       'header',
       { class: 'home-head bn-head' },
-      h('div', { class: 'head-row' }, h('div', { class: 'head-text' }, h('h1', { class: 'date-main' }, dayName(ctx)), h('p', { class: 'date-sub' }, dateText(ctx)), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => ctx.goto(ctx.today) }, 'Back to today'))),
+      h('div', { class: 'head-row' }, h('div', { class: 'head-text' }, h('h1', { class: 'date-main' }, dayName(ctx)), h('p', { class: 'date-sub' }, dateText(ctx)), date !== ctx.today && h('button', { class: 'link-btn', type: 'button', onclick: () => ctx.goto(ctx.today) }, 'Back to today')), helpButton()),
       h('div', { class: 'chip-row' }, planChip(ctx, actions), stepsPill(ctx)),
       weekStrip(ctx)
     )
@@ -483,8 +516,11 @@ function bentoHome(root, ctx, actions) {
   const hero = ring(104);
   const status = h('p', { class: 'hero-status' });
   grid.append(h('section', { class: 'bn-tile t-ring' }, hero.el, h('div', { class: 'bn-ring-text' }, dayButton(ctx), status)));
+  let leftBefore = null;
   ctx.refreshers.push(() => {
     const s = dayStats(day, ctx.rec());
+    if (leftBefore > 0 && s.done === s.total && s.total) celebrate();
+    leftBefore = s.total - s.done;
     hero.set(s.pct, s.total ? `${s.done}/${s.total}` : '');
     status.textContent = s.total === 0 ? 'Rest day' : s.done === s.total ? 'All done!' : `${s.total - s.done} to go`;
   });

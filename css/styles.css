@@ -921,3 +921,47 @@ body.has-wkbar .ai-fab { bottom: calc(var(--nav-h) + var(--nav-lift) + 96px + va
 .ai-filter-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .ai-count { font-size: 13px; color: var(--muted); }
 .ai-model-select { width: 100%; min-height: 48px; }
+
+/* ----- 2.2.0: the ? tour, a calmer Ask AI button, and a little more life ----- */
+
+/* nothing may push the page wider than the phone (a long word once did, and moved the tab bar and AI button) */
+#app { overflow-x: clip; }
+body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px + var(--sa-bottom)); }
+
+.ai-fab { transition: transform 0.35s var(--spring), opacity 0.2s var(--ease); }
+.ai-fab:active { transform: scale(0.92); }
+.ai-fab.tucked { transform: translateY(24px) scale(0.5); opacity: 0; pointer-events: none; }
+
+/* the round ? at the top right of Today */
+.help-btn { flex: none; position: relative; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: 900 19px/1 var(--font-display, var(--font)); display: grid; place-items: center; cursor: pointer; transition: transform 0.16s var(--ease), background-color 0.2s; }
+.help-btn:active { transform: scale(0.9); }
+.help-btn.fresh { border-color: var(--accent); animation: help-ping 1.8s var(--ease) infinite; }
+@keyframes help-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); } 80%, 100% { box-shadow: 0 0 0 12px transparent; } }
+
+/* the tour: everything dims but the part being explained */
+.tour { position: fixed; inset: 0; z-index: 80; opacity: 0; transition: opacity 0.25s var(--ease); }
+.tour.on { opacity: 1; }
+.tour-hole { position: fixed; border-radius: 16px; box-shadow: 0 0 0 200vmax rgba(5, 7, 12, 0.74); outline: 2px solid var(--accent); outline-offset: 2px; pointer-events: none; transition: left 0.38s var(--ease), top 0.38s var(--ease), width 0.38s var(--ease), height 0.38s var(--ease), border-radius 0.38s var(--ease); }
+.tour-tip { position: fixed; left: 16px; right: 16px; max-width: 420px; margin: 0 auto; padding: 16px 16px 14px; border-radius: 22px; background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.6); transition: top 0.38s var(--ease); }
+.tour-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tour-count { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.tour-skip { min-height: 40px; padding: 0 6px; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
+.tour-title { margin: 2px 0 6px; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); text-transform: none; font-family: var(--font-display, var(--font)); }
+.tour-text { margin: 0 0 14px; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.tour-btns { display: flex; justify-content: flex-end; gap: 8px; }
+.tour-btns .btn { min-width: 96px; }
+
+/* confetti when a day is finished */
+.confetti { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; animation: confetti 1.15s cubic-bezier(0.2, 0.7, 0.4, 1) both; }
+@keyframes confetti { from { transform: translate(-50%, -50%) rotate(0); opacity: 1; } to { transform: translate(calc(var(--dx) - 50%), calc(var(--dy) + 160px)) rotate(var(--r)); opacity: 0; } }
+
+/* things you can press answer the finger */
+.ar-player { transition: background-color 0.18s var(--ease), transform 0.16s var(--ease); }
+.ar-player:active { background: var(--surface-2); transform: scale(0.985); }
+.day-title, .steps-pill { transition: transform 0.16s var(--ease); }
+.day-title:active { transform: scale(0.97); }
+.home-card:has(> button:active), .bn-tile:has(.tile-hit:active) { transform: scale(0.985); }
+.home-card, .bn-tile { transition: transform 0.2s var(--ease), background-color 0.25s var(--ease); }
+/* Arena: the quarters' bars glide, and the scoreboard numbers tick over (fx.js countTo) */
+.ar-q-bar i { transition: width 0.8s var(--ease); }

@@ -9,7 +9,7 @@
 :root[data-style='arena'] .page-title { font-size: 42px; line-height: 1; }
 :root[data-style='arena'] .date-main { font-size: 54px; line-height: 0.92; }
 :root[data-style='arena'] .wk-title { font-size: 40px; line-height: 0.98; }
-:root[data-style='arena'] h2:not(.sec-title):not(.sheet-title):not(.cal-title) { font-family: var(--font-mono); letter-spacing: 0.12em; font-weight: 700; font-size: 12px; }
+:root[data-style='arena'] h2:not(.sec-title):not(.sheet-title):not(.cal-title):not(.tour-title) { font-family: var(--font-mono); letter-spacing: 0.12em; font-weight: 700; font-size: 12px; }
 :root[data-style='arena'] .sec-title { font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: 0.02em; text-transform: uppercase; }
 :root[data-style='arena'] .sheet-title { font-family: var(--font-display); font-weight: 800; font-size: 28px; letter-spacing: 0.01em; text-transform: uppercase; }
 :root[data-style='arena'] :is(.ring-pct, .stat-value, .meter-val, .water-val, .sum-hero-num, .set-in, .clock.big, .rest-clock) { font-weight: 900; letter-spacing: 0; }
