@@ -133,8 +133,11 @@ export function modelFamily(id) {
   return m ? m[0] : 'other';
 }
 
-// Free models worth starting with, best first (matched against the live list, so a missing one is just skipped)
-const STARTERS = [/deepseek.*(v3|chat|r1)/i, /llama-3\.3-70b/i, /qwen.*(72b|235b|max|plus|qwen3)/i, /gemini.*flash/i, /mistral.*(small|medium|nemo)/i, /gemma/i];
+// Free models worth starting with, best first (matched against the live list, so a missing one is just skipped).
+// What is free changes every few weeks: as of October 2026 NVIDIA's Nemotron 3 Ultra is the strongest free
+// model for planning and strict JSON, then Nemotron Super (not the vision one), then MiniMax Flash. The older
+// names stay as fallbacks in case they come back.
+const STARTERS = [/nemotron-[\d.]+-ultra/i, /nemotron-[\d.]+-super(?!.*-vl)/i, /nemotron-[\d.]+-super/i, /minimax.*flash/i, /deepseek.*(v3|chat|r1)/i, /llama-3\.3-70b/i, /qwen.*(72b|235b|max|plus|qwen3)/i, /gemini.*flash/i, /mistral.*(small|medium|nemo)/i, /gemma/i];
 
 /** A sensible free model from a normalised list, for when none is chosen yet. Null if none are free. Pure. */
 export function pickModel(models) {
