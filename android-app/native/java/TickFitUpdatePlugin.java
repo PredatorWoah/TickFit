@@ -1,6 +1,9 @@
 package io.github.predatorwoah.tickfit;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -15,6 +18,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +31,11 @@ import java.security.MessageDigest;
 /**
  * Updates the app from inside it (js/updater.js), with no trip to GitHub in a browser.
  *
- *   download({ url, sha256 | sumsUrl, name })  fetches a new APK from TickFit's own GitHub releases into the
- *                                              app's cache and checks its SHA-256 fingerprint; a file that does
- *                                              not match is thrown away. "progress" events: { done, total }.
+ *   download({ url, sha256 | sumsUrl, name })  fetches a new APK from TickFit's own GitHub releases with
+ *                                              Android's DownloadManager and checks its SHA-256 fingerprint; a
+ *                                              file that does not match is thrown away. "progress" events:
+ *                                              { done, total }. Gives up with a message after a minute without
+ *                                              progress, so it can never hang.
  *   install()                                  hands the checked file to Android's installer. The first time,
  *                                              Android asks once to allow installs from TickFit: that settings
  *                                              page opens and { needsPermission: true } comes back.
@@ -45,6 +51,7 @@ public class TickFitUpdatePlugin extends Plugin {
     static final String ALLOWED = "https://github.com/PredatorWoah/TickFit/releases/download/";
     private static final long MAX_BYTES = 80L * 1024 * 1024;
     private static final int MAX_REDIRECTS = 5;
+    private static final long STALL_MS = 60000; // a download with no progress for a minute is given up
     private volatile boolean busy = false;
 
     private File apkFile() {
@@ -57,6 +64,11 @@ public class TickFitUpdatePlugin extends Plugin {
         return s != null && s.matches("[0-9a-fA-F]{64}");
     }
 
+    /**
+     * The download itself is done by Android's DownloadManager (the system service behind the phone's own
+     * downloads): it follows GitHub's redirects, copes with a flaky network, shows the usual download
+     * notification, and keeps going if TickFit is closed. TickFit only watches it, then checks the result.
+     */
     @PluginMethod
     public void download(PluginCall call) {
         final String url = call.getString("url");
@@ -77,48 +89,99 @@ public class TickFitUpdatePlugin extends Plugin {
         }
         busy = true;
         new Thread(() -> {
-            File out = apkFile();
-            File part = new File(out.getPath() + ".part");
+            DownloadManager dm = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+            long id = -1;
+            File got = null;
             try {
+                if (dm == null) throw new IOException("This phone has no download service.");
                 String want = isHash(sha) ? sha : readSum(sumsUrl, name);
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
-                HttpURLConnection c = open(url);
-                long total = c.getContentLengthLong();
-                if (total > MAX_BYTES) throw new IOException("The update is unexpectedly big.");
-                try (InputStream in = c.getInputStream(); OutputStream os = new FileOutputStream(part)) {
-                    byte[] buf = new byte[64 * 1024];
+                File dir = getContext().getExternalFilesDir("updates");
+                if (dir == null) throw new IOException("There is no room to save the update.");
+                if (!dir.exists()) dir.mkdirs();
+                got = new File(dir, "TickFit-download.apk");
+                if (got.exists()) got.delete();
+                DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
+                req.setTitle("TickFit update");
+                req.setDescription(name != null ? name : "New version");
+                req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                req.setDestinationInExternalFilesDir(getContext(), "updates", "TickFit-download.apk");
+                req.addRequestHeader("User-Agent", "TickFit-Android");
+                id = dm.enqueue(req);
+
+                long started = System.currentTimeMillis();
+                long lastBytes = -1;
+                long lastMove = started;
+                while (true) {
+                    Thread.sleep(400);
                     long done = 0;
-                    long told = 0;
-                    int n;
-                    while ((n = in.read(buf)) > 0) {
-                        done += n;
-                        if (done > MAX_BYTES) throw new IOException("The update is unexpectedly big.");
-                        md.update(buf, 0, n);
-                        os.write(buf, 0, n);
-                        if (done - told >= 128 * 1024) {
-                            told = done;
-                            JSObject p = new JSObject();
-                            p.put("done", done);
-                            p.put("total", total);
-                            notifyListeners("progress", p);
-                        }
+                    long total = -1;
+                    int status;
+                    int reason = 0;
+                    try (Cursor c = dm.query(new DownloadManager.Query().setFilterById(id))) {
+                        if (c == null || !c.moveToFirst()) throw new IOException("The download was cancelled.");
+                        status = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+                        done = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                        total = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                        reason = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON));
                     }
-                } finally {
-                    c.disconnect();
+                    long now = System.currentTimeMillis();
+                    if (done != lastBytes) {
+                        lastBytes = done;
+                        lastMove = now;
+                        JSObject p = new JSObject();
+                        p.put("done", done);
+                        p.put("total", total);
+                        notifyListeners("progress", p);
+                    }
+                    if (total > MAX_BYTES || done > MAX_BYTES) throw new IOException("The update is unexpectedly big.");
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) break;
+                    if (status == DownloadManager.STATUS_FAILED) throw new IOException(failReason(reason));
+                    // nothing moving for a long while: say so instead of waiting forever
+                    if (now - lastMove > STALL_MS) throw new IOException(done > 0 ? "The download stopped. Check the internet connection and try again." : "The download did not start. Check the internet connection and try again.");
+                }
+
+                // check the fingerprint, then keep the file where the installer can be given it
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                try (InputStream in = new FileInputStream(got)) {
+                    byte[] buf = new byte[64 * 1024];
+                    int n;
+                    while ((n = in.read(buf)) > 0) md.update(buf, 0, n);
                 }
                 if (!hex(md.digest()).equalsIgnoreCase(want)) throw new IOException("The download did not match its fingerprint, so it was thrown away. Try again.");
+                File out = apkFile();
                 if (out.exists() && !out.delete()) throw new IOException("Could not replace an older download.");
-                if (!part.renameTo(out)) throw new IOException("Could not save the update.");
+                try (InputStream in = new FileInputStream(got); OutputStream os = new FileOutputStream(out)) {
+                    byte[] buf = new byte[64 * 1024];
+                    int n;
+                    while ((n = in.read(buf)) > 0) os.write(buf, 0, n);
+                }
                 JSObject ret = new JSObject();
                 ret.put("bytes", out.length());
                 call.resolve(ret);
             } catch (Exception e) {
-                part.delete();
                 call.reject(e.getMessage() != null ? e.getMessage() : "The download failed. Check the internet connection.");
             } finally {
+                // the checked copy lives in the cache now: drop the download (and its entry in the phone's list)
+                if (dm != null && id != -1) dm.remove(id);
+                if (got != null && got.exists()) got.delete();
                 busy = false;
             }
         }).start();
+    }
+
+    private static String failReason(int reason) {
+        switch (reason) {
+            case DownloadManager.ERROR_INSUFFICIENT_SPACE:
+                return "The phone is out of space for the update. Free some up and try again.";
+            case DownloadManager.ERROR_HTTP_DATA_ERROR:
+            case DownloadManager.ERROR_CANNOT_RESUME:
+                return "The connection dropped during the download. Try again.";
+            case DownloadManager.ERROR_TOO_MANY_REDIRECTS:
+            case DownloadManager.ERROR_UNHANDLED_HTTP_CODE:
+                return "GitHub did not hand over the file. Try again in a few minutes.";
+            default:
+                return reason >= 400 && reason < 600 ? "GitHub answered " + reason + ". Try again in a few minutes." : "The download failed. Check the internet connection and try again.";
+        }
     }
 
     @PluginMethod
