@@ -49,17 +49,29 @@ export function openUpdateSheet(rel) {
         }
       }
 
+      // if the in-app download fails for any reason, the browser can always fetch the same file
+      const fallback = h('a', { class: 'btn wide', href: rel.url, target: '_blank', rel: 'noopener', hidden: true }, 'Download in the browser instead');
+
       go.onclick = async () => {
         if (downloaded) return install();
         go.disabled = true;
         bar.hidden = false;
-        status.textContent = 'Downloading...';
+        fallback.hidden = true;
+        fill.style.width = '0%';
+        status.textContent = 'Connecting to GitHub...';
+        let moved = false;
+        // the phone gives up on a stalled download after a minute; this is the backstop if it never answers at all
+        const watchdog = new Promise((_, reject) => setTimeout(() => !moved && reject(new Error('The download did not start. Check the internet connection, or download it in the browser below.')), 90000));
         try {
-          await downloadUpdate(rel, (done, total) => {
-            const t = total > 0 ? total : rel.size;
-            if (t) fill.style.width = `${Math.min(100, (done / t) * 100)}%`;
-            status.textContent = `Downloading... ${mb(done)}${t ? ` of ${mb(t)}` : ''}`;
-          });
+          await Promise.race([
+            downloadUpdate(rel, (done, total) => {
+              const t = total > 0 ? total : rel.size;
+              if (done > 0) moved = true;
+              if (t) fill.style.width = `${Math.min(100, (done / t) * 100)}%`;
+              status.textContent = done > 0 ? `Downloading... ${mb(done)}${t ? ` of ${mb(t)}` : ''} (also in your notifications)` : 'Connecting to GitHub...';
+            }),
+            watchdog,
+          ]);
           downloaded = true;
           fill.style.width = '100%';
           status.textContent = 'Downloaded and checked.';
@@ -67,7 +79,9 @@ export function openUpdateSheet(rel) {
         } catch (e) {
           status.textContent = e.message || String(e);
           go.disabled = false;
+          go.textContent = 'Try again';
           bar.hidden = true;
+          fallback.hidden = false;
         }
       };
 
@@ -78,6 +92,7 @@ export function openUpdateSheet(rel) {
           bar,
           status,
           go,
+          fallback,
           h('p', { class: 'hint tight' }, 'It comes from TickFit\'s releases on GitHub. Before installing, the app checks the file\'s fingerprint, and Android checks it was made by the same people as this app.'),
         ].filter(Boolean) // (append() would print a null as the word "null")
       );
