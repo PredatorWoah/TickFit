@@ -186,10 +186,14 @@ export function validatePlan(raw) {
     if (open) warnings.push(`${open} day${open === 1 ? ' has' : 's have'} no exercises of their own. TickFit fills ${open === 1 ? 'it' : 'them'} from the plan's exercise options by the day's name or focus (a day called "Rest" stays a rest day). Tap "Choose exercises" on a day to change it.`);
   }
 
+  warnEmptyTrainingDays(days, library, warnings);
+
   const plan = { name, days };
   if (library) plan.library = library;
   const picks = validatePicks(raw.picks);
   if (picks) plan.picks = picks;
+  const versions = validateVersions(raw.versions);
+  if (versions) plan.versions = versions;
   if (typeof raw.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.startDate.trim())) {
     plan.startDate = raw.startDate.trim();
   }
@@ -317,6 +321,29 @@ function validatePicks(v) {
   return Object.keys(out).length ? out : null;
 }
 
+/** Which version of each exercise was used on each date: { "2026-10-09": { "w1": 1 } }. Null when there is nothing. */
+function validateVersions(v) {
+  if (!isObj(v)) return null;
+  const out = {};
+  for (const [date, p] of Object.entries(v)) {
+    if (!DATE_RE.test(date) || !isObj(p)) continue;
+    const day = {};
+    for (const [id, n] of Object.entries(p)) if (Number.isInteger(n) && n >= 0 && n <= MAX_ALTERNATIVES) day[id] = n;
+    if (Object.keys(day).length) out[date] = day;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+// A day with no exercises is fine when it is a rest day, but a chatbot that runs out of room (or skips a part of
+// the document) leaves a TRAINING day empty, and the plan then shows it as a day off. Say so while it can still be fixed.
+const REST_WORDS = /\b(rest|off|recover(?:y)?|relax(?:ed)?|walk|stretch(?:ing)?|mobility|yoga|none|nothing|free)\b/i;
+function warnEmptyTrainingDays(days, library, warnings) {
+  const anyExercises = days.some((d) => d && d.workout.length);
+  if (!anyExercises || (library && library.exercises.length)) return;
+  const empty = days.map((d, i) => ({ d, i })).filter(({ d }) => d && !d.workout.length && !REST_WORDS.test(d.label));
+  for (const { d, i } of empty.slice(0, 6)) warnings.push(`Day ${i + 1} ("${d.label}") has no exercises, so it will show as a rest day. If it should have some, the chatbot may have skipped it: ask it to add that day, or add the exercises in "Edit this plan".`);
+}
+
 /** Use the given id if it is unique in the day, otherwise make one like w1, m2. */
 function pickId(given, prefix, index, used) {
   let id = str(given);
@@ -326,7 +353,7 @@ function pickId(given, prefix, index, used) {
   return id;
 }
 
-function validateExercise(w, where, j, used, errors, warnings) {
+function validateExercise(w, where, j, used, errors, warnings, nested = false) {
   if (!isObj(w)) {
     errors.push(`${where} is not an object.`);
     return null;
@@ -353,6 +380,10 @@ function validateExercise(w, where, j, used, errors, warnings) {
     video = '';
   }
 
+  // Other versions of the same exercise (Machine / No machine): one slot, not separate exercises
+  const alternatives = nested ? [] : validateAlternatives(w, label, warnings);
+  const vlabel = str(w.version ?? w.vlabel ?? w.label).slice(0, 30);
+
   return {
     id: pickId(w.id, 'w', j, used),
     exercise,
@@ -364,7 +395,37 @@ function validateExercise(w, where, j, used, errors, warnings) {
     video,
     // Optional superset: exercises next to each other with the same letter are done back to back
     ...(/^[A-Za-z0-9]{1,3}$/.test(str(w.superset ?? w.group)) ? { superset: str(w.superset ?? w.group).toUpperCase() } : {}),
+    ...(alternatives.length ? { ...(vlabel ? { vlabel } : {}), alternatives } : {}),
   };
+}
+
+const MAX_ALTERNATIVES = 4;
+
+/**
+ * The other versions of an exercise: "alternatives": [ { "version": "No machine", "exercise": "Push Ups", "notes": "...",
+ * "video": "..." } ]. Chatbots also write "alternative", "alts", "versions" or "or"; a plain name is accepted too.
+ * Each one keeps only the fields it states (the rest come from the first version, see versions.js).
+ */
+function validateAlternatives(w, label, warnings) {
+  const raw = [w.alternatives, w.alternative, w.alts, w.alt, w.versions, w.or].find((v) => v !== undefined && v !== null && v !== '');
+  if (raw === undefined) return [];
+  const list = Array.isArray(raw) ? raw : [raw];
+  const out = [];
+  list.slice(0, MAX_ALTERNATIVES).forEach((a, k) => {
+    const obj = typeof a === 'string' ? { exercise: a } : a;
+    const errs = [];
+    const v = validateExercise(obj, `${label}, other version ${k + 1}`, k, new Set(), errs, warnings, true);
+    if (!v || errs.length) return warnings.push(`${label}: another version of it has no exercise name, so I skipped it.`);
+    const alt = {};
+    const lab = str(obj.version ?? obj.vlabel ?? obj.label).slice(0, 30);
+    if (lab) alt.label = lab;
+    alt.exercise = v.exercise;
+    if (v.sets !== null) alt.sets = v.sets;
+    for (const key of ['reps', 'rest', 'weight', 'notes', 'video']) if (v[key]) alt[key] = v[key];
+    out.push(alt);
+  });
+  if (list.length > MAX_ALTERNATIVES) warnings.push(`${label} has ${list.length + 1} versions. I kept the first ${MAX_ALTERNATIVES + 1}.`);
+  return out;
 }
 
 function validateMeal(m, where, j, used, errors, warnings) {
