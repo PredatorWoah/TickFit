@@ -5,6 +5,7 @@
 // even if the phone throttles the page while the screen is dimmed.
 
 import { restChanged } from './restalert.js';
+import { keepScreenOn } from './awake.js';
 import { h } from './dom.js';
 import { getState } from './store.js';
 
@@ -81,6 +82,7 @@ function beep() {
 
 export function stopRest() {
   restChanged(null);
+  keepScreenOn(false);
   clearInterval(interval);
   interval = null;
   if (bar) bar.remove();
@@ -151,6 +153,7 @@ export function startRest(seconds, label) {
   );
   document.body.append(bar);
   document.body.classList.add('has-rest');
+  keepScreenOn(true); // the phone stays awake for the whole rest (awake.js)
   restChanged(endAt, label); // the Android app alerts from a notification if the screen goes off (restalert.js)
 
   function tick() {
