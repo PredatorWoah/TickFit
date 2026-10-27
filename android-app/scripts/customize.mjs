@@ -69,6 +69,7 @@ edit(
     protected void onCreate(android.os.Bundle savedInstanceState) {
         registerPlugin(TickFitWidgetPlugin.class); // the home screen widgets' bridge (android-app/native)
         registerPlugin(TickFitUpdatePlugin.class); // updates from inside the app (android-app/native)
+        registerPlugin(TickFitScreenPlugin.class); // keeps the screen on during the rest timer (android-app/native)
         super.onCreate(savedInstanceState);
     }
 
