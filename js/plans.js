@@ -8,6 +8,7 @@ import { parsePlanText } from './parser.js';
 import { openPlanShare } from './shareui.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
+import { readStructuredPlan, describeReport } from './docreader.js';
 import { activeAI, convertPlanWithAI } from './aiassist.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
 import { weeklyWeekdays, weekdayName } from './schedule.js';
@@ -213,6 +214,41 @@ export function renderImport(root, actions) {
     }
   }
 
+  /** Try to read document text by itself (no chatbot). On success the plan JSON is put in the box with a day-by-day summary. */
+  function readHere(text) {
+    let found = null;
+    try {
+      found = readStructuredPlan(text);
+    } catch {
+      found = null;
+    }
+    if (!found) return false;
+    const result = parsePlanText(JSON.stringify(found.plan));
+    if (!result.ok) return false;
+    box.value = JSON.stringify(result.plan, null, 2);
+    clear(messages);
+    status.textContent = `Read on this device, no chatbot needed: ${describeReport(found.report)}. Check the days below, then tap Import plan.`;
+    messages.append(
+      h(
+        'div',
+        { class: 'msg ok' },
+        h('b', {}, 'What was found:'),
+        h(
+          'ul',
+          {},
+          result.plan.days.map((d) => {
+            const n = d.workout.length;
+            const v = d.workout.filter((w) => w.alternatives && w.alternatives.length).length;
+            return h('li', {}, `${d.label}: ${n ? `${n} exercises${v ? `, ${v} with a second version` : ''}` : 'no exercises (rest day)'}`);
+          })
+        )
+      )
+    );
+    const notes = [...found.report.notes, ...result.warnings];
+    if (notes.length) messages.append(h('div', { class: 'msg warn' }, h('b', {}, 'Notes:'), h('ul', {}, notes.slice(0, 8).map((w) => h('li', {}, w)))));
+    return true;
+  }
+
   // Optional: upload a PDF / text file (read on this device, nothing is uploaded).
   const fileInput = h('input', {
     type: 'file',
@@ -226,6 +262,7 @@ export function renderImport(root, actions) {
       try {
         box.value = await extractText(file);
         clear(messages);
+        if (readHere(box.value)) return;
         status.textContent = `Read ${file.name} (${box.value.length.toLocaleString()} characters) on this device. If it is already plan JSON, tap Import. If it is a normal document, convert it with ${activeAI() ? activeAI().name + ' or ' : ''}a chatbot using "Copy prompt with this text".`;
       } catch (err) {
         status.textContent = '';
@@ -269,6 +306,8 @@ export function renderImport(root, actions) {
 
   function doImport() {
     const result = parsePlanText(box.value);
+    // pasted document text instead of JSON: read it here first, and let the person check the days before importing
+    if (!result.ok && readHere(box.value)) return;
     showResult(result);
     if (!result.ok) return;
     const date = isValidStr(startDate.value) ? startDate.value : todayStr();

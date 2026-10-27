@@ -57,7 +57,11 @@ SCHEMA
           "weight": string,             // optional target, e.g. "20 kg" or "bodyweight"
           "notes": string,              // optional
           "video": string,              // optional link, ONLY if the document contains a real URL
-          "superset": string            // optional, the same letter (e.g. "A") on exercises done back to back
+          "superset": string,           // optional, the same letter (e.g. "A") on exercises done back to back
+          "version": string,            // optional, only with "alternatives": what THIS version is called, e.g. "Machine"
+          "alternatives": [             // optional: other ways to do THE SAME slot (e.g. the "No machine" version)
+            { "version": string, "exercise": string, "notes": string, "video": string, "sets": number, "reps": string }
+          ]
         }
       ],
       "meals": [                        // required, can be []
@@ -98,6 +102,8 @@ ${rule4}
 9. If the plan is a weekly schedule (Monday, Tuesday and so on), start every "label" with the weekday name, for example "Monday Chest + Triceps", and list each weekday once. Weekdays you leave out become rest days. Do not use weekday names in labels for plans that are not tied to real weekdays.
 10. Put the same long advice paragraph in only ONE place (the first day's "notes"), not repeated in every day.
 11. If the document lists exercise or meal OPTIONS (alternatives, "choose any 4", a list by muscle group or by meal), ALSO put all those options in "library", grouped by category, and give each day a "focus". Still fill every training day's "workout" and every day's "meals" with a sensible default pick from those options (as many as the document says to do), so each day works without choosing; the person can swap in other options later.
+12. If the document gives TWO OR MORE versions of one exercise (Machine / No machine, Gym / Home, "or", "alternative"), that is ONE entry in "workout": put the first version in "exercise" (with "version" as its label) and the others in "alternatives" (each with its own "version" label, "exercise", "notes" and "video"). NEVER turn the versions into separate exercises and NEVER drop one. Copy each version's own video link and notes to that version.
+13. Every day of the document must appear as its own entry in "days", in the document's order, and every training day must have ALL of its exercises. Do not skip a day, even if it looks the same as another one. If you are running out of room, shorten notes, never leave a day empty.
 
 ${create ? 'MY DETAILS' : 'MY PLAN DOCUMENT'}:
 ${docText ? docText.trim() : '(paste it here)'}

@@ -126,6 +126,7 @@ input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; marg
 .msg ul { margin: 6px 0 0; padding-left: 18px; }
 .msg.error { background: color-mix(in srgb, var(--danger) 15%, transparent); border: 1px solid var(--danger); }
 .msg.warn { background: color-mix(in srgb, var(--warn) 15%, transparent); border: 1px solid var(--warn); }
+.msg.ok { background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid var(--accent); }
 
 /* ---------- 3. buttons and forms ---------- */
 .btn {
@@ -703,9 +704,14 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .merge-row .btn { flex: none; }
 .pick-chosen { display: flex; gap: 6px; align-items: stretch; }
 .pick-chosen .pick-row { flex: 1; min-width: 0; }
-.pick-moves { display: flex; flex-direction: column; gap: 4px; flex: none; }
-.pick-move { flex: 1; width: 44px; min-height: 28px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
-.pick-move:disabled { opacity: 0.3; }
+/* the handle you drag a chosen exercise by; touch-action none so dragging it never scrolls the page */
+.pick-grip { flex: none; width: 48px; align-self: stretch; min-height: 56px; display: grid; place-items: center; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent; }
+.pick-grip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; color: var(--text); }
+.pick-chosen { position: relative; transition: transform 0.2s var(--ease); }
+.pick-chosen.dragging { z-index: 4; transition: none; cursor: grabbing; border-radius: 16px; background: var(--surface); box-shadow: 0 16px 34px -12px rgba(0, 0, 0, 0.55); transform-origin: center; }
+.pick-chosen.dragging .pick-grip { color: var(--accent-text); border-color: var(--accent); cursor: grabbing; }
+.pick-list.is-dragging { user-select: none; -webkit-user-select: none; }
+.pick-list.is-dragging .pick-row { pointer-events: none; }
 .pick-ai .pick-row { border-style: dashed; border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
 .pick-suggest { margin: 10px 0 0; }
 
@@ -971,3 +977,16 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 .upd-notes li + li { margin-top: 4px; }
 .upd-bar { margin: 4px 0 8px; }
 .upd-nudge { border-color: var(--accent); }
+
+/* ----- 2.5.0: exercises that come in versions (Machine / No machine) ----- */
+.ver-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 4px; }
+.ver-bar-title { font-weight: 800; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.ver-bar .seg { flex: 1 1 220px; margin: 0; }
+.ver-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 2px 0 12px; }
+.ver-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; min-height: 56px; padding: 9px 12px; text-align: left; border-radius: var(--radius-sm, 14px); border: 1.5px solid var(--line); background: var(--surface-2); color: var(--text); font: inherit; }
+.ver-chip b { font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.ver-chip small { font-size: 14px; font-weight: 600; color: var(--muted); overflow-wrap: anywhere; line-height: 1.25; }
+.ver-chip[aria-pressed='true'] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--surface)); }
+.ver-chip[aria-pressed='true'] b { color: var(--accent-text); }
+.ver-chip[aria-pressed='true'] small { color: var(--text); }
+.ver-chip:active { transform: scale(0.98); }

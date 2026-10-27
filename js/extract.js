@@ -48,10 +48,40 @@ async function extractPdfText(file) {
   for (let i = 1; i <= pages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    // Each item is a bit of text; hasEOL marks the end of a line.
-    out.push(content.items.map((it) => (it.str || '') + (it.hasEOL ? '\n' : '')).join(''));
+    const links = await linksOnPage(page, content.items);
+    // Each item is a bit of text; hasEOL marks the end of a line. A link's address goes right after its text,
+    // like "Watch machine version <address>", so video links in the document are not lost.
+    out.push(content.items.map((it, k) => (it.str || '') + (links.has(k) ? ` <${links.get(k)}>` : '') + (it.hasEOL ? '\n' : '')).join(''));
   }
   const text = out.join('\n\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   if (!text) throw new Error('That PDF has no selectable text (it is probably a scan or photo). Copy the text into a chatbot yourself, or use a text-based PDF.');
   return text;
+}
+
+/**
+ * The web links on a PDF page, matched to the text they sit on: Map of text item index -> address.
+ * A link is a rectangle on the page; the last piece of text inside it gets the address.
+ */
+async function linksOnPage(page, items) {
+  const found = new Map();
+  let annotations = [];
+  try {
+    annotations = await page.getAnnotations();
+  } catch {
+    return found; // a page whose links cannot be read still gives its text
+  }
+  for (const a of annotations) {
+    const url = a.subtype === 'Link' ? a.url || a.unsafeUrl : null;
+    if (!url || !/^https?:\/\/\S+$/i.test(url) || !a.rect) continue;
+    const [x1, y1, x2, y2] = a.rect;
+    let last = -1;
+    items.forEach((it, k) => {
+      if (!it.transform || !it.str || !it.str.trim()) return;
+      const x = it.transform[4];
+      const y = it.transform[5];
+      if (x >= x1 - 2 && x <= x2 + 2 && y >= y1 - 4 && y <= y2 + 4) last = k;
+    });
+    if (last >= 0 && !found.has(last)) found.set(last, url);
+  }
+  return found;
 }

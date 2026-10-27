@@ -2,7 +2,8 @@
 // The "Choose exercises" / "Choose meals" sheet: mix and match what you do on one date.
 //   * Filter chips by category (Back, Biceps, Breakfast...). It starts on the day's focus, so on
 //     "Friday Back Biceps" you see back and biceps exercises first.
-//   * Tick what you want, then move them up or down into the order you'll do them.
+//   * Tick what you want, then drag them by their handle into the order you'll do them (the handle also
+//     answers the arrow keys, for keyboards and screen readers).
 //   * With AI helpers on in More, ask the AI for suggestions that fit the day.
 //   * Add your own, or go back to the plan's list.
 // Loaded on demand (only when someone opens it), so it costs nothing at startup.
@@ -10,6 +11,7 @@
 import { h, toast } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
+import { haptic } from './platform.js';
 import { savePlans } from './store.js';
 import { plannedDay } from './schedule.js';
 import { mealNumbers } from './stats.js';
@@ -86,20 +88,104 @@ export function openPicker({ plan, date, kind, onDone, packet = null, keep = nul
       }
 
       function drawList() {
-        count.textContent = chosen.length ? `${chosen.length} chosen. Use the arrows to put them in order.` : `Nothing chosen yet. ${isWorkout ? 'An empty list makes it a rest day.' : ''}`;
+        count.textContent = chosen.length ? `${chosen.length} chosen.${chosen.length > 1 ? ' Drag the handle on the right to put them in order.' : ''}` : `Nothing chosen yet. ${isWorkout ? 'An empty list makes it a rest day.' : ''}`;
         // Chosen ones always stay on top, so you can see and untick them whatever the filter.
         const rest = all.filter((c) => !chosen.includes(c) && (filter.size === 0 || filter.has(c.category)) && (!query || nameOf(c).toLowerCase().includes(query) || c.category.toLowerCase().includes(query)));
-        // Move a chosen one up (-1) or down (+1), keeping focus on the same button so it can be tapped again.
-        const move = (c, dir, which) => {
+        // Put chosen item `c` at place `to` (keys and the end of a drag), keeping focus on its handle.
+        const moveTo = (c, to) => {
           const i = chosen.indexOf(c);
-          const j = i + dir;
-          if (i < 0 || j < 0 || j >= chosen.length) return;
+          if (i < 0 || to < 0 || to >= chosen.length || to === i) return;
           const next = [...chosen];
-          [next[i], next[j]] = [next[j], next[i]];
+          next.splice(i, 1);
+          next.splice(to, 0, c);
           chosen = next;
           drawList();
-          const again = list.querySelector(`[data-move="${which}"][data-at="${j}"]`) || list.querySelector(`[data-move][data-at="${j}"]`);
+          const again = list.querySelector(`[data-grip][data-at="${to}"]`);
           if (again) again.focus({ preventScroll: false });
+        };
+        // Drag a chosen item by its handle. The row follows the finger, the rows it passes slide out of the way,
+        // and the list scrolls by itself near the top and bottom edge. Dropping puts it in its new place.
+        const startDrag = (e, c, rowEl) => {
+          if ((e.button !== undefined && e.button > 0) || list.classList.contains('is-dragging')) return;
+          e.preventDefault();
+          const handle = e.currentTarget;
+          const rows = [...list.querySelectorAll('.pick-chosen')];
+          const from = chosen.indexOf(c);
+          if (from < 0 || rows.length < 2) return;
+          try { handle.setPointerCapture(e.pointerId); } catch { /* an old browser: the drag still works while the finger stays on the handle */ }
+          const scroller = list.closest('.sheet-body') || document.scrollingElement;
+          const rects = rows.map((r) => r.getBoundingClientRect());
+          const startY = e.clientY;
+          const startScroll = scroller.scrollTop;
+          const step = rects[from].height + (rects.length > 1 ? Math.max(0, rects[1].top - rects[0].bottom) : 0);
+          let y = e.clientY;
+          let target = from;
+          let raf = 0;
+          rowEl.classList.add('dragging');
+          list.classList.add('is-dragging');
+          haptic();
+
+          const update = () => {
+            const scrolled = scroller.scrollTop - startScroll;
+            rowEl.style.transform = `translateY(${y - startY + scrolled}px)`;
+            const centre = rects[from].top + rects[from].height / 2 + (y - startY); // where the dragged row is, on screen
+            let t = from;
+            rects.forEach((r, i) => {
+              const mid = r.top + r.height / 2 - scrolled; // where row i is now, on screen
+              if (i < from && centre < mid) t = Math.min(t, i);
+              if (i > from && centre > mid) t = Math.max(t, i);
+            });
+            if (t !== target) {
+              target = t;
+              haptic(); // a small tick each time it passes another row
+            }
+            rows.forEach((r, i) => {
+              if (i === from) return;
+              const shift = target > from && i > from && i <= target ? -step : target < from && i >= target && i < from ? step : 0;
+              r.style.transform = shift ? `translateY(${shift}px)` : '';
+            });
+          };
+          const edge = () => {
+            const box = scroller.getBoundingClientRect();
+            const zone = 72;
+            const speed = y < box.top + zone ? -Math.ceil((box.top + zone - y) / 6) : y > box.bottom - zone ? Math.ceil((y - (box.bottom - zone)) / 6) : 0;
+            if (speed) {
+              const before = scroller.scrollTop;
+              scroller.scrollTop = before + Math.max(-18, Math.min(18, speed));
+              if (scroller.scrollTop !== before) update();
+            }
+            raf = requestAnimationFrame(edge);
+          };
+          raf = requestAnimationFrame(edge);
+
+          const move = (ev) => {
+            if (ev.pointerId !== e.pointerId) return;
+            y = ev.clientY;
+            update();
+          };
+          const finish = (ev, drop) => {
+            if (ev.pointerId !== e.pointerId) return;
+            cancelAnimationFrame(raf);
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', cancel);
+            try { handle.releasePointerCapture(e.pointerId); } catch { /* already released */ }
+            list.classList.remove('is-dragging');
+            if (drop && target !== from) {
+              const next = [...chosen];
+              next.splice(from, 1);
+              next.splice(target, 0, c);
+              chosen = next;
+            }
+            drawList();
+            const again = list.querySelector(`[data-grip][data-at="${chosen.indexOf(c)}"]`);
+            if (again) again.focus({ preventScroll: true });
+          };
+          const up = (ev) => finish(ev, true);
+          const cancel = (ev) => finish(ev, false);
+          handle.addEventListener('pointermove', move);
+          handle.addEventListener('pointerup', up);
+          handle.addEventListener('pointercancel', cancel);
         };
         const row = (c) => {
           const at = chosen.indexOf(c);
@@ -120,14 +206,26 @@ export function openPicker({ plan, date, kind, onDone, packet = null, keep = nul
             h('span', { class: 'pick-cat' }, c.category)
           );
           if (at < 0) return h('li', { class: c.source === 'ai' ? 'pick-ai' : null }, toggle);
-          const arrow = (dir, which, label, glyph, disabled) =>
-            h('button', { type: 'button', class: 'pick-move', 'data-move': which, 'data-at': String(at), 'aria-label': `${label}: ${nameOf(c)}`, disabled, onclick: () => move(c, dir, which) }, icon(glyph, 20));
-          return h(
-            'li',
-            { class: 'pick-chosen' },
-            toggle,
-            h('span', { class: 'pick-moves' }, arrow(-1, 'up', 'Move up', 'chevron-up', at === 0), arrow(1, 'down', 'Move down', 'chevron-down', at === chosen.length - 1))
+          const grip = h(
+            'button',
+            {
+              type: 'button',
+              class: 'pick-grip',
+              'data-grip': '',
+              'data-at': String(at),
+              'aria-label': `Reorder ${nameOf(c)}. Drag it, or use the up and down arrow keys.`,
+              onpointerdown: (e) => startDrag(e, c, li),
+              onkeydown: (e) => {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  moveTo(c, chosen.indexOf(c) + (e.key === 'ArrowUp' ? -1 : 1));
+                }
+              },
+            },
+            icon('grip', 22)
           );
+          const li = h('li', { class: 'pick-chosen' }, toggle, grip);
+          return li;
         };
         list.replaceChildren(...chosen.map(row), ...rest.map(row));
         if (!chosen.length && !rest.length) list.append(h('li', { class: 'hint' }, 'Nothing matches. Try All, or add your own below.'));
@@ -211,8 +309,7 @@ export function openPicker({ plan, date, kind, onDone, packet = null, keep = nul
         h('p', { class: 'hint' }, isWorkout ? 'Pick the exercises for this day only. The plan itself stays the same, and your logged sets are kept.' : 'Pick the meals for this day only. The plan itself stays the same.'),
         chips,
         search,
-        aiBtn,
-        aiBtn && aiStatus,
+        ...(aiBtn ? [aiBtn, aiStatus] : []), // (append() would print a null as the word "null")
         count,
         list,
         h(

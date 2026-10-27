@@ -9,6 +9,7 @@
 //     list (say Sunday in a Monday to Saturday plan) are rest days. No start date needed.
 
 import { planDayIndex, fromStr } from './dates.js';
+import { withVersions } from './versions.js';
 
 const WEEKDAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 // Full names or the usual short forms (Mon, Tues, Thurs). "Sunrise" or "Monster" don't count.
@@ -60,15 +61,15 @@ export function dayIndexFor(plan, date) {
 export function dayFor(plan, date) {
   const base = plannedDay(plan, date);
   const pick = plan.picks && plan.picks[date];
-  if (!pick) return base;
+  if (!pick) return withVersions(plan, date, base);
   const lib = plan.library || {};
   const resolve = (ids, own, more) => ids.map((id) => own.find((x) => x.id === id) || (more || []).find((x) => x.id === id)).filter(Boolean);
-  return {
+  return withVersions(plan, date, {
     ...base,
     workout: Array.isArray(pick.workout) ? resolve(pick.workout, base.workout, lib.exercises) : base.workout,
     meals: Array.isArray(pick.meals) ? resolve(pick.meals, base.meals, lib.meals) : base.meals,
     picked: true,
-  };
+  });
 }
 
 /**

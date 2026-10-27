@@ -26,8 +26,11 @@ import { haptic } from './platform.js';
 import { createCtx, dateBar, pickButton, LOCALE } from './dayview.js';
 import { lookOf } from './theme.js';
 import { deckTitleSize } from './home.js';
+import { plannedDay } from './schedule.js';
+import { versionInfo, versionId, sharedLabels, setVersion, setVersionForDay } from './versions.js';
 
 let clockTimer = null; // the 1 second tick for the running clock
+let reopen = null; // an exercise to open again after the screen redraws (after switching its version)
 
 /** Stop the clock and remove the floating bar. Called whenever we leave this screen. */
 export function teardownWorkout() {
@@ -65,6 +68,42 @@ export function renderWorkout(root, plan, date, goto) {
   }
 
   const totalSets = day.workout.reduce((t, w) => t + plannedSets(w), 0);
+  const started = (w) => exerciseProgress(w, ctx.rec()).done > 0;
+
+  /** "Machine | No machine" for the whole day, when the exercises come in versions. */
+  function dayVersionBar() {
+    const labels = sharedLabels(day.workout);
+    if (!labels) return null;
+    const infos = day.workout.map(versionInfo).filter(Boolean);
+    const counts = labels.map((_, n) => infos.filter((i) => Math.min(i.vi, i.versions.length - 1) === n).length);
+    const active = counts.indexOf(Math.max(...counts));
+    return h(
+      'div',
+      { class: 'ver-bar' },
+      h('span', { class: 'ver-bar-title' }, 'Do today'),
+      h(
+        'div',
+        { class: 'seg', role: 'group', 'aria-label': 'Which version of the exercises to do today' },
+        labels.map((label, n) =>
+          h(
+            'button',
+            {
+              type: 'button',
+              'aria-pressed': String(n === active),
+              onclick: () => {
+                if (n === active) return;
+                const left = setVersionForDay(plan, date, day.workout, n, started);
+                savePlans();
+                if (left.length) toast(`${left.length === 1 ? left[0] + ' was' : left.length + ' exercises were'} already started, so ${left.length === 1 ? 'it stays' : 'they stay'} as it is.`);
+                ctx.goto(date);
+              },
+            },
+            label
+          )
+        )
+      )
+    );
+  }
 
   // ----- header -----
   const progressText = h('span', { class: 'wk-progress-text' });
@@ -76,6 +115,7 @@ export function renderWorkout(root, plan, date, goto) {
       h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
       day.suggested && !day.picked && h('p', { class: 'hint tight' }, "Suggested from your plan's exercise options. Tap Choose exercises to swap any."),
       pickButton(ctx, 'workout'),
+      dayVersionBar(),
       h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
       stateArea,
     ].filter(Boolean)
@@ -220,7 +260,8 @@ export function renderWorkout(root, plan, date, goto) {
   clockTimer = setInterval(tick, 1000);
 
   // ----- the exercises -----
-  let openId = (nextExercise(day, ctx.rec()) || {}).id || null; // the one that is open (one at a time)
+  let openId = (reopen && day.workout.some((w) => w.id === reopen) ? reopen : (nextExercise(day, ctx.rec()) || {}).id) || null; // the one that is open (one at a time)
+  reopen = null;
   let stayPut = false; // set while the Deck set card ticks a set, so the page doesn't scroll away from the card
   const items = new Map(); // exercise id -> { li, setOpen(bool) }
 
@@ -242,7 +283,9 @@ export function renderWorkout(root, plan, date, goto) {
     const restSecs = parseRestSeconds(w.rest);
     const last = () => lastPerformance(plan, ctx.records(), date, w.exercise);
 
+    const vinfo = versionInfo(w);
     const facts = [];
+    if (vinfo) facts.push(vinfo.versions[vinfo.vi].label);
     if (w.sets || w.reps) facts.push(w.sets && w.reps ? `${w.sets} × ${w.reps}` : w.sets ? `${w.sets} sets` : w.reps);
     if (w.weight) facts.push(/^\d/.test(w.weight) && !/[a-z]/i.test(w.weight) ? `${w.weight} kg` : w.weight);
     if (w.rest) facts.push(`rest ${w.rest}`);
@@ -260,6 +303,35 @@ export function renderWorkout(root, plan, date, goto) {
     let warmOpen = false;
 
     const save = () => ctx.change((r) => saveRows(r, w, rows));
+
+    /** The versions of this exercise (Machine, No machine...) as buttons. Switching is refused once a set is ticked. */
+    function versionChips() {
+      if (!vinfo) return null;
+      return h(
+        'div',
+        { class: 'ver-row', role: 'group', 'aria-label': `Versions of ${vinfo.versions[0].exercise}` },
+        vinfo.versions.map((v, n) =>
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'ver-chip',
+              'aria-pressed': String(n === vinfo.vi),
+              onclick: () => {
+                if (n === vinfo.vi) return;
+                if (started(w)) return toast(`You already ticked sets of ${w.exercise}. Untick them first to switch.`);
+                setVersion(plan, date, vinfo.base, n);
+                savePlans();
+                reopen = versionId(vinfo.base, n);
+                ctx.goto(date);
+              },
+            },
+            h('b', {}, v.label),
+            h('small', {}, v.exercise)
+          )
+        )
+      );
+    }
 
     /** Tick (or untick) set i: rest timer, PR cheer, supersets and moving on to the next exercise. */
     function toggleSet(i) {
@@ -357,6 +429,7 @@ export function renderWorkout(root, plan, date, goto) {
       const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(w.exercise + ' proper form')}`;
       body.append(
         ...[
+          versionChips(),
           facts.length > 0 && h('p', { class: 'ex-target' }, facts.join(' · ')),
           w.notes && h('p', { class: 'sheet-note' }, w.notes),
           lastTime && h('p', { class: 'last-time' }, h('b', {}, 'Last time '), `(${localDate(fromStr(lastTime.date), { day: 'numeric', month: 'short' }, LOCALE)}): ${formatSets(lastTime.sets)}`),
@@ -495,20 +568,28 @@ export function renderWorkout(root, plan, date, goto) {
   }
 
   /** Pair exercise i with the next one (same letter), or split them again. Saved in the plan. */
+  /** The plan's own object behind an exercise on screen (another version is only a copy), so changes reach the saved plan. */
+  const source = (x) => {
+    if (!x.base) return x;
+    const lib = (plan.library && plan.library.exercises) || [];
+    return plannedDay(plan, date).workout.find((o) => o.id === x.base) || lib.find((o) => o.id === x.base) || x;
+  };
+
   function toggleSuperset(i) {
     const a = day.workout[i];
     const b = day.workout[i + 1];
     if (!a || !b) return;
+    const A = source(a);
+    const B = source(b);
     if (a.superset && a.superset === b.superset) {
       // split: everything after i keeps its letter only if it still has a partner
-      b.superset = undefined;
-      delete b.superset;
-      if (!(i > 0 && day.workout[i - 1].superset === a.superset)) delete a.superset;
+      delete B.superset;
+      if (!(i > 0 && day.workout[i - 1].superset === a.superset)) delete A.superset;
     } else {
       const used = new Set(day.workout.map((x) => x.superset).filter(Boolean));
       const letter = a.superset || b.superset || 'ABCDEFGH'.split('').find((L) => !used.has(L)) || 'S';
-      a.superset = letter;
-      b.superset = letter;
+      A.superset = letter;
+      B.superset = letter;
     }
     savePlans();
     ctx.goto(date);
