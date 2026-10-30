@@ -17,7 +17,7 @@ export function hasProgress(rec) {
   if (!rec) return false;
   if (rec.ticks && Object.values(rec.ticks).some(Boolean)) return true;
   if (rec.sets && Object.values(rec.sets).some((list) => (list || []).some((s) => s && s.done))) return true;
-  return !!(rec.waterMl > 0 || (rec.notes && String(rec.notes).trim()) || rec.session || rec.manual);
+  return !!(rec.waterMl > 0 || (rec.notes && String(rec.notes).trim()) || rec.session || rec.manual || rec.skipped);
 }
 
 /** How many days of a plan's records have progress. */

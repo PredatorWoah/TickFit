@@ -11,6 +11,8 @@ import { todayStr } from './dates.js';
 import { renderHome } from './home.js';
 import { renderWorkout, teardownWorkout } from './workout.js';
 import { renderMeals } from './meals.js';
+import { skipRow, renderSkipped } from './skipday.js';
+import { isSkipped } from './stats.js';
 import { renderWelcome, renderPlans, renderNewPlan, renderImport } from './plans.js';
 import { renderProgress } from './progress.js';
 import { renderMore } from './more.js';
@@ -155,14 +157,21 @@ function draw() {
   else if (s === 'library') showLazy(id, 'library', (render) => render(root, plan, actions));
   else if (s === 'more') renderMore(root, actions);
   else if (s === 'progress') renderProgress(root, plan, (date) => show('today', { date }));
-  else if (s === 'workout') renderWorkout(root, plan, view.date, gotoDate);
-  else if (s === 'meals') renderMeals(root, plan, view.date, gotoDate);
+  else if (isDayScreen(s) && isSkipped(getState().progress[plan.id], view.date)) renderSkipped(root, plan, view.date, gotoDate, draw);
+  else if (s === 'workout') {
+    renderWorkout(root, plan, view.date, gotoDate);
+    root.prepend(skipRow(plan, view.date, draw));
+  } else if (s === 'meals') {
+    renderMeals(root, plan, view.date, gotoDate);
+    root.prepend(skipRow(plan, view.date, draw));
+  }
   else if (s === 'edit') {
     const target = getState().plans.find((p) => p.id === view.planId);
     if (target) showLazy(id, 'edit', (render) => render(root, target, { close: () => show('plans') }));
     else return show('plans');
   } else {
     renderHome(root, plan, view.date, gotoDate, actions);
+    root.prepend(skipRow(plan, view.date, draw));
     showBackupNudge();
     showUpdateNudge();
   }
@@ -170,6 +179,8 @@ function draw() {
   syncAiButton(s, plan);
   if (s !== 'build' && s !== 'edit' && s !== 'library') warnIfStorageBlocked(); // the lazy screens do this themselves once they are drawn
 }
+
+const isDayScreen = (s) => s === 'workout' || s === 'meals' || s === 'today';
 
 /** The round "Ask AI" button above the tab bar, on the day screens, only when AI helpers are on. */
 function syncAiButton(screen, plan) {

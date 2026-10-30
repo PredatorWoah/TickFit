@@ -10,7 +10,7 @@ import { h } from './dom.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import { getState, getRecord, updateRecord } from './store.js';
-import { WATER_STEP_ML, pctFor } from './stats.js';
+import { WATER_STEP_ML, pctFor, isSkipped } from './stats.js';
 import { todayStr, addDays, fromStr, localDate } from './dates.js';
 import { dayIndexFor, dayFor, jumpDelta } from './schedule.js';
 import { haptic } from './platform.js';
@@ -125,7 +125,7 @@ export function weekStrip(ctx) {
   const dots = {};
   const setDot = (cd, dot) => {
     const pct = cd > ctx.today ? 0 : pctFor(ctx.plan, ctx.records(), cd);
-    dot.className = 'dot ' + (pct === null ? 'rest' : pct >= 100 ? 'full' : pct > 0 ? 'part' : '');
+    dot.className = 'dot ' + (cd <= ctx.today && isSkipped(ctx.records(), cd) ? 'skip' : pct === null ? 'rest' : pct >= 100 ? 'full' : pct > 0 ? 'part' : '');
   };
   for (let off = -STRIP_DAYS; off <= STRIP_DAYS; off++) {
     const cd = addDays(ctx.date, off);

@@ -6,7 +6,7 @@
 //     version: 1,
 //     activePlanId: "p_abc",
 //     plans:    [ { id, name, startDate, days: [...] } ],
-//     progress: { [planId]: { "2026-10-04": { ticks, weights, waterMl, notes } } },
+//     progress: { [planId]: { "2026-10-04": { ticks, weights, waterMl, notes, skipped? } } },
 //     bodyLog:  { "2026-10-04": 72.4 },   // body weight in kg, one per day
 //     settings: { theme: "dark", style: "arena", lang: "en" }
 //   }

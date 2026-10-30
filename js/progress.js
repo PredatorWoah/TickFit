@@ -4,7 +4,7 @@
 import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { getState } from './store.js';
-import { currentStreak, longestStreak, weekPercent, pctFor, STREAK_MIN_PCT } from './stats.js';
+import { currentStreak, longestStreak, weekPercent, pctFor, isSkipped, STREAK_MIN_PCT } from './stats.js';
 import { todayStr, fromStr, toStr, addDays, localDate } from './dates.js';
 import { periodRange, shiftAnchor, summarize } from './summary.js';
 import { bodyWeightKg, burnFactor } from './burn.js';
@@ -81,13 +81,14 @@ export function renderProgress(root, plan, goto) {
     const future = date > today;
     const raw = beforeStart || future ? 0 : pctFor(plan, records, date);
     const pct = raw === null ? 0 : raw; // null = nothing to tick that day (a rest day)
+    const skipped = !beforeStart && !future && isSkipped(records, date);
     grid.append(
       h(
         'button',
         {
-          class: `cal-day lv${level(pct)}` + (date === today ? ' is-today' : '') + (future ? ' future' : ''),
+          class: `cal-day lv${level(pct)}` + (date === today ? ' is-today' : '') + (future ? ' future' : '') + (skipped ? ' skipped' : ''),
           disabled: beforeStart,
-          'aria-label': `${date}, ${beforeStart ? 'before plan start' : future ? 'upcoming' : raw === null ? 'rest day' : pct + '% done'}`,
+          'aria-label': `${date}, ${beforeStart ? 'before plan start' : future ? 'upcoming' : skipped ? 'skipped' : raw === null ? 'rest day' : pct + '% done'}`,
           onclick: () => goto(date),
         },
         n

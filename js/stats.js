@@ -93,6 +93,7 @@ export const STREAK_MIN_PCT = 50;
 export function pctFor(plan, records, date) {
   const day = dayFor(plan, date);
   const rec = (records || {})[date];
+  if (rec && rec.skipped) return null; // a day you skipped on purpose: neither helps nor hurts
   // A day filled with suggestions from the plan's options, from before TickFit showed them (plan.suggestFrom),
   // with nothing ticked: it looked like a rest day at the time, so it neither helps nor hurts.
   if (day.suggested && !day.picked && plan.suggestFrom && date < plan.suggestFrom && !hasTicks(rec)) return null;
@@ -146,6 +147,9 @@ export function weekPercent(plan, records, today) {
 }
 
 // ----- exercises: targets, set progress, "last time" -----
+
+/** Did you skip this date on purpose? (the Skip day button) */
+export const isSkipped = (records, date) => !!(records && records[date] && records[date].skipped);
 
 /** A number from a weight like "20 kg" or 20. "bodyweight" gives null. */
 export function weightNumber(v) {
