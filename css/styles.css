@@ -990,3 +990,13 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 .ver-chip[aria-pressed='true'] b { color: var(--accent-text); }
 .ver-chip[aria-pressed='true'] small { color: var(--text); }
 .ver-chip:active { transform: scale(0.98); }
+
+/* skip day: a slim button row above the day, the calendar mark and the "Day skipped" card */
+.skip-row { display: flex; justify-content: flex-end; margin: 0 0 6px; }
+.skip-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; }
+.skip-btn:active { background: var(--surface); color: var(--text); }
+.dot.skip { width: 9px; height: 9px; background: transparent; border: 1.5px dashed var(--muted); box-sizing: border-box; }
+.cal-day.skipped { outline: 1.5px dashed var(--muted); outline-offset: -3px; }
+.skipped-card { text-align: center; padding: 28px 18px; }
+.skipped-icon { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--surface-2, var(--line)); color: var(--muted); margin: 0 0 8px; }
+.skipped-title { margin: 4px 0 6px; }

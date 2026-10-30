@@ -12,6 +12,7 @@ export function loggedDayCount(progress) {
         (rec.ticks && Object.keys(rec.ticks).length) ||
         (rec.sets && Object.values(rec.sets).some((rows) => rows.some((s) => s.done))) ||
         rec.waterMl > 0 ||
+        rec.skipped ||
         (rec.notes && rec.notes.trim());
       if (any) days.add(date);
     }

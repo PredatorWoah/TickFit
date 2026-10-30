@@ -67,6 +67,7 @@ export function reminderList(plan, records, settings, now = new Date(), days = D
     const date = addDays(today, i);
     const day = dayFor(plan, date);
     const rec = (records || {})[date] || {};
+    if (rec.skipped) continue; // skipped on purpose: no nudges that day
     const ticks = rec.ticks || {};
     const base = FIRST_ID + i * 100;
     let n = 0;
