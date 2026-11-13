@@ -1000,3 +1000,7 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 .skipped-card { text-align: center; padding: 28px 18px; }
 .skipped-icon { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--surface-2, var(--line)); color: var(--muted); margin: 0 0 8px; }
 .skipped-title { margin: 4px 0 6px; }
+
+/* Stride import preview: which dates change and which are kept */
+.stride-rows li { margin: 3px 0; }
+.stride-rows .stride-logged, .stride-rows .stride-past, .stride-rows .stride-same, .stride-rows .stride-before-start { color: var(--muted); }

@@ -298,7 +298,9 @@ export function renderMore(root, actions) {
       plan && h('button', { class: 'btn', type: 'button', onclick: () => actions.show('edit', { planId: plan.id }) }, 'Edit this plan'),
       h('button', { class: 'btn primary', type: 'button', onclick: () => actions.show('new') }, icon('plus', 18), 'New plan')
     ),
-    plan && h('button', { class: 'btn wide lib-open', type: 'button', onclick: () => actions.show('library') }, icon('library', 18), 'Exercise and meal library')
+    plan && h('button', { class: 'btn wide lib-open', type: 'button', onclick: () => actions.show('library') }, icon('library', 18), 'Exercise and meal library'),
+    // a day or week exported from Stride: the import screen spots it and swaps the exercises in on those dates
+    plan && h('button', { class: 'btn wide', type: 'button', onclick: () => actions.show('import') }, icon('upload', 18), 'Replace exercises from Stride')
   );
 
   // cards that don't apply here (Android only ones on the web) are null: drop them, or append() prints "null"
