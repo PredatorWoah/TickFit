@@ -8,7 +8,8 @@
 // TickFit does not make a new plan from it. It replaces the exercises on those dates in the plan you use, through
 // the same per-date lists as "Choose exercises" (plan.picks), so your meals, your other days, your exercise
 // versions and everything you logged stay as they are. A Stride rest day clears that date's exercises.
-// Dates that already have logged sets or ticked exercises, and dates before today, are never changed.
+// Dates that already have logged sets or ticked exercises, and dates before today, never get other exercises.
+// A replaced date also takes Stride's name for the day ("Chest + Shoulders"), kept with its exercises in plan.picks.
 //
 // Pure functions, no DOM: node tests/stride.mjs
 
@@ -20,6 +21,17 @@ import { muscleGroup } from './lift.js';
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_DAYS = 31;
 const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/**
+ * A Stride day name, short enough for a heading: "Chest · Upper + Chest · Middle + Triceps" -> "Chest + Triceps".
+ */
+export function shortLabel(label) {
+  const parts = String(label || '')
+    .split(/\s*\+\s*/)
+    .map((x) => x.split('·')[0].trim())
+    .filter(Boolean);
+  return [...new Set(parts)].join(' + ').slice(0, 80) || 'Workout';
+}
 
 /** Is this parsed JSON a Stride export? */
 export const isStrideExport = (obj) => !!obj && typeof obj === 'object' && obj.format === 'stride-workout' && !!obj.plan && Array.isArray(obj.plan.days);
@@ -45,7 +57,7 @@ export function readStride(text) {
   // the normal plan check cleans every exercise (names, sets, reps, rest, links) the same way as any import
   const checked = parsePlanText(JSON.stringify({ name: 'Stride', days: kept.map((d) => ({ label: String(d.label || 'Workout'), workout: Array.isArray(d.workout) ? d.workout : [], meals: [] })) }));
   if (!checked.ok) return { scope: obj.scope, name: obj.plan.name, days: [], errors: [...errors, ...checked.errors] };
-  const days = kept.map((d, i) => ({ date: d.date, label: checked.plan.days[i].label, workout: checked.plan.days[i].workout }));
+  const days = kept.map((d, i) => ({ date: d.date, label: shortLabel(d.label), workout: checked.plan.days[i].workout }));
   const dates = new Set();
   for (const d of days) {
     if (dates.has(d.date)) errors.push(`${d.date} is in the Stride file twice. The last one is used.`);
@@ -70,14 +82,17 @@ export function previewStride(plan, records, stride, today) {
   return [...last.values()]
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((d) => {
-      const current = dayFor(plan, d.date).workout;
+      const shown = dayFor(plan, d.date);
+      const current = shown.workout;
       const now = current.map((w) => w.exercise);
       const base = { date: d.date, label: d.label, workout: d.workout, now };
       if (d.date < today) return { ...base, action: 'past' };
       if (d.date < plan.startDate) return { ...base, action: 'before-start' };
-      if (started((records || {})[d.date], current)) return { ...base, action: 'logged' };
       const same = current.length === d.workout.length && current.every((w, i) => norm(w.exercise) === norm(d.workout[i].exercise) && w.sets === d.workout[i].sets && w.reps === d.workout[i].reps);
-      if (same) return { ...base, action: 'same' };
+      // the same exercises under another name (imported before days took Stride's name): only the name changes,
+      // which is safe even on a day with logged sets
+      if (same) return { ...base, action: shown.label === d.label ? 'same' : 'rename' };
+      if (started((records || {})[d.date], current)) return { ...base, action: 'logged' };
       return { ...base, action: d.workout.length ? 'replace' : 'clear' };
     });
 }
@@ -106,19 +121,30 @@ function libraryId(plan, w) {
 }
 
 /**
- * Replace the exercises on every date the preview marks 'replace' or 'clear'. Changes `plan` in place.
+ * Replace the exercises on every date the preview marks 'replace' or 'clear', and rename the 'rename' ones. Changes `plan` in place.
  * Returns { changed: [dates], kept: [{ date, action }] }.
  */
 export function applyStride(plan, records, stride, today) {
   const changed = [];
   const kept = [];
   for (const row of previewStride(plan, records, stride, today)) {
+    if (row.action === 'rename') {
+      plan.picks ||= {};
+      const pick = { ...(plan.picks[row.date] || {}) };
+      pick.workout ||= dayFor(plan, row.date).workout.map((w) => w.base || w.id); // keep exactly the exercises it has
+      pick.label = row.label;
+      plan.picks[row.date] = pick;
+      changed.push(row.date);
+      continue;
+    }
     if (row.action !== 'replace' && row.action !== 'clear') {
       kept.push({ date: row.date, action: row.action });
       continue;
     }
     // an empty list is stored as an empty pick, so a Stride rest day really clears the date
     savePick(plan, row.date, 'workout', row.workout.map((w) => ({ id: libraryId(plan, w), item: w, source: 'library' })));
+    // the date takes Stride's name too, so "Friday Back + Triceps" becomes "Chest + Shoulders" on that day only
+    if (plan.picks && plan.picks[row.date] && Array.isArray(plan.picks[row.date].workout)) plan.picks[row.date].label = row.label;
     changed.push(row.date);
   }
   return { changed, kept };
@@ -135,6 +161,8 @@ export function describeRow(row) {
       return `${row.label}: no exercises (${row.now.length ? `removes the ${was.replace(' now', '')}` : 'already empty'})`;
     case 'same':
       return `${row.label}: already the same, nothing to change`;
+    case 'rename':
+      return `${row.label}: same exercises, the day takes this name`;
     case 'logged':
       return `${row.label}: kept as it is, you already logged sets that day`;
     case 'past':
@@ -152,3 +180,15 @@ export function strideAsPlan(stride) {
     days: stride.days.map((d) => ({ label: d.label, workout: d.workout, meals: [] })),
   };
 }
+
+/**
+ * Put a one-day Stride file on another date (the Workout screen's "From Stride" for the day you are looking at).
+ * A week file is left as it is. Returns a new stride object; `from` says which date Stride had made it for.
+ */
+export function retargetStride(stride, date) {
+  if (!stride || stride.days.length !== 1 || !DATE.test(String(date || '')) || stride.days[0].date === date) return stride;
+  return { ...stride, days: [{ ...stride.days[0], date, from: stride.days[0].date }] };
+}
+
+/** Only the given dates of a Stride file (the tick boxes on the import screen). */
+export const onlyDates = (stride, dates) => ({ ...stride, days: stride.days.filter((d) => dates.includes(d.date)) });

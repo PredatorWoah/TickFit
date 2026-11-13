@@ -238,7 +238,7 @@ export function renderImport(root, actions) {
       return true;
     }
     const rows = previewStride(plan, getState().progress[plan.id], stride, todayStr());
-    const changes = rows.filter((r) => r.action === 'replace' || r.action === 'clear').length;
+    const changes = rows.filter((r) => r.action === 'replace' || r.action === 'clear' || r.action === 'rename').length;
     const replace = h(
       'button',
       {

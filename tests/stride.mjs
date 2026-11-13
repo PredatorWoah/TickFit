@@ -1,5 +1,6 @@
 // Workouts from Stride replace the exercises on their dates, and nothing else. Run: node tests/stride.mjs
-import { readStride, previewStride, applyStride, describeRow, strideAsPlan, isStrideExport } from '../js/stride.js';
+import { readStride, previewStride, applyStride, describeRow, strideAsPlan, isStrideExport, shortLabel, retargetStride, onlyDates } from '../js/stride.js';
+import { resetPick } from '../js/library.js';
 import { parsePlanText } from '../js/parser.js';
 import { dayFor } from '../js/schedule.js';
 import { lastPerformance } from '../js/stats.js';
@@ -86,6 +87,45 @@ ok(/twice/.test(twice.errors[0]) && previewStride(plan, {}, twice, TODAY).length
 // no plan yet: a Stride file can still become a plan
 const own = parsePlanText(JSON.stringify(strideAsPlan(s)));
 ok(own.ok && own.plan.days.length === 4 && own.plan.startDate === '2026-11-13', 'a Stride file can be imported as a plan of its own');
+
+
+// ----- the day takes Stride's name
+ok(shortLabel('Chest · Upper + Chest · Middle + Chest · Lower + Triceps') === 'Chest + Triceps' && shortLabel('Shoulders + Core') === 'Shoulders + Core' && shortLabel('') === 'Workout', 'Stride names are shortened for the heading');
+const named = parsePlanText(JSON.stringify(raw)).plan;
+named.startDate = '2026-11-01';
+const chestDay = { ...week, scope: 'day', plan: { ...week.plan, days: [day('2026-11-13', 'Chest · Upper + Chest · Middle + Shoulders', [ex('Incline Chest Press Machine'), ex('Shoulder Press Machine')])] } };
+applyStride(named, {}, readStride(JSON.stringify(chestDay)), TODAY);
+ok(dayFor(named, '2026-11-13').label === 'Chest + Shoulders', 'a replaced day shows Stride\'s name, not "Friday Back + Triceps"');
+ok(dayFor(named, '2026-11-20').label === 'Friday Back + Triceps', 'next Friday keeps the plan\'s name');
+const restored = parsePlanText(JSON.stringify(named)).plan;
+ok(dayFor(restored, '2026-11-13').label === 'Chest + Shoulders', 'the name survives a backup and restore');
+resetPick(named, '2026-11-13', 'workout');
+ok(dayFor(named, '2026-11-13').label === 'Friday Back + Triceps' && !(named.picks && named.picks['2026-11-13']), 'going back to the plan\'s exercises brings back the plan\'s name');
+
+// a day imported before names existed (2.7.0), already trained: only the name is fixed, the logs stay
+const legacy = parsePlanText(JSON.stringify(raw)).plan;
+legacy.startDate = '2026-11-01';
+applyStride(legacy, {}, readStride(JSON.stringify(chestDay)), TODAY);
+delete legacy.picks['2026-11-13'].label;
+const firstId = dayFor(legacy, '2026-11-13').workout[0].id;
+const trained = { '2026-11-13': { ticks: {}, sets: { [firstId]: [{ w: 30, r: 10, done: true }] } } };
+const fix = previewStride(legacy, trained, readStride(JSON.stringify(chestDay)), TODAY);
+ok(fix[0].action === 'rename' && /takes this name/.test(describeRow(fix[0])), 'an older import with the same exercises is offered a rename, even after training');
+const ids = JSON.stringify(legacy.picks['2026-11-13'].workout);
+applyStride(legacy, trained, readStride(JSON.stringify(chestDay)), TODAY);
+ok(dayFor(legacy, '2026-11-13').label === 'Chest + Shoulders' && JSON.stringify(legacy.picks['2026-11-13'].workout) === ids, 'rename changes the name and nothing else');
+
+// ----- one day out of a week, and a day file put on another date
+const fullWeek = readStride(JSON.stringify(week));
+const justOne = onlyDates(fullWeek, ['2026-11-14']);
+ok(justOne.days.length === 1 && justOne.days[0].label === 'Lower body', 'onlyDates keeps just the ticked days');
+const pickOne = parsePlanText(JSON.stringify(raw)).plan;
+pickOne.startDate = '2026-11-01';
+const one = applyStride(pickOne, {}, justOne, TODAY);
+ok(eq(one.changed, ['2026-11-14']) && !pickOne.picks['2026-11-13'] && !pickOne.picks['2026-11-15'], 'only that one day of the week changes');
+const moved = retargetStride(readStride(JSON.stringify(chestDay)), '2026-11-17');
+ok(moved.days[0].date === '2026-11-17' && moved.days[0].from === '2026-11-13', 'a day file can go onto another date');
+ok(retargetStride(fullWeek, '2026-11-17') === fullWeek, 'a week file is never moved');
 
 if (fail) { console.log(`\n${fail} failed`); process.exit(1); }
 console.log('\nall passed');

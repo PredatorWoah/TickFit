@@ -316,6 +316,8 @@ function validatePicks(v) {
     if (!DATE_RE.test(date) || !isObj(p)) continue;
     const day = {};
     for (const kind of ['workout', 'meals']) if (Array.isArray(p[kind])) day[kind] = p[kind].map(str).filter(Boolean).slice(0, 100);
+    // the day's own name, e.g. from Stride ("Chest + Shoulders"); only with its own exercises
+    if (day.workout && typeof p.label === 'string' && p.label.trim()) day.label = p.label.trim().slice(0, 80);
     if (Object.keys(day).length) out[date] = day;
   }
   return Object.keys(out).length ? out : null;

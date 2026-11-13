@@ -12,6 +12,7 @@ import { renderHome } from './home.js';
 import { renderWorkout, teardownWorkout } from './workout.js';
 import { renderMeals } from './meals.js';
 import { skipRow, renderSkipped } from './skipday.js';
+import { renderStride } from './strideui.js';
 import { isSkipped } from './stats.js';
 import { renderWelcome, renderPlans, renderNewPlan, renderImport } from './plans.js';
 import { renderProgress } from './progress.js';
@@ -76,10 +77,11 @@ const TABS = [
 const MORE_TAB_SCREENS = ['more', 'plans', 'new', 'import', 'build', 'edit', 'library'];
 const NEEDS_PLAN = ['today', 'workout', 'meals', 'progress', 'library'];
 
-/** Switch screen. opts: { date } for Today, { planId } for the editor. */
+/** Switch screen. opts: { date } for Today, Workout, Meals and Stride; { planId } for the editor. */
 function show(screen, opts = {}) {
   view.screen = screen;
-  view.date = screen === 'today' ? opts.date || todayStr() : view.date;
+  view.date = screen === 'today' ? opts.date || todayStr() : (screen === 'workout' || screen === 'meals') && opts.date ? opts.date : view.date;
+  if (screen === 'stride') view.strideDate = opts.date || null; // from the Workout screen: the day to fill
   if (opts.planId) view.planId = opts.planId;
   draw();
   window.scrollTo(0, 0);
@@ -108,7 +110,7 @@ function drawNav() {
       );
     }
   }
-  const activeTab = MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
+  const activeTab = view.screen === 'stride' ? (view.strideDate ? 'workout' : 'more') : MORE_TAB_SCREENS.includes(view.screen) ? 'more' : view.screen;
   const { progress, settings } = getState();
   const stale = !backupCovered(settings, todayStr()) && backupStale({ loggedDays: loggedDayCount(progress), lastBackup: settings.lastBackup }, todayStr());
   TABS.forEach((t, i) => {
@@ -158,8 +160,9 @@ function draw() {
   else if (s === 'more') renderMore(root, actions);
   else if (s === 'progress') renderProgress(root, plan, (date) => show('today', { date }));
   else if (isDayScreen(s) && isSkipped(getState().progress[plan.id], view.date)) renderSkipped(root, plan, view.date, gotoDate, draw);
+  else if (s === 'stride') renderStride(root, actions, view.strideDate);
   else if (s === 'workout') {
-    renderWorkout(root, plan, view.date, gotoDate);
+    renderWorkout(root, plan, view.date, gotoDate, (date) => show('stride', { date }));
     root.prepend(skipRow(plan, view.date, draw));
   } else if (s === 'meals') {
     renderMeals(root, plan, view.date, gotoDate);

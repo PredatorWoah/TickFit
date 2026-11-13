@@ -1004,3 +1004,14 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 /* Stride import preview: which dates change and which are kept */
 .stride-rows li { margin: 3px 0; }
 .stride-rows .stride-logged, .stride-rows .stride-past, .stride-rows .stride-same, .stride-rows .stride-before-start { color: var(--muted); }
+
+/* Workout header: Choose exercises and From Stride side by side */
+.wk-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* From Stride: a tick box per date */
+.stride-pick { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.stride-row { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; background: var(--surface); font-size: 14px; }
+.stride-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.stride-check input { width: 22px; height: 22px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
+.stride-row.stride-logged, .stride-row.stride-past, .stride-row.stride-same, .stride-row.stride-before-start { color: var(--muted); }
+.stride-paste { margin: 12px 0; }
+.stride-paste summary { cursor: pointer; color: var(--muted); font-size: 14px; }
