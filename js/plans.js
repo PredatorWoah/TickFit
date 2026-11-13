@@ -3,12 +3,13 @@
 
 import { h, clear, copyText, toast } from './dom.js';
 import { icon } from './icons.js';
-import { getState, addPlan, setActivePlan, removePlan, setStartDate, setSetting, snapshot, restoreSnapshot } from './store.js';
+import { getState, getActivePlan, addPlan, setActivePlan, removePlan, setStartDate, setSetting, snapshot, restoreSnapshot, savePlans } from './store.js';
 import { parsePlanText } from './parser.js';
 import { openPlanShare } from './shareui.js';
 import { buildPrompt } from './ai.js';
 import { extractText } from './extract.js';
 import { readStructuredPlan, describeReport } from './docreader.js';
+import { readStride, previewStride, applyStride, describeRow, strideAsPlan } from './stride.js';
 import { activeAI, convertPlanWithAI } from './aiassist.js';
 import { todayStr, isValidStr, formatShort } from './dates.js';
 import { weeklyWeekdays, weekdayName } from './schedule.js';
@@ -194,6 +195,7 @@ export function renderImport(root, actions) {
   });
   const startDate = h('input', { type: 'date', class: 'date-input', value: todayStr(), 'aria-label': 'Day 1 starts on' });
   const messages = h('div', { class: 'messages', 'aria-live': 'polite' });
+  let setStrideMode = () => {};
   const status = h('div', { class: 'status', 'aria-live': 'polite' });
 
   function showResult(result) {
@@ -212,6 +214,75 @@ export function renderImport(root, actions) {
     if (result.warnings.length) {
       messages.append(h('div', { class: 'msg warn' }, h('b', {}, 'Notes:'), h('ul', {}, result.warnings.slice(0, 8).map((w) => h('li', {}, w)))));
     }
+  }
+
+  /**
+   * A day or week from Stride: show what changes date by date, and offer to swap the exercises in on those dates
+   * of the plan you use (meals, other days and logged days stay). True when the text was a Stride file.
+   */
+  function strideHere(text) {
+    const stride = readStride(text);
+    if (!stride) return false;
+    setStrideMode(true);
+    clear(messages);
+    status.textContent = '';
+    if (!stride.days.length) {
+      showResult({ errors: stride.errors.length ? stride.errors : ['This Stride file has no days in it.'], warnings: [] });
+      return true;
+    }
+    const plan = getActivePlan();
+    const asPlan = h('button', { class: 'btn wide', type: 'button', onclick: () => importStrideAsPlan(stride) }, 'Make it a separate plan instead');
+    if (!plan) {
+      status.textContent = `A ${stride.scope} from Stride. You have no plan yet, so it becomes a plan of its own.`;
+      messages.append(h('button', { class: 'btn primary wide', type: 'button', onclick: () => importStrideAsPlan(stride) }, 'Import as a plan'));
+      return true;
+    }
+    const rows = previewStride(plan, getState().progress[plan.id], stride, todayStr());
+    const changes = rows.filter((r) => r.action === 'replace' || r.action === 'clear').length;
+    const replace = h(
+      'button',
+      {
+        class: 'btn primary wide',
+        type: 'button',
+        disabled: !changes,
+        onclick: () => {
+          const before = snapshot();
+          const target = getActivePlan();
+          const done = applyStride(target, getState().progress[target.id], stride, todayStr());
+          savePlans();
+          toast(`Exercises replaced on ${done.changed.length} day${done.changed.length === 1 ? '' : 's'}`, {
+            undo: () => {
+              restoreSnapshot(before);
+              actions.refresh();
+            },
+          });
+          actions.show('today', { date: done.changed[0] });
+        },
+      },
+      changes ? `Replace exercises on ${changes} day${changes === 1 ? '' : 's'}` : 'Nothing to change'
+    );
+    status.textContent = `A ${stride.scope} from Stride. It replaces the exercises on these dates in "${plan.name}". Meals, your other days and everything you logged stay as they are.`;
+    messages.append(
+      ...[
+        h('div', { class: 'msg ok' }, h('b', {}, 'What changes:'), h('ul', { class: 'stride-rows' }, rows.map((r) => h('li', { class: `stride-${r.action}` }, h('b', {}, formatShort(r.date)), ' ', describeRow(r))))),
+        stride.errors.length ? h('div', { class: 'msg warn' }, h('b', {}, 'Notes:'), h('ul', {}, stride.errors.map((e) => h('li', {}, e)))) : null,
+        replace,
+        asPlan,
+      ].filter(Boolean) // (append() would print a null as the word "null")
+    );
+    messages.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    return true;
+  }
+
+  function importStrideAsPlan(stride) {
+    const result = parsePlanText(JSON.stringify(strideAsPlan(stride)));
+    showResult(result);
+    if (!result.ok) return;
+    const prev = getState().activePlanId;
+    const added = addPlan(result.plan, result.plan.startDate);
+    toast(`Imported "${result.plan.name}"`);
+    actions.show('today');
+    offerMerge(prev, added.id, actions.refresh);
   }
 
   /** Try to read document text by itself (no chatbot). On success the plan JSON is put in the box with a day-by-day summary. */
@@ -262,7 +333,8 @@ export function renderImport(root, actions) {
       try {
         box.value = await extractText(file);
         clear(messages);
-        if (readHere(box.value)) return;
+        setStrideMode(false);
+        if (strideHere(box.value) || readHere(box.value)) return;
         status.textContent = `Read ${file.name} (${box.value.length.toLocaleString()} characters) on this device. If it is already plan JSON, tap Import. If it is a normal document, convert it with ${activeAI() ? activeAI().name + ' or ' : ''}a chatbot using "Copy prompt with this text".`;
       } catch (err) {
         status.textContent = '';
@@ -305,6 +377,7 @@ export function renderImport(root, actions) {
     : null;
 
   function doImport() {
+    if (strideHere(box.value)) return; // a Stride day or week changes the plan you use, it is not a new plan
     const result = parsePlanText(box.value);
     // pasted document text instead of JSON: read it here first, and let the person check the days before importing
     if (!result.ok && readHere(box.value)) return;
@@ -317,6 +390,15 @@ export function renderImport(root, actions) {
     actions.show('today');
     offerMerge(prev, added.id, actions.refresh);
   }
+
+  // the start date and Import plan button make a new plan; a Stride file changes the plan you have, so they hide
+  const newPlanBits = [
+    h('label', { class: 'field' }, h('span', {}, 'Start date'), startDate),
+    h('p', { class: 'hint' }, 'Day 1 of the plan lands on this date. Plans labelled Monday, Tuesday and so on ignore it and follow the real weekdays.'),
+    h('button', { class: 'btn primary wide', type: 'button', onclick: doImport }, 'Import plan'),
+  ];
+  setStrideMode = (on) => newPlanBits.forEach((el) => (el.hidden = on));
+  box.addEventListener('input', () => setStrideMode(false));
 
   root.append(
     backBar('Back', () => actions.show('new'), 'Import a plan'),
@@ -341,9 +423,7 @@ export function renderImport(root, actions) {
       box,
       geminiBtn,
       status,
-      h('label', { class: 'field' }, h('span', {}, 'Start date'), startDate),
-      h('p', { class: 'hint' }, 'Day 1 of the plan lands on this date. Plans labelled Monday, Tuesday and so on ignore it and follow the real weekdays.'),
-      h('button', { class: 'btn primary wide', type: 'button', onclick: doImport }, 'Import plan'),
+      ...newPlanBits,
       messages
     )
   );
