@@ -37,7 +37,9 @@ export function pickRelease(json) {
   const version = String(json.tag_name || '').replace(/^v/i, '');
   if (!parseVersion(version)) return null;
   const assets = Array.isArray(json.assets) ? json.assets : [];
-  const apk = assets.find((a) => /\.apk$/i.test(a.name || '') && String(a.browser_download_url || '').startsWith(DOWNLOADS));
+  // a release also carries Stride's APK: take TickFit's own by name (older releases had only one APK)
+  const fromUs = (a) => String(a.browser_download_url || '').startsWith(DOWNLOADS);
+  const apk = assets.find((a) => /^TickFit-.*\.apk$/i.test(a.name || '') && fromUs(a)) || assets.find((a) => /\.apk$/i.test(a.name || '') && !/^Stride/i.test(a.name || '') && fromUs(a));
   if (!apk) return null;
   const sums = assets.find((a) => a.name === 'SHA256SUMS.txt' && String(a.browser_download_url || '').startsWith(DOWNLOADS));
   const digest = /^sha256:([0-9a-f]{64})$/i.exec(apk.digest || '');

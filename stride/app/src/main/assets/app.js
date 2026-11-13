@@ -12,6 +12,9 @@ if (state.plannerVersion !== 2) {
   state.plannerVersion = 2;
 }
 let key = '';
+const DEFAULT_MODEL = 'gemini-3.8-flash';
+const MODEL_RE = /^[a-z0-9][a-z0-9.-]{2,60}$/;
+const geminiModel = () => (MODEL_RE.test(state.geminiModel || '') ? state.geminiModel : DEFAULT_MODEL);
 let includeHistory = false;
 let busy = false;
 let toastTimer;
@@ -55,10 +58,23 @@ const figure = target => {
 };
 const form = item => '<a class="form-link" href="'+esc(formLink(item.exercise,item.video))+'" target="_blank" rel="noopener">'+
   (formLink(item.exercise,item.video).includes('/results?')?'Find form on YouTube':'Watch form on YouTube')+'</a>';
-const exerciseCard = item => {
+// The coaching tip is the same on every exercise of a session; "Last logged: ..." is each exercise's own.
+const splitNote = notes => {
+  const text=String(notes || '');
+  const at=text.indexOf(' Last logged:');
+  return at<0 ? [text.trim(),''] : [text.slice(0,at).trim(),text.slice(at+1).trim()];
+};
+/** The tip every exercise of a workout shares (shown once above them), or '' when they differ. */
+const sharedTip = workout => {
+  const tips=[...new Set(workout.map(item=>splitNote(item.notes)[0]))];
+  return workout.length>1 && tips.length===1 ? tips[0] : '';
+};
+const exerciseCard = (item, tip='') => {
   const target=item.target || classify(item.exercise)[1];
+  const [own,last]=splitNote(item.notes);
+  const notes=typeof tip==='string' && tip && own===tip ? last : item.notes; // (map() passes an index here)
   return '<div class="row exercise">'+figure(target)+'<div class="exercise-copy"><b>'+esc(item.exercise)+'</b>'+
-    '<small class="target">'+esc(target)+'</small>'+(item.notes?'<small>'+esc(item.notes)+'</small>':'')+form(item)+'</div>'+
+    '<small class="target">'+esc(target)+'</small>'+(notes?'<small>'+esc(notes)+'</small>':'')+form(item)+'</div>'+
     (item.reps?'<span class="number">'+(item.sets===1?'':item.sets+' × ')+esc(item.reps)+'</span>':'')+'</div>';
 };
 
@@ -147,11 +163,11 @@ function sendChat(prompt) {
   };
   busy=true;render();
   document.querySelector('#geminiChat').scrollIntoView({block:'start'});
-  if (window.StrideFiles) { window.StrideFiles.explain(key,JSON.stringify(request));return; }
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',{
+  if (window.StrideFiles) { window.StrideFiles.explain(key,geminiModel(),JSON.stringify(request));return; }
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/'+geminiModel()+':generateContent',{
     method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
     body:JSON.stringify(request),signal:AbortSignal.timeout(45000)
-  }).then(async response=>geminiResult(response.ok?await response.text():'Gemini returned HTTP '+response.status+'.'))
+  }).then(async response=>geminiResult(response.ok?await response.text():'Gemini returned HTTP '+response.status+(response.status===404?'. Check the model name in Setup.':'.')))
     .catch(()=>geminiResult('Could not reach Gemini.'));
 }
 function geminiResult(result) {
@@ -210,13 +226,15 @@ function renderToday() {
   const day=today();
   const custom=state.override?.date===day.date;
   const scheduled=state.plan.some(item=>item.date===day.date);
-  screen.innerHTML='<section class="hero"><div class="eyebrow">'+esc(labelDate(day.date))+'</div>'+
-    '<h1>Today</h1><p>'+esc(quantity(day.workout.length,'exercise'))+
-    (day.workout.length?' · '+esc(day.minutes || state.config.minutes)+' min':' · Rest day')+'</p>'+
+  const tip=sharedTip(day.workout);
+  screen.innerHTML='<section class="hero"><div class="eyebrow">Today · '+esc(labelDate(day.date))+'</div>'+
+    '<h1>'+esc(day.workout.length?shortName(day.label):'Rest day')+'</h1><p>'+
+    (day.workout.length?esc(quantity(day.workout.length,'exercise'))+' · '+esc(day.minutes || state.config.minutes)+' min':'Nothing planned. Recover, walk, sleep well.')+'</p>'+
     '<div class="actions">'+button('editToday','Choose exercises',true)+button('openChat','Ask Gemini')+'</div></section>'+
     '<section class="card"><div class="section-heading"><h2>Today’s workout</h2><span class="count">'+
     (custom?'Custom workout':scheduled?'Week plan':'Suggested')+'</span></div>'+
-    (day.workout.length?groupedExercises(day.workout,exerciseCard,groupOrder):'<p>No exercises planned for today.</p>')+
+    (tip?'<p class="tip">'+esc(tip)+'</p>':'')+
+    (day.workout.length?groupedExercises(day.workout,item=>exerciseCard(item,tip),groupOrder):'<p>No exercises planned for today.</p>')+
     '<div class="actions">'+button('exportDay','Export to TickFit',true)+(custom?button('reset','Follow week plan'):'')+'</div></section>';
   document.querySelector('#editToday').onclick=()=>{draft=null;go('editor');};
   document.querySelector('#openChat').onclick=()=>{draft=null;go('chat');};
@@ -323,19 +341,28 @@ const weekExclusions = new Set();
 function renderWeek() {
   const days=state.plan.length && state.plan.at(-1).date>=dateKey()?state.plan:makeWeek();
   const effective=days.map(day=>state.override?.date===day.date?state.override:day);
+  const now=dateKey();
   screen.innerHTML='<section class="hero"><div class="eyebrow">7-DAY PLAN</div><h1>Your week</h1><p>'+esc(labelDate(days[0].date))+' to '+esc(labelDate(days.at(-1).date))+'</p></section>'+
     '<div class="actions">'+button('build','Generate from today',true)+button('exportWeek','Export checked week')+'</div>'+
-    effective.map(day=>'<details class="card day"><summary>'+esc(labelDate(day.date))+' · '+esc(day.label)+'</summary><p>'+esc(modeLabel(day.mode))+'</p>'+ (day.workout.length?day.workout.map(item=>{
-      const id=day.date+'|'+item.id;
-      return '<label class="check"><input class="weekPick" type="checkbox" value="'+esc(id)+'"'+(weekExclusions.has(id)?'':' checked')+'>Include '+esc(item.exercise)+'</label>'+exerciseCard(item);
-    }).join(''):'<p>Rest day</p>')+'</details>').join('');
+    effective.map(day=>{
+      const past=day.date<now;
+      const tip=sharedTip(day.workout);
+      return '<details class="card day'+(past?' past':'')+'"><summary>'+esc(labelDate(day.date))+' · '+esc(shortName(day.label))+(past?' · passed':'')+'</summary><p>'+
+        esc(past?'This day has passed, so it is not exported.':modeLabel(day.mode))+'</p>'+(tip?'<p class="tip">'+esc(tip)+'</p>':'')+(day.workout.length?day.workout.map(item=>{
+        const id=day.date+'|'+item.id;
+        return (past?'':'<label class="check"><input class="weekPick" type="checkbox" value="'+esc(id)+'"'+(weekExclusions.has(id)?'':' checked')+'>Include '+esc(item.exercise)+'</label>')+exerciseCard(item,tip);
+      }).join(''):'<p>Rest day</p>')+'</details>';
+    }).join('');
   document.querySelector('#build').onclick=()=>{state.plan=makeWeek();weekExclusions.clear();draft=null;save();render();showNotice('Week plan saved.');};
   document.querySelectorAll('.weekPick').forEach(input=>{input.onchange=()=>{
     if(input.checked)weekExclusions.delete(input.value);else weekExclusions.add(input.value);
   };});
-  document.querySelector('#exportWeek').onclick=()=>exportDays('week',effective.map(day=>({
-    ...day,workout:day.workout.filter(item=>!weekExclusions.has(day.date+'|'+item.id))
-  })));
+  // only today on: TickFit never changes a day that has passed
+  document.querySelector('#exportWeek').onclick=()=>{
+    const ahead=upcoming(effective,now);
+    if(!ahead.length){showNotice('Every day of this week has passed. Tap Generate from today.');return;}
+    exportDays('week',ahead.map(day=>({...day,workout:day.workout.filter(item=>!weekExclusions.has(day.date+'|'+item.id))})));
+  };
 }
 function renderSetup() {
   const c=state.config;
@@ -345,8 +372,9 @@ function renderSetup() {
     '<div class="actions">'+button('saveProfile','Save and generate week',true)+'</div></section>'+
     '<section class="card"><h2>TickFit history</h2><p>'+state.history.length+' workout records · '+state.library.length+' imported exercises. A new backup refreshes both and rebuilds your week.</p>'+
     '<div class="actions">'+button('import','Import TickFit backup')+(state.history.length || state.library.length?button('clear','Clear imported data'):'')+'</div></section>'+
-    '<section class="card"><h2>Gemini 3.8 Flash</h2><p>Chat about your training and get exercise suggestions. Your key stays in memory until the app closes. Requests send your chat, exercise options, and training preferences to Google.</p>'+
+    '<section class="card"><h2>Gemini</h2><p>Chat about your training and get exercise suggestions. Your key stays in memory until the app closes. Requests send your chat, exercise options, and training preferences to Google.</p>'+
     '<label>API key for this session<input id="key" type="password" autocomplete="off" placeholder="Enter Gemini API key"></label>'+
+    '<label>Model<input id="model" autocomplete="off" autocapitalize="off" spellcheck="false" value="'+esc(geminiModel())+'"></label>'+
     '<label class="check"><input type="checkbox" id="sendHistory" '+(includeHistory?'checked':'')+'> Include up to 10 recent workout records in coaching requests</label></section>'+
     '<section class="card"><h2>Training evidence</h2><p>Workouts use a curated exercise list and repeatable strength sessions. Programming reference: ACSM 2026 resistance training position stand (PMID 41843416).</p></section>';
   const val=id=>document.querySelector('#'+id).value;
@@ -359,6 +387,12 @@ function renderSetup() {
   };
   document.querySelector('#import').onclick=()=>window.StrideFiles?window.StrideFiles.open():document.querySelector('#backup').click();
   document.querySelector('#clear')?.addEventListener('click',()=>{state.history=[];state.library=[];draft=null;state.plan=makeWeek();state.override=null;save();render();showNotice('Imported data cleared.');});
+  const model=document.querySelector('#model');
+  model.onchange=()=>{
+    const value=model.value.trim().toLowerCase();
+    if(value && !MODEL_RE.test(value)){showNotice('Use a model name like '+DEFAULT_MODEL+'.');model.value=geminiModel();return;}
+    state.geminiModel=value || DEFAULT_MODEL;save();model.value=geminiModel();showNotice('Gemini model set to '+geminiModel()+'.');
+  };
   const input=document.querySelector('#key');
   input.value=key;
   input.oninput=()=>{key=input.value.trim();};
@@ -387,6 +421,14 @@ document.addEventListener('click',event=>{
     window.StrideFiles.openVideo(link.href);
   }
 });
+/** Android's back gesture: the editor and the chat go back to Today, other tabs go to Today. False = leave the app. */
+function strideBack() {
+  if (tab==='today') return false;
+  draft=null;
+  go('today');
+  return true;
+}
+window.strideBack = strideBack;
 function render() {
   document.querySelectorAll('nav button').forEach(item=>{
     if (item.dataset.tab===tab || (item.dataset.tab==='today' && ['editor','chat'].includes(tab))) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current');

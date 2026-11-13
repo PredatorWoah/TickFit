@@ -40,6 +40,14 @@ public final class MainActivity extends Activity {
         view.loadUrl("file:///android_asset/index.html");
     }
 
+    /** Back steps back inside Stride (editor or chat to Today, other tabs to Today) and leaves only from Today. */
+    @Override public void onBackPressed() {
+        if (view == null) { super.onBackPressed(); return; }
+        view.evaluateJavascript("window.strideBack ? window.strideBack() : false", handled -> {
+            if (!"true".equals(handled)) finish();
+        });
+    }
+
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putString("pending", pendingExport);
@@ -59,12 +67,14 @@ public final class MainActivity extends Activity {
             });
         }
 
-        @JavascriptInterface public void explain(String key, String request) {
+        @JavascriptInterface public void explain(String key, String model, String request) {
+            // the model name comes from Setup; only plain names like "gemini-3.8-flash" may go into the address
+            final String name = model != null && model.matches("[a-z0-9][a-z0-9.-]{2,60}") ? model : "gemini-3.8-flash";
             new Thread(() -> {
                 javax.net.ssl.HttpsURLConnection connection = null;
                 try {
                     java.net.URL url = new java.net.URL(
-                        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent");
+                        "https://generativelanguage.googleapis.com/v1beta/models/" + name + ":generateContent");
                     connection = (javax.net.ssl.HttpsURLConnection) url.openConnection();
                     connection.setInstanceFollowRedirects(false);
                     connection.setRequestMethod("POST");
@@ -78,7 +88,7 @@ public final class MainActivity extends Activity {
                     }
                     int status = connection.getResponseCode();
                     if (status != 200) {
-                        final String message = "Gemini returned HTTP " + status + ". Your plan is still available.";
+                        final String message = "Gemini returned HTTP " + status + (status == 404 ? ". Check the model name in Setup." : ". Your plan is still available.");
                         runOnUiThread(() -> notifyPage("geminiResult", message));
                         return;
                     }

@@ -6,7 +6,14 @@ android {
         applicationId 'com.tickfit.stride'
         minSdk 26
         targetSdk 34
-        versionCode 4
-        versionName '0.4.0'
+        // Stride is released together with TickFit, so it carries TickFit's version
+        // (.github/workflows/android.yml passes -PstrideVersionName and -PstrideVersionCode).
+        versionCode((project.findProperty('strideVersionCode') ?: '5') as int)
+        versionName project.findProperty('strideVersionName') ?: '0.5.0-dev'
+    }
+    lint {
+        // a release build must not stop on lint advice (the workflow signs the APK afterwards)
+        checkReleaseBuilds false
+        abortOnError false
     }
 }

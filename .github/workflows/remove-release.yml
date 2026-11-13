@@ -1,0 +1,28 @@
+# Removes one release and its tag, by hand from the Actions tab ("Run workflow"). The code stays in main; only the
+# downloadable release goes. TickFit's in-app updater only ever offers a version newer than the one installed.
+name: Remove a release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to remove, like v2.7.0
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  remove:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Remove the release and its tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag }}
+        run: |
+          case "$TAG" in (v[0-9]*.[0-9]*.[0-9]*) ;; (*) echo "Not a release tag: $TAG"; exit 1;; esac
+          LATEST=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName)
+          if [ "$LATEST" = "$TAG" ]; then echo "::error::$TAG is the latest release. Publish a newer one first, so phones always have something to update to."; exit 1; fi
+          gh release delete "$TAG" --cleanup-tag --yes --repo "${{ github.repository }}"
+          echo "Removed $TAG"

@@ -20,26 +20,37 @@ const EXTRA = {
   Legs:['Seated Leg Curl','Dumbbell Romanian Deadlift','Glute Bridge'],
   Core:['Plank','Side Plank','Reverse Crunch']
 };
+// Which muscle group an exercise works, from its name: [focus, target]. Imported TickFit exercises have only a
+// name, so this decides where they show up. The order matters: the first rule that matches wins ("walking lunge"
+// is legs before "walk" is cardio, "glute kickback" before "tricep kickback", "incline push-up" before "incline press").
+const RULES = [
+  [/\b(carry|carries|farmer|suitcase)\b/, 'Core', 'Obliques'],
+  [/lunge|split squat|step.?ups?\b/, 'Legs', 'Quadriceps'],
+  [/\b(walk|walking|jog|jogging|run|running|sprint|treadmill|cycle|cycling|bike|elliptical|stair (climb|climber|walk)|stairmaster|jumping jacks?|step jack|jump rope|skipping|march in place|rower|rowing machine|cardio|hiit|burpees?)\b/, 'Cardio', 'Whole body'],
+  [/calf|calves/, 'Legs', 'Calves'],
+  [/leg curl|single leg [a-z ]*curl|hamstring|romanian|\brdl\b|good morning|stiff.leg|nordic|deadlift/, 'Legs', 'Hamstrings'],
+  [/hip thrust|glute|bridge|abduction|clamshell|frog pump|hip extension|donkey kick/, 'Legs', 'Glutes'],
+  [/squat|leg press|leg extension|hack\b|sit.to.stand|wall sit/, 'Legs', 'Quadriceps'],
+  [/side plank|side bend|pallof|wood ?chop|anti.rotation|russian twist|bicycle|cable lift/, 'Core', 'Obliques'],
+  [/crunch|plank|dead ?bug|knee raise|leg raise|hollow|v.up|sit.?up|mountain climber|flutter|ab wheel|rollout|\bab\b/, 'Core', 'Abdominals'],
+  [/back extension|superman|bird dog|rack pull/, 'Back', 'Lower back'],
+  [/chest dip/, 'Chest · Lower', 'Lower chest'],
+  [/overhead.*extension|skull|lying.*extension|french press|incline.*triceps? extension|tate press/, 'Triceps', 'Triceps · long head'],
+  [/tricep|pushdown|push down|kickback|\bdips?\b|close.grip|jm press|diamond|rope extension|cable extension/, 'Triceps', 'Triceps'],
+  [/reverse pec|reverse fly|rear delt|face pull|prone [wy] raise/, 'Shoulders', 'Rear delts'],
+  [/lateral raise|upright row/, 'Shoulders', 'Side delts'],
+  [/shoulder press|overhead press|military|arnold|pike|wall slide|front raise|handstand|push press|kneeling.*press/, 'Shoulders', 'Front delts'],
+  [/hammer|reverse curl/, 'Biceps', 'Brachialis and biceps'],
+  [/curl/, 'Biceps', 'Biceps'],
+  [/pull.?down|pull.?ups?|chin.?ups?|pullover|lat sweep|\blats?\b|straight arm|single arm dumbbell row|row to hip/, 'Back', 'Lats'],
+  [/\brows?\b|shrug|prone t raise|snow angel|scapular|retraction/, 'Back', 'Mid back and lats'],
+  [/low to high|incline.*(press|fly)|decline push|feet.elevated/, 'Chest · Upper', 'Upper chest'],
+  [/high to low|decline|incline push|wall push/, 'Chest · Lower', 'Lower chest'],
+  [/chest|bench press|pec|crossover|\bfly\b|flye|push.?up|floor press|squeeze press/, 'Chest · Middle', 'Mid chest'],
+];
 function classify(name, category='') {
-  const n = name.toLowerCase();
-  if (/\bwalk\b|cycle|treadmill|jog|elliptical/.test(n)) return ['Cardio','Whole body'];
-  if (/calf/.test(n)) return ['Legs','Calves'];
-  if (/leg curl|romanian|deadlift/.test(n)) return ['Legs','Hamstrings'];
-  if (/hip thrust|bridge/.test(n)) return ['Legs','Glutes'];
-  if (/squat|lunge|leg press|leg extension/.test(n)) return ['Legs','Quadriceps'];
-  if (/crunch|plank|dead bug|knee raise/.test(n)) return ['Core',/side plank/.test(n)?'Obliques':'Abdominals'];
-  if (/carry/.test(n)) return ['Core','Obliques'];
-  if (/tricep|skull crusher|pushdown|diamond|seated dip|overhead rope extension/.test(n)) return ['Triceps',/overhead|skull/.test(n)?'Triceps · long head':'Triceps'];
-  if (/reverse pec|reverse fly|face pull|prone w/.test(n)) return ['Shoulders','Rear delts'];
-  if (/lateral raise/.test(n)) return ['Shoulders','Side delts'];
-  if (/shoulder press|arnold|pike|wall slide/.test(n)) return ['Shoulders','Front delts'];
-  if (/curl/.test(n)) return ['Biceps',/hammer/.test(n)?'Brachialis and biceps':'Biceps'];
-  if (/pulldown|pull down|pull.?up|pullover|vertical pull|lat sweep/.test(n)) return ['Back','Lats'];
-  if (/back extension|superman/.test(n)) return ['Back','Lower back'];
-  if (/row/.test(n)) return ['Back','Mid back and lats'];
-  if (/low to high|incline.*(press|fly)|decline push/.test(n)) return ['Chest · Upper','Upper chest'];
-  if (/high to low|decline|chest dip|incline push/.test(n)) return ['Chest · Lower','Lower chest'];
-  if (/chest|bench press|pec deck|crossover|flat.*fly|push.?up/.test(n)) return ['Chest · Middle','Mid chest'];
+  const n = String(name || '').toLowerCase();
+  for (const [pattern, focus, target] of RULES) if (pattern.test(n)) return [focus, target];
   return [FOCUS.includes(category)?category:category==='Chest'?'Chest · Middle':'Other', category && category!=='Other'?category:'Target unclassified'];
 }
 function equipment(name) {
@@ -211,9 +222,16 @@ function week(start, config, history, library=[]) {
   const cardioDay = config.goal==='General fitness' ? [...Array(7).keys()].find(i=>!train.has(i)) : -1;
   return Array.from({length:7},(_,i)=>session(offset(start,i),train.get(i) || (i===cardioDay?'Cardio':'Rest'),config,history,library));
 }
+// "Chest · Upper + Chest · Middle + Triceps" -> "Chest + Triceps": the day's name, as TickFit shows it too.
+function shortName(label) {
+  const parts = String(label || '').split(/\s*\+\s*/).map(part=>part.split('·')[0].trim()).filter(Boolean);
+  return [...new Set(parts)].join(' + ') || 'Workout';
+}
+// The days from `today` on: TickFit never changes a day that has passed, so exports leave them out.
+const upcoming = (days, today = dateKey()) => days.filter(day=>day.date>=today);
 function transfer(scope, days) {
   const cleanDays = days.map(({date,label,workout,meals,extras})=>({date,label,workout,meals,extras}));
   return {app:'tickfit',format:'stride-workout',version:1,scope,
     plan:{name:scope === 'day' ? 'Stride · ' + days[0].label : 'Stride · Weekly plan',startDate:days[0].date,days:cleanDays}};
 }
-if (typeof module !== 'undefined') module.exports = {DEFAULTS, MODES, parseBackup, parseLibrary, choices, catalog, equipmentList, FOCUS, dateKey, offset, session, week, transfer};
+if (typeof module !== 'undefined') module.exports = {DEFAULTS, MODES, parseBackup, parseLibrary, choices, catalog, equipmentList, FOCUS, dateKey, offset, session, week, transfer, classify, shortName, upcoming};
