@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file:; style-src 'self' file:; connect-src https://generativelanguage.googleapis.com; object-src 'none'; base-uri 'none'">
+<title>Stride</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="catalog.js"></script>
+<script defer src="engine.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<header><div class="brand"><i></i> STRIDE</div><span>FOR TICKFIT</span></header>
+<main id="screen"></main>
+<nav aria-label="Main navigation">
+<button data-tab="today">Today</button><button data-tab="week">Week</button><button data-tab="library">Exercises</button><button data-tab="setup">Setup</button>
+</nav>
+<div id="notice" role="status" hidden></div>
+<input id="backup" type="file" accept=".json,application/json" hidden>
+</body>
+</html>
