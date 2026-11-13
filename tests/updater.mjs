@@ -35,10 +35,14 @@ const noDigest = pickRelease({ ...release, assets: [release.assets[0], { ...rele
 ok(noDigest && noDigest.sha256 === null && noDigest.sumsUrl, 'no digest: the SHA256SUMS file is checked instead');
 ok(pickRelease({ ...release, assets: [{ ...release.assets[1], digest: undefined }] }) === null, 'nothing to check the file against: not offered');
 ok(pickRelease({ ...release, assets: [{ ...release.assets[1], browser_download_url: 'https://evil.example/TickFit.apk' }, release.assets[0]] }) === null, 'an APK from anywhere but TickFit\'s releases is never offered');
-const stride = { name: 'Stride-2.8.0.apk', browser_download_url: DL + 'Stride-2.8.0.apk', size: 80000, digest: 'sha256:' + 'CD'.repeat(32) };
+const stride = { name: 'TickFit-Stride-2.8.0.apk', browser_download_url: DL + 'TickFit-Stride-2.8.0.apk', size: 80000, digest: 'sha256:' + 'CD'.repeat(32) };
 const both = pickRelease({ ...release, assets: [stride, ...release.assets] });
 ok(both && both.name === 'TickFit-2.5.0.apk' && both.sha256 === 'ab'.repeat(32), "with Stride's APK listed first, TickFit's own is still the one offered");
 ok(pickRelease({ ...release, assets: [release.assets[0], stride] }) === null, 'a release with only Stride\'s APK offers nothing');
+const old = { name: 'Stride-2.8.0.apk', browser_download_url: DL + 'Stride-2.8.0.apk', size: 80000, digest: 'sha256:' + 'EF'.repeat(32) };
+ok(pickRelease({ ...release, assets: [release.assets[0], old, release.assets[1]] }).name === 'TickFit-2.5.0.apk', 'and the 2.8.0 name (Stride-2.8.0.apk, listed before TickFit) is skipped too');
+// GitHub lists a release's files by name: TickFit's own must come first, for updaters before 2.8.1 that took the first APK
+ok(['SHA256SUMS.txt', 'TickFit-Stride-2.8.1.apk', 'TickFit-2.8.1.apk'].sort().filter((n) => n.endsWith('.apk'))[0] === 'TickFit-2.8.1.apk', 'by name, TickFit-2.8.1.apk sorts before TickFit-Stride-2.8.1.apk');
 ok(pickRelease({ ...release, draft: true }) === null && pickRelease({ ...release, prerelease: true }) === null, 'drafts and pre-releases are skipped');
 ok(pickRelease({ ...release, assets: [release.assets[0]] }) === null && pickRelease(null) === null && pickRelease({ tag_name: 'latest' }) === null, 'no APK or no version: nothing');
 

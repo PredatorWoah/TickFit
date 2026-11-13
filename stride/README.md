@@ -8,7 +8,7 @@ The programming uses a small curated library, with [ACSM's 2026 resistance train
 
 ## Build and release
 
-Stride lives in the TickFit repository and is released with it: every TickFit release carries `Stride-X.Y.Z.apk`
+Stride lives in the TickFit repository and is released with it: every TickFit release carries `TickFit-Stride-X.Y.Z.apk`
 next to `TickFit-X.Y.Z.apk`, built by `.github/workflows/android.yml` and signed with the same key, so Stride
 updates install over each other. Its version is TickFit's version.
 

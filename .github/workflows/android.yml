@@ -1,7 +1,7 @@
 # Builds the TickFit Android app (an APK with the whole web app packed inside, using Capacitor), and Stride
 # (stride/, the companion workout planner) next to it. Every release carries both APKs, signed with the same key.
-# TickFit's APK is uploaded first and Stride's after it, because TickFit's in-app updater (before 2.8.0) took the
-# first APK of a release.
+# Stride's APK is named TickFit-Stride-X.Y.Z.apk on purpose: GitHub lists release files by name, and TickFit's in-app
+# updater before 2.8.1 took the first APK listed, so TickFit-X.Y.Z.apk must sort first ("2" comes before "S").
 #
 #   * Merge to main with a NEW version in android-app/VERSION -> builds a SIGNED APK and publishes the
 #     release "vX.Y.Z" with it, all by itself. Merges that keep the same version only make a test build.
@@ -151,7 +151,7 @@ jobs:
             rm -f "$RUNNER_TEMP/aligned.apk"
           }
           sign "$(ls android-app/android/app/build/outputs/apk/release/*.apk | head -1)" "TickFit-${{ steps.ver.outputs.name }}.apk"
-          sign "$(ls stride/app/build/outputs/apk/release/*.apk | head -1)" "Stride-${{ steps.ver.outputs.name }}.apk"
+          sign "$(ls stride/app/build/outputs/apk/release/*.apk | head -1)" "TickFit-Stride-${{ steps.ver.outputs.name }}.apk"
           rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Collect the test APK
@@ -159,7 +159,7 @@ jobs:
         run: |
           mkdir -p dist
           cp android-app/android/app/build/outputs/apk/debug/app-debug.apk "dist/TickFit-${{ steps.ver.outputs.name }}-TEST.apk"
-          cp stride/app/build/outputs/apk/debug/app-debug.apk "dist/Stride-${{ steps.ver.outputs.name }}-TEST.apk"
+          cp stride/app/build/outputs/apk/debug/app-debug.apk "dist/TickFit-Stride-${{ steps.ver.outputs.name }}-TEST.apk"
 
       - name: Checksum
         run: |
@@ -177,8 +177,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload "${{ github.event.release.tag_name }}" dist/TickFit-*.apk dist/SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
-          gh release upload "${{ github.event.release.tag_name }}" dist/Stride-*.apk --clobber --repo "${{ github.repository }}"
+          gh release upload "${{ github.event.release.tag_name }}" dist/*.apk dist/SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
 
       - name: Publish the release
         if: steps.ver.outputs.auto == 'true' && steps.ver.outputs.signed == 'true'
@@ -186,8 +185,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V="${{ steps.ver.outputs.name }}"
-          gh release create "v$V" dist/TickFit-*.apk dist/SHA256SUMS.txt --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+          gh release create "v$V" dist/*.apk dist/SHA256SUMS.txt --repo "${{ github.repository }}" --target "${{ github.sha }}" \
             --title "TickFit $V" --generate-notes \
-            --notes "Download TickFit-$V.apk below and open it on your Android phone. It installs over the previous version and keeps your data. Android asks once to allow installs from your browser or files app. Stride-$V.apk is Stride, the workout planner that sends days and weeks to TickFit (More > Exercises from Stride); it installs as its own app."
-          # Stride after TickFit, in its own step, so TickFit's APK stays the first one listed
-          gh release upload "v$V" dist/Stride-*.apk --repo "${{ github.repository }}"
+            --notes "Download TickFit-$V.apk below and open it on your Android phone. It installs over the previous version and keeps your data. Android asks once to allow installs from your browser or files app. TickFit-Stride-$V.apk is Stride, the workout planner that sends days and weeks to TickFit (More > Exercises from Stride); it installs as its own app."
