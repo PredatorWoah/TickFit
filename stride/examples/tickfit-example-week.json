@@ -1,0 +1,321 @@
+{
+  "app": "tickfit",
+  "format": "stride-workout",
+  "version": 1,
+  "scope": "week",
+  "plan": {
+    "name": "Stride · Weekly plan",
+    "startDate": "2026-11-13",
+    "days": [
+      {
+        "date": "2026-11-13",
+        "label": "Chest · Upper + Chest · Middle + Chest · Lower + Triceps",
+        "workout": [
+          {
+            "id": "stride-inclinechestpressmachine",
+            "exercise": "Incline Chest Press Machine",
+            "target": "Upper chest",
+            "focus": "Chest · Upper",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Incline%20Chest%20Press%20Machine%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-machinechestpress",
+            "exercise": "Machine Chest Press",
+            "target": "Mid chest",
+            "focus": "Chest · Middle",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Machine%20Chest%20Press%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-hightolowcablefly",
+            "exercise": "High to Low Cable Fly",
+            "target": "Lower chest",
+            "focus": "Chest · Lower",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=High%20to%20Low%20Cable%20Fly%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-tricepropepushdown",
+            "exercise": "Tricep Rope Pushdown",
+            "target": "Triceps",
+            "focus": "Triceps",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Tricep%20Rope%20Pushdown%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-inclinedumbbellpress",
+            "exercise": "Incline Dumbbell Press",
+            "target": "Upper chest",
+            "focus": "Chest · Upper",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Incline%20Dumbbell%20Press%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-dumbbellbenchpressflat",
+            "exercise": "Dumbbell Bench Press (Flat)",
+            "target": "Mid chest",
+            "focus": "Chest · Middle",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Dumbbell%20Bench%20Press%20(Flat)%20exercise%20proper%20form%20tutorial"
+          }
+        ],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-14",
+        "label": "Cardio",
+        "workout": [
+          {
+            "id": "stride-easycycle",
+            "exercise": "Easy Cycle",
+            "target": "Whole body",
+            "focus": "Cardio",
+            "sets": 1,
+            "reps": "40 min",
+            "weight": "",
+            "rest": "",
+            "notes": "Use a pace where you can still talk.",
+            "video": "https://www.youtube.com/results?search_query=Easy%20Cycle%20exercise%20proper%20form%20tutorial"
+          }
+        ],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-15",
+        "label": "Back + Biceps + Shoulders",
+        "workout": [
+          {
+            "id": "stride-latpulldown",
+            "exercise": "Lat Pulldown",
+            "target": "Lats",
+            "focus": "Back",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Lat%20Pulldown%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-machinepreachercurl",
+            "exercise": "Machine Preacher Curl",
+            "target": "Biceps",
+            "focus": "Biceps",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Machine%20Preacher%20Curl%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-shoulderpressmachine",
+            "exercise": "Shoulder Press Machine",
+            "target": "Front delts",
+            "focus": "Shoulders",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Shoulder%20Press%20Machine%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-singlearmdumbbellrow",
+            "exercise": "Single Arm Dumbbell Row",
+            "target": "Lats",
+            "focus": "Back",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Single%20Arm%20Dumbbell%20Row%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-dumbbellbicepcurl",
+            "exercise": "Dumbbell Bicep Curl",
+            "target": "Biceps",
+            "focus": "Biceps",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Dumbbell%20Bicep%20Curl%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-dumbbelllateralraise",
+            "exercise": "Dumbbell Lateral Raise",
+            "target": "Side delts",
+            "focus": "Shoulders",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Dumbbell%20Lateral%20Raise%20exercise%20proper%20form%20tutorial"
+          }
+        ],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-16",
+        "label": "Rest",
+        "workout": [],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-17",
+        "label": "Legs + Core",
+        "workout": [
+          {
+            "id": "stride-legpress",
+            "exercise": "Leg Press",
+            "target": "Quadriceps",
+            "focus": "Legs",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Leg%20Press%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-kneelingcablecrunch",
+            "exercise": "Kneeling Cable Crunch",
+            "target": "Abdominals",
+            "focus": "Core",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Kneeling%20Cable%20Crunch%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-gobletsquat",
+            "exercise": "Goblet Squat",
+            "target": "Quadriceps",
+            "focus": "Legs",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Goblet%20Squat%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-dumbbellsuitcasecarry",
+            "exercise": "Dumbbell Suitcase Carry",
+            "target": "Obliques",
+            "focus": "Core",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Dumbbell%20Suitcase%20Carry%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-seatedlegcurl",
+            "exercise": "Seated Leg Curl",
+            "target": "Hamstrings",
+            "focus": "Legs",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Seated%20Leg%20Curl%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-abcrunchmachine",
+            "exercise": "Ab Crunch Machine",
+            "target": "Abdominals",
+            "focus": "Core",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort.",
+            "video": "https://www.youtube.com/results?search_query=Ab%20Crunch%20Machine%20exercise%20proper%20form%20tutorial"
+          }
+        ],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-18",
+        "label": "Rest",
+        "workout": [],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      },
+      {
+        "date": "2026-11-19",
+        "label": "Rest",
+        "workout": [],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      }
+    ]
+  }
+}

@@ -11,3 +11,9 @@ signing-key-info.txt
 # Local junk
 node_modules/
 .DS_Store
+
+# Stride (Android, built by Gradle)
+stride/.gradle/
+stride/build/
+stride/app/build/
+stride/local.properties

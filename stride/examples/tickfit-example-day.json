@@ -1,0 +1,48 @@
+{
+  "app": "tickfit",
+  "format": "stride-workout",
+  "version": 1,
+  "scope": "day",
+  "plan": {
+    "name": "Stride · Biceps + Back",
+    "startDate": "2026-11-13",
+    "days": [
+      {
+        "date": "2026-11-13",
+        "label": "Biceps + Back",
+        "workout": [
+          {
+            "id": "stride-dumbbellbicepcurl",
+            "exercise": "Dumbbell Bicep Curl",
+            "target": "Biceps",
+            "focus": "Biceps",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort. Last logged: 12 reps at 5 kg.",
+            "video": "https://www.youtube.com/results?search_query=Dumbbell%20Bicep%20Curl%20exercise%20proper%20form%20tutorial"
+          },
+          {
+            "id": "stride-latpulldown",
+            "exercise": "Lat Pulldown",
+            "target": "Lats",
+            "focus": "Back",
+            "sets": 2,
+            "reps": "8–12",
+            "weight": "",
+            "rest": "90 sec",
+            "notes": "Leave 2–3 reps in reserve. Progress when all sets reach the top of the range at that effort. Last logged: 12 reps at 25 kg.",
+            "video": "https://www.youtube.com/results?search_query=Lat%20Pulldown%20exercise%20proper%20form%20tutorial"
+          }
+        ],
+        "meals": [],
+        "extras": {
+          "waterLiters": null,
+          "supplements": [],
+          "notes": ""
+        }
+      }
+    ]
+  }
+}

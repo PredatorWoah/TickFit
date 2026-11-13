@@ -1,4 +1,7 @@
-# Builds the TickFit Android app (an APK with the whole web app packed inside, using Capacitor).
+# Builds the TickFit Android app (an APK with the whole web app packed inside, using Capacitor), and Stride
+# (stride/, the companion workout planner) next to it. Every release carries both APKs, signed with the same key.
+# TickFit's APK is uploaded first and Stride's after it, because TickFit's in-app updater (before 2.8.0) took the
+# first APK of a release.
 #
 #   * Merge to main with a NEW version in android-app/VERSION -> builds a SIGNED APK and publishes the
 #     release "vX.Y.Z" with it, all by itself. Merges that keep the same version only make a test build.
@@ -29,6 +32,7 @@ on:
       - 'data/**'
       - 'icons/**'
       - 'vendor/**'
+      - 'stride/**'
 
 permissions:
   contents: write # attach the APK to a release
@@ -117,19 +121,37 @@ jobs:
             ./gradlew --no-daemon assembleDebug
           fi
 
-      - name: Sign the release APK
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build Stride
+        env:
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+        run: |
+          set -e
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
+          if [ "${{ steps.ver.outputs.signed }}" = "true" ]; then TASK=assembleRelease; else TASK=assembleDebug; fi
+          gradle -p stride --no-daemon ":app:$TASK" -PstrideVersionName="$VERSION_NAME" -PstrideVersionCode="$VERSION_CODE"
+
+      - name: Sign the release APKs
         if: steps.ver.outputs.signed == 'true'
         run: |
           set -e
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          UNSIGNED=$(ls android-app/android/app/build/outputs/apk/release/*.apk | head -1)
           mkdir -p dist
-          "$BT/zipalign" -p -f 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
-          KS_PASS="$KEYSTORE_PASSWORD" KEYPASS="$KEY_PASSWORD" "$BT/apksigner" sign \
-            --ks "$RUNNER_TEMP/release.jks" --ks-pass env:KS_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEYPASS \
-            --out "dist/TickFit-${{ steps.ver.outputs.name }}.apk" "$RUNNER_TEMP/aligned.apk"
-          "$BT/apksigner" verify --print-certs "dist/TickFit-${{ steps.ver.outputs.name }}.apk" | grep -E "SHA-256|Verified"
+          sign() { # sign <unsigned apk> <name in dist/>
+            "$BT/zipalign" -p -f 4 "$1" "$RUNNER_TEMP/aligned.apk"
+            KS_PASS="$KEYSTORE_PASSWORD" KEYPASS="$KEY_PASSWORD" "$BT/apksigner" sign \
+              --ks "$RUNNER_TEMP/release.jks" --ks-pass env:KS_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEYPASS \
+              --out "dist/$2" "$RUNNER_TEMP/aligned.apk"
+            "$BT/apksigner" verify --print-certs "dist/$2" | grep -E "SHA-256|Verified"
+            rm -f "$RUNNER_TEMP/aligned.apk"
+          }
+          sign "$(ls android-app/android/app/build/outputs/apk/release/*.apk | head -1)" "TickFit-${{ steps.ver.outputs.name }}.apk"
+          sign "$(ls stride/app/build/outputs/apk/release/*.apk | head -1)" "Stride-${{ steps.ver.outputs.name }}.apk"
           rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Collect the test APK
@@ -137,6 +159,7 @@ jobs:
         run: |
           mkdir -p dist
           cp android-app/android/app/build/outputs/apk/debug/app-debug.apk "dist/TickFit-${{ steps.ver.outputs.name }}-TEST.apk"
+          cp stride/app/build/outputs/apk/debug/app-debug.apk "dist/Stride-${{ steps.ver.outputs.name }}-TEST.apk"
 
       - name: Checksum
         run: |
@@ -153,7 +176,9 @@ jobs:
         if: github.event_name == 'release' && steps.ver.outputs.signed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/*.apk dist/SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" dist/TickFit-*.apk dist/SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
+          gh release upload "${{ github.event.release.tag_name }}" dist/Stride-*.apk --clobber --repo "${{ github.repository }}"
 
       - name: Publish the release
         if: steps.ver.outputs.auto == 'true' && steps.ver.outputs.signed == 'true'
@@ -161,6 +186,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V="${{ steps.ver.outputs.name }}"
-          gh release create "v$V" dist/*.apk dist/SHA256SUMS.txt --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+          gh release create "v$V" dist/TickFit-*.apk dist/SHA256SUMS.txt --repo "${{ github.repository }}" --target "${{ github.sha }}" \
             --title "TickFit $V" --generate-notes \
-            --notes "Download TickFit-$V.apk below and open it on your Android phone. It installs over the previous version and keeps your data. Android asks once to allow installs from your browser or files app."
+            --notes "Download TickFit-$V.apk below and open it on your Android phone. It installs over the previous version and keeps your data. Android asks once to allow installs from your browser or files app. Stride-$V.apk is Stride, the workout planner that sends days and weeks to TickFit (More > Exercises from Stride); it installs as its own app."
+          # Stride after TickFit, in its own step, so TickFit's APK stays the first one listed
+          gh release upload "v$V" dist/Stride-*.apk --repo "${{ github.repository }}"

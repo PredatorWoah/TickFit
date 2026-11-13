@@ -35,6 +35,10 @@ const noDigest = pickRelease({ ...release, assets: [release.assets[0], { ...rele
 ok(noDigest && noDigest.sha256 === null && noDigest.sumsUrl, 'no digest: the SHA256SUMS file is checked instead');
 ok(pickRelease({ ...release, assets: [{ ...release.assets[1], digest: undefined }] }) === null, 'nothing to check the file against: not offered');
 ok(pickRelease({ ...release, assets: [{ ...release.assets[1], browser_download_url: 'https://evil.example/TickFit.apk' }, release.assets[0]] }) === null, 'an APK from anywhere but TickFit\'s releases is never offered');
+const stride = { name: 'Stride-2.8.0.apk', browser_download_url: DL + 'Stride-2.8.0.apk', size: 80000, digest: 'sha256:' + 'CD'.repeat(32) };
+const both = pickRelease({ ...release, assets: [stride, ...release.assets] });
+ok(both && both.name === 'TickFit-2.5.0.apk' && both.sha256 === 'ab'.repeat(32), "with Stride's APK listed first, TickFit's own is still the one offered");
+ok(pickRelease({ ...release, assets: [release.assets[0], stride] }) === null, 'a release with only Stride\'s APK offers nothing');
 ok(pickRelease({ ...release, draft: true }) === null && pickRelease({ ...release, prerelease: true }) === null, 'drafts and pre-releases are skipped');
 ok(pickRelease({ ...release, assets: [release.assets[0]] }) === null && pickRelease(null) === null && pickRelease({ tag_name: 'latest' }) === null, 'no APK or no version: nothing');
 
