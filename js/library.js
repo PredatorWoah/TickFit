@@ -71,8 +71,10 @@ export function savePick(plan, date, kind, chosen) {
   const planned = plannedDay(plan, date)[kind].map((x) => x.id);
   plan.picks ||= {};
   const day = { ...(plan.picks[date] || {}) };
-  if (ids.length === planned.length && ids.every((id, i) => id === planned[i])) delete day[kind];
-  else day[kind] = ids;
+  if (ids.length === planned.length && ids.every((id, i) => id === planned[i])) {
+    delete day[kind];
+    if (kind === 'workout') delete day.label; // back to the plan's exercises: back to the plan's name too
+  } else day[kind] = ids;
   if (Object.keys(day).length) plan.picks[date] = day;
   else delete plan.picks[date];
   return ids;

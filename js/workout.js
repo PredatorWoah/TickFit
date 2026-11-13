@@ -41,12 +41,14 @@ export function teardownWorkout() {
   document.body.classList.remove('has-wkbar');
 }
 
-export function renderWorkout(root, plan, date, goto) {
+export function renderWorkout(root, plan, date, goto, openStride = null) {
   warmAudio(); // ready before the first rest, so ticking a set never waits for it
   teardownWorkout();
   clear(root);
   const ctx = createCtx(plan, date, goto);
   const { day } = ctx;
+  // "From Stride": put a day exported from Stride onto this date (strideui.js)
+  const strideButton = () => openStride && h('button', { class: 'pick-btn', type: 'button', onclick: () => openStride(date) }, icon('upload', 16), 'From Stride');
 
   root.append(dateBar(ctx));
 
@@ -60,7 +62,8 @@ export function renderWorkout(root, plan, date, goto) {
         h('div', { class: 'empty-icon' }, icon(hasOptions ? 'dumbbell' : 'flame', 32)),
         h('h1', { class: 'wk-title' }, hasOptions ? "Pick today's exercises" : 'Rest day'),
         h('p', {}, hasOptions ? 'Your plan has exercise options to choose from. Tap below and pick what you will do today.' : 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.'),
-        pickButton(ctx, 'workout')
+        pickButton(ctx, 'workout'),
+        strideButton()
       )
     );
     root.append(notesCard(ctx));
@@ -114,7 +117,7 @@ export function renderWorkout(root, plan, date, goto) {
       h('h1', { class: 'wk-title' }, day.label),
       h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
       day.suggested && !day.picked && h('p', { class: 'hint tight' }, "Suggested from your plan's exercise options. Tap Choose exercises to swap any."),
-      pickButton(ctx, 'workout'),
+      h('div', { class: 'wk-tools' }, pickButton(ctx, 'workout'), strideButton()),
       dayVersionBar(),
       h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
       stateArea,

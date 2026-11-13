@@ -66,6 +66,7 @@ export function dayFor(plan, date) {
   const resolve = (ids, own, more) => ids.map((id) => own.find((x) => x.id === id) || (more || []).find((x) => x.id === id)).filter(Boolean);
   return withVersions(plan, date, {
     ...base,
+    label: Array.isArray(pick.workout) && pick.label ? pick.label : base.label, // a day filled from Stride has Stride's name
     workout: Array.isArray(pick.workout) ? resolve(pick.workout, base.workout, lib.exercises) : base.workout,
     meals: Array.isArray(pick.meals) ? resolve(pick.meals, base.meals, lib.meals) : base.meals,
     picked: true,
