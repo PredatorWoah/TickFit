@@ -25,6 +25,14 @@ and Stride's name for the day; meals, other days and logged days stay. Week expo
 passed are left out). Android's back gesture steps back inside Stride before it closes the app. The Gemini model name
 can be changed in Setup if Google renames it.
 
+## AI coach
+
+Today > **AI coach**: choose how many exercises for which muscles and the time you have, add a note, and Gemini
+drafts the session from your imported TickFit history, choosing only from Stride's exercises (so every pick has a
+muscle diagram and a form video). It follows the same coaching principles as TickFit's AI coach (`coach.js` here,
+`js/coach.js` in TickFit; a test keeps them identical). **Use for today** saves it; **Use and export to TickFit**
+also writes the day file.
+
 ## TickFit import contract
 
 Stride writes JSON with `app: "tickfit"`, `format: "stride-workout"`, `version: 1`, and `scope: "day"` or `"week"`.
