@@ -170,7 +170,10 @@ function sendChat(prompt) {
   }).then(async response=>geminiResult(response.ok?await response.text():'Gemini returned HTTP '+response.status+(response.status===404?'. Check the model name in Setup.':'.')))
     .catch(()=>geminiResult('Could not reach Gemini.'));
 }
+// Chat and the coach share one Gemini callback (the Android app calls window.geminiResult): this says whose it is.
+let geminiFor = 'chat';
 function geminiResult(result) {
+  if (geminiFor==='coach') { geminiFor='chat'; coachResult(result); return; }
   busy=false;
   try {
     const parts=JSON.parse(result).candidates?.[0]?.content?.parts || [];
@@ -230,7 +233,7 @@ function renderToday() {
   screen.innerHTML='<section class="hero"><div class="eyebrow">Today · '+esc(labelDate(day.date))+'</div>'+
     '<h1>'+esc(day.workout.length?shortName(day.label):'Rest day')+'</h1><p>'+
     (day.workout.length?esc(quantity(day.workout.length,'exercise'))+' · '+esc(day.minutes || state.config.minutes)+' min':'Nothing planned. Recover, walk, sleep well.')+'</p>'+
-    '<div class="actions">'+button('editToday','Choose exercises',true)+button('openChat','Ask Gemini')+'</div></section>'+
+    '<div class="actions">'+button('editToday','Choose exercises',true)+button('openCoach','AI coach')+button('openChat','Ask Gemini')+'</div></section>'+
     '<section class="card"><div class="section-heading"><h2>Today’s workout</h2><span class="count">'+
     (custom?'Custom workout':scheduled?'Week plan':'Suggested')+'</span></div>'+
     (tip?'<p class="tip">'+esc(tip)+'</p>':'')+
@@ -238,6 +241,7 @@ function renderToday() {
     '<div class="actions">'+button('exportDay','Export to TickFit',true)+(custom?button('reset','Follow week plan'):'')+'</div></section>';
   document.querySelector('#editToday').onclick=()=>{draft=null;go('editor');};
   document.querySelector('#openChat').onclick=()=>{draft=null;go('chat');};
+  document.querySelector('#openCoach').onclick=()=>{draft=null;go('coach');};
   document.querySelector('#exportDay').onclick=()=>exportDays('day',[day]);
   document.querySelector('#reset')?.addEventListener('click',()=>{
     state.override=null;draft=null;save();render();showNotice('Today is following your week plan.');
@@ -337,6 +341,79 @@ function renderChat() {
     document.querySelector('#'+id)?.addEventListener('click',()=>applySuggestions(action));
   }
 }
+// ----- AI coach: "7 exercises: 3 chest, 4 biceps", drafted by Gemini from the imported TickFit history (coach.js)
+const coach = {counts:{...(state.coachAsk?.counts || {})}, extra:Math.max(0,(state.coachAsk?.total || 0)-coachAsk(state.coachAsk?.counts || {}).total),
+  minutes:state.coachAsk?.minutes || state.config.minutes, note:'', busy:false, draft:null, ask:null, options:[]};
+const coachTotal = () => coachAsk(coach.counts, coachAsk(coach.counts).total + coach.extra);
+function sendCoach() {
+  if (!key) { tab='setup';render();showNotice('Enter your Gemini API key in Setup.');return; }
+  const ask=coachTotal();
+  if (!ask.total) { showNotice('Pick some muscles, or set a total.'); return; }
+  const d=getDraft();
+  const wanted=new Set(Object.keys(ask.counts));
+  coach.options=catalog(state.library).filter(item=>d.mode.includes(item.equipment) && (ask.free || wanted.has(coachMuscle(item.focus))));
+  if (!coach.options.length) { showNotice('Choose equipment first (Choose exercises).'); return; }
+  coach.ask=ask;
+  state.coachAsk={counts:ask.counts,total:ask.total,minutes:coach.minutes};save();
+  const request=coachRequest({ask,digest:coachDigest(state.history,dateKey()),config:{...state.config,mode:d.mode},note:coach.note,minutes:coach.minutes,options:coach.options});
+  coach.busy=true;coach.draft=null;geminiFor='coach';render();
+  if (window.StrideFiles) { window.StrideFiles.explain(key,geminiModel(),JSON.stringify(request)); return; }
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/'+geminiModel()+':generateContent',{
+    method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
+    body:JSON.stringify(request),signal:AbortSignal.timeout(90000)
+  }).then(async response=>geminiResult(response.ok?await response.text():'Gemini returned HTTP '+response.status+(response.status===404?'. Check the model name in Setup.':'.')))
+    .catch(()=>geminiResult('Could not reach Gemini.'));
+}
+function coachResult(text) {
+  coach.busy=false;
+  const result=coachDraft(text,coach.ask,coach.options);
+  if (!result || !result.exercises.length) showNotice(String(text).startsWith('{')?'Gemini did not send a usable workout. Draft again.':text);
+  else coach.draft=result;
+  if (tab==='coach') render();
+}
+function renderCoach() {
+  const ask=coachTotal();
+  const row=(m,n)=>'<div class="coach-row"><span>'+esc(m)+'</span><button data-coach="'+esc(m)+'" data-d="-1" aria-label="Fewer '+esc(m)+'">−</button><b>'+n+'</b><button data-coach="'+esc(m)+'" data-d="1" aria-label="More '+esc(m)+'">+</button></div>';
+  const dr=coach.draft;
+  screen.innerHTML='<section class="page-intro">'+button('backToday','‹ Today')+'<h1>AI coach</h1><p>How many exercises for which muscles? A total above them leaves the rest to the coach. It drafts from your TickFit history ('+esc(quantity(state.history.length,'workout'))+' imported'+(state.history.length?'':': import a backup in Setup for better targets')+').</p></section>'+
+    '<section class="card"><div class="coach-grid">'+COACH_MUSCLES.map(m=>row(m,coach.counts[m]||0)).join('')+'</div>'+
+    '<div class="coach-row coach-total"><span>Total</span><button data-coach="total" data-d="-1" aria-label="Fewer in total">−</button><b>'+ask.total+'</b><button data-coach="total" data-d="1" aria-label="More in total">+</button></div>'+
+    '<p class="filter-status">'+(ask.free?ask.free+' of the coach’s choice':ask.total?'':'Pick some muscles, or set a total')+'</p>'+
+    field('coachMinutes','Time you have',[20,30,40,50,60,75,90],coach.minutes)+
+    '<label>Anything the coach should know?<textarea id="coachNote" rows="2" maxlength="500" placeholder="A sore shoulder, no bench free, want a lighter day...">'+esc(coach.note)+'</textarea></label>'+
+    '<p class="sub">Sent to Gemini: these choices, your training preferences, your note, the exercises you can do and your last 6 weeks of imported workouts (exercise names, weights and reps).</p>'+
+    '<div class="actions">'+button('coachGo',coach.busy?'Gemini is drafting…':dr?'Draft again':'Draft my workout',true)+'</div></section>'+
+    (dr?'<section class="card"><h2>Your draft</h2>'+(dr.summary?'<p class="tip">'+esc(dr.summary)+'</p>':'')+
+      (dr.warnings.length?'<ul class="warnings">'+dr.warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':'')+
+      dr.exercises.map(item=>exerciseCard({...item,reps:item.reps+(item.weight?' @ '+item.weight:'')})).join('')+
+      '<div class="actions">'+button('coachUse','Use for today',true)+button('coachExport','Use and export to TickFit')+'</div></section>':'');
+  document.querySelector('#backToday').onclick=()=>go('today');
+  document.querySelector('#coachGo').disabled=coach.busy || !ask.total;
+  document.querySelector('#coachGo').onclick=sendCoach;
+  document.querySelector('#coachMinutes').onchange=event=>{coach.minutes=Number(event.target.value);};
+  document.querySelector('#coachNote').oninput=event=>{coach.note=event.target.value;};
+  document.querySelectorAll('[data-coach]').forEach(b=>b.onclick=()=>{
+    const m=b.dataset.coach, step=Number(b.dataset.d);
+    if (m==='total') coach.extra=Math.max(0,Math.min(COACH_MAX-coachAsk(coach.counts).total,coach.extra+step));
+    else {
+      const n=Math.max(0,(coach.counts[m]||0)+step);
+      if (coachAsk({...coach.counts,[m]:n}).total>COACH_MAX) { showNotice('Up to '+COACH_MAX+' exercises in one workout.'); return; }
+      if (n) coach.counts[m]=n; else delete coach.counts[m];
+      coach.extra=Math.min(coach.extra,COACH_MAX-coachAsk(coach.counts).total);
+    }
+    render();
+  });
+  const use=()=>{
+    const d=getDraft();
+    const muscles=[...new Set(dr.exercises.map(item=>coachMuscle(item.focus)))].filter(m=>m!=='Other');
+    state.override={date:dateKey(),label:muscles.join(' + ') || 'Coach workout',workout:dr.exercises,meals:[],extras:{waterLiters:null,supplements:[],notes:''},mode:d.mode,minutes:coach.minutes};
+    save();draft=null;
+    return state.override;
+  };
+  document.querySelector('#coachUse')?.addEventListener('click',()=>{use();coach.draft=null;go('today');showNotice('Coach workout saved for today.');});
+  document.querySelector('#coachExport')?.addEventListener('click',()=>{const day=use();coach.draft=null;go('today');exportDays('day',[day]);});
+}
+
 const weekExclusions = new Set();
 function renderWeek() {
   const days=state.plan.length && state.plan.at(-1).date>=dateKey()?state.plan:makeWeek();
@@ -431,10 +508,10 @@ function strideBack() {
 window.strideBack = strideBack;
 function render() {
   document.querySelectorAll('nav button').forEach(item=>{
-    if (item.dataset.tab===tab || (item.dataset.tab==='today' && ['editor','chat'].includes(tab))) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current');
+    if (item.dataset.tab===tab || (item.dataset.tab==='today' && ['editor','chat','coach'].includes(tab))) item.setAttribute('aria-current','page'); else item.removeAttribute('aria-current');
   });
   document.body.classList.toggle('editing-workout',tab==='editor');
-  ({today:renderToday,editor:renderEditor,chat:renderChat,week:renderWeek,library:renderLibrary,setup:renderSetup})[tab]();
+  ({today:renderToday,editor:renderEditor,chat:renderChat,coach:renderCoach,week:renderWeek,library:renderLibrary,setup:renderSetup})[tab]();
 }
 document.querySelectorAll('nav button').forEach(item=>item.onclick=()=>{draft=null;go(item.dataset.tab);});
 document.querySelector('#backup').onchange=async event=>{

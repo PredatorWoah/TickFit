@@ -1015,3 +1015,18 @@ body.has-fab #app { padding-bottom: calc(var(--nav-h) + var(--nav-lift) + 108px 
 .stride-row.stride-logged, .stride-row.stride-past, .stride-row.stride-same, .stride-row.stride-before-start { color: var(--muted); }
 .stride-paste { margin: 12px 0; }
 .stride-paste summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+
+/* AI coach sheet */
+.coach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 8px 0; }
+.coach-row { display: flex; align-items: center; gap: 6px; }
+.coach-label { flex: 1; font-weight: 600; font-size: 15px; }
+.coach-n, .coach-total-n { min-width: 22px; text-align: center; font-variant-numeric: tabular-nums; }
+.coach-total { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+.coach-total .coach-label { font-size: 16px; }
+.coach-summary { margin: 12px 0 6px; }
+.coach-list { padding-left: 20px; margin: 8px 0 14px; display: grid; gap: 10px; }
+.coach-list li b { display: block; }
+.coach-meta { display: block; color: var(--muted); font-size: 13px; }
+.coach-list small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+@media (max-width: 440px) { .coach-grid { grid-template-columns: 1fr; gap: 2px; } }
+.coach-time { min-height: 44px; width: auto; min-width: 120px; }

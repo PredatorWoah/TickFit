@@ -49,6 +49,9 @@ export function renderWorkout(root, plan, date, goto, openStride = null) {
   const { day } = ctx;
   // "From Stride": put a day exported from Stride onto this date (strideui.js)
   const strideButton = () => openStride && h('button', { class: 'pick-btn', type: 'button', onclick: () => openStride(date) }, icon('upload', 16), 'From Stride');
+  // "AI coach": drafts the day's exercises from your logged progress (coachui.js, loaded when tapped)
+  const coachButton = () =>
+    h('button', { class: 'pick-btn coach-btn', type: 'button', 'aria-haspopup': 'dialog', onclick: async () => (await import('./coachui.js')).openCoach({ plan, date, onDone: () => goto(date) }) }, icon('sparkle', 16), 'AI coach');
 
   root.append(dateBar(ctx));
 
@@ -63,6 +66,7 @@ export function renderWorkout(root, plan, date, goto, openStride = null) {
         h('h1', { class: 'wk-title' }, hasOptions ? "Pick today's exercises" : 'Rest day'),
         h('p', {}, hasOptions ? 'Your plan has exercise options to choose from. Tap below and pick what you will do today.' : 'No workout today. Recovery is part of the plan. A walk and a good night of sleep are plenty.'),
         pickButton(ctx, 'workout'),
+        coachButton(),
         strideButton()
       )
     );
@@ -117,7 +121,7 @@ export function renderWorkout(root, plan, date, goto, openStride = null) {
       h('h1', { class: 'wk-title' }, day.label),
       h('p', { class: 'wk-meta' }, `${day.workout.length} exercises · ${totalSets} sets · about ${estimateMinutes(day)} min`),
       day.suggested && !day.picked && h('p', { class: 'hint tight' }, "Suggested from your plan's exercise options. Tap Choose exercises to swap any."),
-      h('div', { class: 'wk-tools' }, pickButton(ctx, 'workout'), strideButton()),
+      h('div', { class: 'wk-tools' }, pickButton(ctx, 'workout'), coachButton(), strideButton()),
       dayVersionBar(),
       h('div', { class: 'wk-progress' }, progressText, h('div', { class: 'bar big' }, progressFill)),
       stateArea,

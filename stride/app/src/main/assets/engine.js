@@ -234,4 +234,4 @@ function transfer(scope, days) {
   return {app:'tickfit',format:'stride-workout',version:1,scope,
     plan:{name:scope === 'day' ? 'Stride · ' + days[0].label : 'Stride · Weekly plan',startDate:days[0].date,days:cleanDays}};
 }
-if (typeof module !== 'undefined') module.exports = {DEFAULTS, MODES, parseBackup, parseLibrary, choices, catalog, equipmentList, FOCUS, dateKey, offset, session, week, transfer, classify, shortName, upcoming};
+if (typeof module !== 'undefined') module.exports = {DEFAULTS, MODES, parseBackup, parseLibrary, choices, catalog, equipmentList, FOCUS, dateKey, offset, session, week, transfer, classify, shortName, upcoming, norm, EQUIPMENT};
