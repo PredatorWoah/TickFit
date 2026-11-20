@@ -68,8 +68,8 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface public void explain(String key, String model, String request) {
-            // the model name comes from Setup; only plain names like "gemini-3.8-flash" may go into the address
-            final String name = model != null && model.matches("[a-z0-9][a-z0-9.-]{2,60}") ? model : "gemini-3.8-flash";
+            // the model name comes from Setup; only plain names like "gemini-flash-latest" may go into the address
+            final String name = model != null && model.matches("[a-z0-9][a-z0-9.-]{2,60}") ? model : "gemini-flash-latest";
             new Thread(() -> {
                 javax.net.ssl.HttpsURLConnection connection = null;
                 try {
@@ -132,7 +132,7 @@ public final class MainActivity extends Activity {
     }
 
     private void notifyPage(String function, String text) {
-        view.evaluateJavascript("window." + function + "(" + JSONObject.quote(text) + ")", null);
+        if (view != null) view.evaluateJavascript("window." + function + "(" + JSONObject.quote(text) + ")", null);
     }
 
     @Override protected void onActivityResult(int code, int result, Intent intent) {

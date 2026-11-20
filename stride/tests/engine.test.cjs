@@ -73,7 +73,7 @@ const dr = C.coachDraft(reply, ask, options);
 ok(dr && dr.exercises.length === 6, 'a 4th chest and a made-up id are dropped');
 ok(dr.exercises[0].weight === '25 kg' && /2 reps in reserve\. Up from 24x10/.test(dr.exercises[0].notes) && /youtube/.test(dr.exercises[0].video), 'the first one keeps its weight, reason and form link');
 const hammer = dr.exercises.find((x) => x.exercise === 'Hammer Curl');
-ok(hammer.sets === 3 && hammer.weight === '', 'silly sets and weights are not trusted');
+ok(hammer.sets === 3 && hammer.weight === '' && !/reps in reserve/.test(hammer.notes), 'silly sets and weights are not trusted, missing rir stays empty');
 ok(dr.warnings.some((w) => /1 Biceps missing/.test(w)), 'one biceps short: it says so');
 ok(C.coachDraft('Gemini returned HTTP 404.', ask, options) === null, 'an error text is not a draft');
 const req = C.coachRequest({ ask, digest: dg, config: E.DEFAULTS, note: 'sore elbow', minutes: 50, options });

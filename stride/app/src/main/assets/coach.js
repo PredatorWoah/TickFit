@@ -113,7 +113,7 @@ function coachDraft(responseText, ask, options) {
     if (left[muscle] > 0) left[muscle]--; else if (free > 0 && !(muscle in ask.counts)) free--; else continue;
     seen.add(o.exercise);
     const sets = Math.round(Number(x.sets));
-    const rir = Math.round(Number(x.rir));
+    const rir = x.rir === null || x.rir === undefined || String(x.rir).trim() === '' ? NaN : Math.round(Number(x.rir));
     const kg = parseFloat(String(x.weight || ''));
     const notes = [Number.isFinite(rir) && rir >= 0 && rir <= 5 ? 'Target: '+rir+' reps in reserve.' : '', String(x.why || '').slice(0, 300)].filter(Boolean).join(' ');
     exercises.push({

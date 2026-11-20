@@ -55,12 +55,17 @@ export async function convertWithGemini(docText) {
  * Ask Gemini anything that should come back as JSON, and return the reply text.
  * Throws an Error with a friendly message on any problem.
  */
-export async function askGemini(prompt, { maxTokens = 8192 } = {}) {
+export async function askGemini(prompt, { maxTokens = 8192, signal = null } = {}) {
   const { key, model } = getGeminiConfig();
   if (!key) throw new Error('Add your Gemini API key in More first.');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+  }
   let res;
   try {
     res = await fetch(`${ENDPOINT}${encodeURIComponent(model)}:generateContent`, {
@@ -73,10 +78,12 @@ export async function askGemini(prompt, { maxTokens = 8192 } = {}) {
       }),
     });
   } catch (e) {
+    if (signal && signal.aborted) throw new Error('Stopped.');
     if (e && e.name === 'AbortError') throw new Error('Gemini took too long to answer. Try again, or use a shorter document.');
     throw new Error('Could not reach Gemini. Check your internet connection.');
   } finally {
     clearTimeout(timer);
+    if (signal) signal.removeEventListener('abort', onAbort);
   }
 
   let data = null;
@@ -89,7 +96,7 @@ export async function askGemini(prompt, { maxTokens = 8192 } = {}) {
   if (!res.ok) throw new Error(friendlyHttpError(res.status, data, model));
 
   const cand = data && data.candidates && data.candidates[0];
-  const text = cand && cand.content && cand.content.parts ? cand.content.parts.map((p) => p.text || '').join('') : '';
+  const text = cand && cand.content && cand.content.parts ? cand.content.parts.filter((p) => !p.thought).map((p) => p.text || '').join('') : '';
   if (!text) {
     const block = data && data.promptFeedback && data.promptFeedback.blockReason;
     throw new Error(block ? `Gemini declined to answer (${block}).` : 'Gemini sent back an empty answer. Try again.');

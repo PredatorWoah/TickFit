@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 
 const files = ['sw.js', 'index.html', ...readdirSync('js').filter((f) => f.endsWith('.js')).map((f) => `js/${f}`)];
-const read = (f) => readFileSync(f, 'utf8');
+const read = (f) => readFileSync(f, 'utf8').replace(/\r\n/g, '\n');
 
 let failed = 0;
 const check = (name, ok, extra = '') => {

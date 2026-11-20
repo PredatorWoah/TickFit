@@ -140,7 +140,7 @@ export function parseCoachDraft(text, ask) {
     seen.add(exercise.toLowerCase());
     const named = MUSCLE_ALIASES[str(x.muscle, 30).toLowerCase()];
     const sets = Math.round(Number(x.sets));
-    const rir = Math.round(Number(x.rir));
+    const rir = x.rir === null || x.rir === undefined || String(x.rir).trim() === '' ? NaN : Math.round(Number(x.rir));
     const kg = weightNumber(x.weight);
     all.push({
       exercise,

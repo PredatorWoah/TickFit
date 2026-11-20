@@ -49,14 +49,15 @@ const reply = JSON.stringify({ summary: 'Chest from new angles, biceps with thre
     { exercise: 'Cable Fly', muscle: 'Chest', sets: 2, reps: '12 to 15', rir: 1, rest: '90 s', weight: '15 kg', why: '' },
     { exercise: 'Pec Deck', muscle: 'Chest', sets: 2, reps: '15', rir: 1, rest: '60 s', weight: '', why: 'one too many' },
     { exercise: 'Incline Dumbbell Curl', muscle: 'Biceps', sets: 99, reps: '10', rir: 9, rest: '90 s', weight: '1200 kg', why: 'x' },
-    { exercise: 'Preacher Curl', muscle: 'Biceps', sets: 3, reps: '10 to 12', rir: 2, rest: '90 s', weight: '', why: '' },
+    { exercise: 'Preacher Curl', muscle: 'Biceps', sets: 3, reps: '10 to 12', rir: null, rest: '90 s', weight: '', why: '' },
     { exercise: 'Hammer Curl', muscle: 'Biceps', sets: 3, reps: '10 to 12', rir: 2, rest: '90 s', weight: '', why: '' },
   ] });
 const draft = parseCoachDraft('Here you go:\n```json\n' + reply + '\n```', ask);
 ok(draft && draft.exercises.length === 6, 'a 4th chest exercise is dropped (asked for 3)');
 ok(draft.exercises[1].muscle === 'Chest', 'muscle names are matched loosely');
 const curl = draft.exercises.find((x) => x.exercise === 'Incline Dumbbell Curl');
-ok(curl.sets === 3 && curl.rir === null && curl.weight === '', 'silly sets, RIR and weights are not trusted');
+const preacher = draft.exercises.find((x) => x.exercise === 'Preacher Curl');
+ok(curl.sets === 3 && curl.rir === null && curl.weight === '' && preacher.rir === null, 'silly sets, RIR and weights are not trusted, null RIR stays null');
 ok(draft.warnings.some((w) => /1 Biceps missing/.test(w)), 'one biceps short: it says so');
 ok(parseCoachDraft('no json at all', ask) === null, 'a reply without JSON is refused');
 ok(draftLabel(draft) === 'Chest + Biceps', 'the day takes the muscles as its name');

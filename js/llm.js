@@ -213,16 +213,24 @@ export function retryAtFrom(headers, attempt = 0, now = Date.now()) {
 const QUOTA_WORDS = /quota|rate.?limit|resource.?exhausted|insufficient.?quota|too many requests|usage limit|credit/i;
 
 async function send(url, init, attempt = 0) {
+  const { signal: outerSignal, ...rest } = init || {};
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (outerSignal) {
+    if (outerSignal.aborted) controller.abort();
+    else outerSignal.addEventListener('abort', onAbort, { once: true });
+  }
   let res;
   try {
-    res = await fetch(url, { ...init, signal: controller.signal });
+    res = await fetch(url, { ...rest, signal: controller.signal });
   } catch (e) {
+    if (outerSignal && outerSignal.aborted) throw new Error('Stopped.');
     if (e && e.name === 'AbortError') throw new Error('The AI took too long to answer. Try again.');
     throw new Error('Could not reach the AI. Check the internet connection (some networks block it).');
   } finally {
     clearTimeout(timer);
+    if (outerSignal) outerSignal.removeEventListener('abort', onAbort);
   }
   if (res.ok) return res;
   let msg = '';
@@ -242,12 +250,12 @@ async function send(url, init, attempt = 0) {
 }
 
 /** OpenAI-style chat (OpenAI and OpenRouter). */
-async function chatCompat(base, key, model, prompt, system, maxTokens, isOpenAI, extraHeaders = {}) {
+async function chatCompat(base, key, model, prompt, system, maxTokens, isOpenAI, extraHeaders = {}, signal = null) {
   const messages = [...(system ? [{ role: 'system', content: system }] : []), { role: 'user', content: prompt }];
   const body = { model, messages };
   if (isOpenAI) body.max_completion_tokens = maxTokens;
   else body.max_tokens = maxTokens;
-  const res = await send(`${base}/chat/completions`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}`, ...extraHeaders }, body: JSON.stringify(body) });
+  const res = await send(`${base}/chat/completions`, { method: 'POST', signal, headers: { 'content-type': 'application/json', Authorization: `Bearer ${key}`, ...extraHeaders }, body: JSON.stringify(body) });
   const data = await res.json();
   // OpenRouter can answer 200 with an error from the model's host inside
   if (data && data.error && !data.choices) throw new Error(`The AI said no${data.error.message ? `: ${String(data.error.message).slice(0, 200)}` : ''}.`);
@@ -257,26 +265,26 @@ async function chatCompat(base, key, model, prompt, system, maxTokens, isOpenAI,
 }
 
 /** OpenRouter: every model speaks the OpenAI chat format. With no model chosen yet, a free one is picked. */
-async function askOpenRouter(key, model, prompt, system, maxTokens) {
+async function askOpenRouter(key, model, prompt, system, maxTokens, signal = null) {
   if (!model) {
     model = pickModel(await listModels('openrouter'));
     if (!model) throw new Error('No free model is available on OpenRouter right now. Pick one in More.');
     saveConfig('openrouter', { key, model });
   }
   // the app's name, as OpenRouter asks (it shows on their usage page)
-  return chatCompat(OPENROUTER_BASE, key, model, prompt, system, maxTokens, false, { 'X-Title': 'TickFit' });
+  return chatCompat(OPENROUTER_BASE, key, model, prompt, system, maxTokens, false, { 'X-Title': 'TickFit' }, signal);
 }
 
 /** One try with the active provider. */
-async function askOnce(prompt, { system = '', maxTokens = 4000, effort = 'low' } = {}, attempt = 0) {
+async function askOnce(prompt, { system = '', maxTokens = 4000, effort = 'low', signal = null } = {}, attempt = 0) {
   const p = activeProvider();
   if (!p) throw new Error('Turn on AI helpers and add a key in More first.');
   const { key, model } = getConfig(p.id);
   try {
     if (p.id === 'claude') return await askClaude(system ? `${system}\n\n${prompt}` : prompt, { maxTokens, effort });
-    if (p.id === 'gemini') return await askGemini(system ? `${system}\n\n${prompt}` : prompt, { maxTokens });
-    if (p.id === 'openai') return await chatCompat(OPENAI_BASE, key, model, prompt, system, maxTokens, true);
-    return await askOpenRouter(key, model, prompt, system, maxTokens);
+    if (p.id === 'gemini') return await askGemini(system ? `${system}\n\n${prompt}` : prompt, { maxTokens, signal });
+    if (p.id === 'openai') return await chatCompat(OPENAI_BASE, key, model, prompt, system, maxTokens, true, {}, signal);
+    return await askOpenRouter(key, model, prompt, system, maxTokens, signal);
   } catch (e) {
     // claude.js and gemini.js throw plain Errors: spot their quota messages too
     if (!(e instanceof QuotaError) && !(e && e.final) && QUOTA_WORDS.test(String(e && e.message))) throw new QuotaError(e.message, retryAtFrom(null, attempt));
