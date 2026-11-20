@@ -111,19 +111,19 @@ jobs:
           node scripts/customize.mjs
           npx cap sync android
 
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       - name: Build the APK
         working-directory: android-app/android
         run: |
           chmod +x gradlew
           if [ "${{ steps.ver.outputs.signed }}" = "true" ]; then
-            ./gradlew --no-daemon assembleRelease
+            ./gradlew --no-daemon --max-workers=2 assembleRelease
           else
-            ./gradlew --no-daemon assembleDebug
+            ./gradlew --no-daemon --max-workers=2 assembleDebug
           fi
-
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
 
       - name: Build Stride
         env:
@@ -133,7 +133,7 @@ jobs:
           set -e
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
           if [ "${{ steps.ver.outputs.signed }}" = "true" ]; then TASK=assembleRelease; else TASK=assembleDebug; fi
-          gradle -p stride --no-daemon ":app:$TASK" -PstrideVersionName="$VERSION_NAME" -PstrideVersionCode="$VERSION_CODE"
+          gradle -p stride --no-daemon --max-workers=2 ":app:$TASK" -PstrideVersionName="$VERSION_NAME" -PstrideVersionCode="$VERSION_CODE"
 
       - name: Sign the release APKs
         if: steps.ver.outputs.signed == 'true'
